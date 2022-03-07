@@ -1,0 +1,10 @@
+Increase Load 30p
+Receive (CV Train Val)
+-19.324468  16.314477  17.566940
+-19.324468 (1.456106) with: {'bootstrap': True, 'max_features': 'auto', 'min_samples_leaf': 20, 'min_samples_split': 10, 'n_estimators': 75}
+
+Density
+831  -20.089998  15.434317  18.580523
+-20.089998 (1.297127) with: {'bootstrap': False, 'max_features': 'sqrt', 'min_samples_leaf': 5, 'min_samples_split': 30, 'n_estimators': 75}
+
+
