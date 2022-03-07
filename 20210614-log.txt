@@ -1,0 +1,27 @@
+Day: 14-06-2021
+
+Current state:
+fil.algorithm.CR is official (update linkmapping), now its acceptance rate
+is competitive with Full Remapping
+
+Future works:
+
+1. "benchmark" method in Topology may yield bad result after 
+changing unassigned VNF's resource consumption values in migration test-bed
+
+2. ML model is out-of-date, need a new one
+
+3. After having new ML models, please reconsider CR power (currently it's
+much higher than REAP) 
+
+4. If REAP receives new LinkMapping like CR, then its acceptance rate is
+also competitive
+
+Day: 16-06-2021
+
+Current state: 
+Haven't yet solved 14-06 problems
+Change many class following SFCPlanner project to get a unified project with better coding
+
+Future works:
+Fix 14-06 problems
