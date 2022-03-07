@@ -1,51 +1,40 @@
-from sim.Simulator import *
-from sim.Application import *
-from sim.SFC import *
-from sim.Distribution import *
-from sim.Selector import *
-from library import *
+from SFCSimulator.Placement import *
+from SFCSimulator.Population import *
+from SFCSimulator.Topology import *
+from SFCSimulator.Simulator import *
 
 from pathlib import Path
-import sys
-import json
 
-
+RANDOM_SEED = 1
 
 def main():
-    # define log file
+
+    random.seed(RANDOM_SEED)
+    np.random.seed(RANDOM_SEED)
+    
     folder_log = Path("results")
     folder_log.mkdir(parents=True, exist_ok=True)
     folder_log = str(folder_log) + "/result"
 
-    # create physical topology
-    switchSpecs = {
-        "basePower": 39,
-        "portPower": [0.42, 0.48, 0.9]
-    }
-    serverSpecs = {
-        "RAM": 4,
-        "power": [205.1, 232.9, 260.7, 288.6, 316.4]
-    }
-    t = fat_tree(4, switchSpecs, serverSpecs)
+    topo = Topology()
+    topo.mk_topo(4)
 
-    distribution = Poisson(lamda=8)
-    selector = SimpleSelector()
+    # Placement Algorithm
+    placement = VNFs_placement(topo, 4)
 
-    # create one app
-    avg_TTL = 120 # average time_to_live of SFC, exponential distribution
-    n_VNFs_range = [4, 20] # number of VNFs per SFC, uniform distribution
-    bw_range = [10, 90] # bw for each virtual link, uniform distribution
-    arg = [avg_TTL, n_VNFs_range, bw_range]
-    app = SimpleApplication("SimpleApp", distribution, selector, *arg)
-    
-    # create a list of apps to put into simulator
-    apps = [app]
+    number_of_vnfs = placement.num_VNFs()   # 64
+    vnfs = [0,number_of_vnfs-1]       # 0->63
+    VNFs_random_for_SFC = [4,20]
 
-    sim = Simulator(t, apps, folder_log)
-    sim.run(120) # runtime = 120 minutes
+    SFC_placement = SFC_request(VNFs_random_for_SFC, vnfs)
 
+    # Population Algorithm
+    simulate_time = 24*60*60     # second
+    population = SFC_population(simulate_time, 8, 2*60*60)
 
+    # Simulate Application
+    simu = Simulator(topo, placement, SFC_placement, population)
+    simu.run_simulate()
 
-if __name__ == "__main__":
-    print("-----START SIMULATION-----")
+if __name__ == '__main__':
     main()
