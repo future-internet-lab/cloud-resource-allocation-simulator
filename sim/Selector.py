@@ -29,56 +29,52 @@ class SimpleSelector(Selector):
         pass
 
 
-    def analyse(self, topo, sfc):
-        _topo = copy.deepcopy(topo)
+    def analyse(self, DC, sfc):
+        topo = copy.deepcopy(DC.topo)
+
         def randPlacement(bin, package):
             n_bin = len(bin)
             n_package = len(package)
+            arg = round(5 / 4 * pow(4 * n_bin, 2/3) + 1)
             alloc = [-1] * n_package
             for i in range(n_package):
                 for _ in range(1, 20):
                     idx = np.random.randint(0, n_bin)
                     if(bin[idx] > package[i]):
                         bin[idx] -= package[i]
-                        alloc[i] = idx + 21
+                        alloc[i] = idx + arg
                         break
-                    return -1
+                    return 0
 
             return alloc
 
         # alloc vnf to server
         serverCap = []
-        for node in list(_topo.nodes.data()):
-            if(node[1]["model"] == "server"): serverCap.append(node[1]["RAM"])
+        for node in list(topo.nodes.data()):
+            if(node[1]["model"] == "server"): serverCap.append(node[1]["RAM"][0] - node[1]["RAM"][1])
         vnfCap = []
-        for vnf in list(sfc["structure"].nodes.data()):
+        for vnf in list(sfc["struct"].nodes.data()):
             vnfCap.append(vnf[1]["RAM"])
-        # print(serverCap)
+        
         alloc = randPlacement(serverCap, vnfCap)
-        # print(alloc)
 
-        # print("n_vnf =", len(sfc.structure.nodes))
-        if(alloc != -1):
-            deploy = {"sfc": sfc["id"], "node": [], "link": []}
+        if(alloc):
+            deploy = {"node": [], "link": []}
 
-            for vnf in list(sfc["structure"].nodes.data()):
+            for vnf in list(sfc["struct"].nodes.data()):
                 c_server = alloc[vnf[0]] # the choosen server
                 deploy["node"].append([vnf[0], c_server])
-                vnf[1]["onServer"] = c_server
-                # if(not str(sfc.id) in _topo.nodes[c_server]["deployed"].keys()): 
-                #     _topo.nodes[c_server]['deployed'][str(sfc.id)] = []
-                # _topo.nodes[c_server]['deployed'][str(sfc.id)].append(vnf[0])
-                _topo.nodes[c_server]['deployed'].append([sfc["id"], vnf[0]])
+                vnf[1]["place"] = [DC.id, c_server]
 
-
-            for vnf in range(len(sfc["structure"].nodes) - 1):
-                s = sfc["structure"].nodes[vnf]["onServer"]
-                d = sfc["structure"].nodes[vnf + 1]["onServer"]
-                v_link = sfc["structure"].edges[vnf, vnf + 1]
-                for p_link in list(_topo.edges.data()):
-                    if(p_link[2]["bw"] - p_link[2]['usage'] < v_link["bw"]): _topo.remove_edge(p_link[0], p_link[1])
+            for vnf in range(len(sfc["struct"].nodes) - 1):
+                s = sfc["struct"].nodes[vnf]["place"][1]
+                d = sfc["struct"].nodes[vnf + 1]["place"][1]
+                v_link = sfc["struct"].edges[vnf, vnf + 1]
+                for p_link in list(topo.edges.data()):
+                    if(p_link[2]["bw"][0] - p_link[2]['bw'][1] < v_link["bw"]):
+                        topo.remove_edge(p_link[0], p_link[1])
                 try:
-                    route = nx.shortest_path(_topo, s, d)
+                    route = nx.shortest_path(topo, s, d)
                 except:
                     return False
                 deploy["link"].append({
@@ -86,9 +82,14 @@ class SimpleSelector(Selector):
                     "route": route
                 })
 
-            # print(json.dumps(deploy))
+            deploy["sfc"] = sfc
+            # print(deploy)
             return deploy
-            # deploy has format like deploy in formdata.py     
+
+            return {
+                "deploy": deploy, # deploy guide
+                "sfc": sfc # sfc status
+            }
 
         else: return False
                 

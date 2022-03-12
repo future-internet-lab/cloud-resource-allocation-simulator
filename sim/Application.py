@@ -20,7 +20,7 @@ class Application(ABC):
 
     # create SFC by a pattern (SFC topo)
     @abstractmethod
-    def generate_SFC(self): pass
+    def create_SFC(self): pass
 
 
 
@@ -33,7 +33,7 @@ class SimpleApplication(Application):
         super().__init__(name, distribution, selector, *arg)
 
 
-    def generate_SFC(self, id):
+    def create_SFC(self, id):
         n_VNFs = np.random.randint(self.arg[1][0], self.arg[1][1] + 1)
         G = nx.Graph()
         for i in range(n_VNFs - 1):
@@ -42,6 +42,7 @@ class SimpleApplication(Application):
             G.nodes[i]["RAM"] = 1
         G.nodes[n_VNFs - 1]["SFC"] = id
         G.nodes[n_VNFs - 1]["RAM"] = 1
+        out_link = np.random.randint(self.arg[2][0], self.arg[2][1] + 1)
         time_to_live = round(np.random.exponential(scale=self.arg[0]))
-        return [G, time_to_live]
+        return [G, out_link, time_to_live]
         # G in networkx.Graph() format, node and edge has fields like sfc["structure"] in formdata.py

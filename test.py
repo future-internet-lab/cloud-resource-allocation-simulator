@@ -1,54 +1,25 @@
-from re import A
 from library import *
 
 import networkx as nx
 import numpy as np
 import simpy
+import copy
 import matplotlib.pyplot as plt
+import sys
+import os
+import csv
 
 import json
 import random
 
+f = open('log.txt', 'w+', newline="\n")
 
+diction = {
+    "name": "John",
+    "age": 34,
+    "marks": [9, 8, 10]
+}
 
-# def fat_tree(k, switchSpecs, serverSpecs):
-#     lastCore = int((k/2)**2)
-#     lastAggre = int(lastCore + k**2 / 2)
-#     lastEdge = int(lastAggre  + k**2 / 2)
-#     lastServer = int(lastEdge + k**3 / 4)
-
-#     G = nx.Graph()
-
-#     for i in range(lastServer): G.add_node(i + 1)
-
-#     for pod in range(k): # create all links
-#         for aggre in range(int(k / 2)):
-#             for i in range(int(k / 2)):
-#                 G.add_edge(int(lastCore+pod*k/2+aggre+1), int(2*lastCore/k*aggre+i+1), bw=1000)
-#                 G.add_edge(int(lastCore+pod*k/2+aggre+1), int(lastAggre+pod*k/2+i+1), bw=1000)
-#                 G.add_edge(int(lastAggre+pod*k/2+i+1), int(lastEdge+pod*k**2/4+k/2*i+aggre+1), bw=1000)
-
-
-#     for type in ["core", "aggregation", "edge"]:
-#         if(type == "core"): rangeSwitch = [1, lastCore + 1]
-#         if(type == "aggregation"): rangeSwitch = [lastCore + 1, lastAggre + 1]
-#         if(type == "edge"): rangeSwitch = [lastAggre + 1, lastEdge + 1]
-
-#         for switchID in range(*rangeSwitch):
-#             G.nodes[switchID]['model'] = 'switch'
-#             G.nodes[switchID]['tag'] = type
-#             for index in switchSpecs:
-#                 G.nodes[switchID][index] = switchSpecs[index]
-
-#         for serverID in range(lastEdge + 1, lastServer + 1):
-#             G.nodes[serverID]['model'] = 'server'
-#             for index in serverSpecs:
-#                 G.nodes[serverID][index] = serverSpecs[index]
-
-#     return G
-
-def func():
-    return [1, 2]
 
 switchSpecs = {
     "basePower": 39,
@@ -56,13 +27,45 @@ switchSpecs = {
 }
 
 serverSpecs = {
-    "RAM": 4,
+    "RAM": [4, 0],
     "power": [205.1, 232.9, 260.7, 288.6, 316.4]
 }
-G = fat_tree(4, switchSpecs, serverSpecs)
 
-for i in range(0):
-    print("a")
+# print(json.dumps(dict(G.nodes.data())))
+
+class A():
+    def __init__(self):
+        self.value = 1
+
+    def function(self):
+        copy.copy(self).increase()
+
+    def increase(self):
+        self.value += 1
+
+    def copy(self):
+        other = copy.deepcopy(self)
+        return other
+
+# G = fat_tree(4, switchSpecs, serverSpecs)
+# topo = json.loads(topo)
+# print(topo)
+
+G = nx.waxman_graph(8, alpha=0.5, beta=0.5)
+
+time = [1, 2, 3, 4, 5, 6, 7, 8]
+power = [8, 7, 6, 5, 4, 3, 2, 1]
+u = [4, 4, 4, 4, 4, 4, 4, 4, 4]
+
+# with open("results/result_event.csv", "r") as f:
+#     data = csv.reader(f)
+#     for row in data:
+#         if row[2] == "deployed" or row[2] == "remove":
+#             time.append(int(row[1]))
+#             power.append(float(row[9]))
+
+plt.plot(time, power, u)
+plt.show()
 
 
 # try:
@@ -94,4 +97,12 @@ for i in range(0):
 # print("route =", route)
 # print("G =", G)
 # print("tempG =", tempG)
+
+
+
+# def set_node_attr(id, attributes):
+#     for attr in attributes.items():
+#         G.nodes[id][attr[0]] = attr[1]
+
+
 

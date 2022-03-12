@@ -27,9 +27,9 @@ def fat_tree(k, switchSpecs, serverSpecs):
     for pod in range(k): # create all links
         for aggre in range(int(k / 2)):
             for i in range(int(k / 2)):
-                G.add_edge(int(lastCore+pod*k/2+aggre+1), int(2*lastCore/k*aggre+i+1), bw=1000, usage=0)
-                G.add_edge(int(lastCore+pod*k/2+aggre+1), int(lastAggre+pod*k/2+i+1), bw=1000, usage=0)
-                G.add_edge(int(lastAggre+pod*k/2+i+1), int(lastEdge+pod*k**2/4+k/2*i+aggre+1), bw=1000, usage=0)
+                G.add_edge(int(lastCore+pod*k/2+aggre+1), int(2*lastCore/k*aggre+i+1), bw=[1000, 0])
+                G.add_edge(int(lastCore+pod*k/2+aggre+1), int(lastAggre+pod*k/2+i+1), bw=[1000, 0])
+                G.add_edge(int(lastAggre+pod*k/2+i+1), int(lastEdge+pod*k**2/4+k/2*i+aggre+1), bw=[1000, 0])
 
 
     for type in ["core", "aggregation", "edge"]:
@@ -40,7 +40,7 @@ def fat_tree(k, switchSpecs, serverSpecs):
         for switchID in range(*rangeSwitch):
             G.nodes[switchID]['model'] = 'switch'
             G.nodes[switchID]['tag'] = type
-            G.nodes[switchID]['status'] = "off"
+            G.nodes[switchID]['status'] = False
             for index in switchSpecs:
                 G.nodes[switchID][index] = switchSpecs[index]
 
@@ -49,5 +49,35 @@ def fat_tree(k, switchSpecs, serverSpecs):
             G.nodes[serverID]['deployed'] = []
             for index in serverSpecs:
                 G.nodes[serverID][index] = serverSpecs[index]
+
+    return G
+
+
+def DistributedTopo():
+    G = nx.Graph()
+
+    G.add_edge(1, 2, bw=[10000, 0])
+    G.add_edge(1, 12, bw=[10000, 0])
+    G.add_edge(2, 3, bw=[10000, 0])
+    G.add_edge(2, 12, bw=[10000, 0])
+    G.add_edge(3, 5, bw=[10000, 0])
+    G.add_edge(3, 10, bw=[10000, 0])
+    G.add_edge(4, 5, bw=[10000, 0])
+    G.add_edge(4, 6, bw=[10000, 0])
+    G.add_edge(5, 9, bw=[10000, 0])
+    G.add_edge(6, 7, bw=[10000, 0])
+    G.add_edge(7, 9, bw=[10000, 0])
+    G.add_edge(8, 9, bw=[10000, 0])
+    G.add_edge(9, 10, bw=[10000, 0])
+    G.add_edge(10, 11, bw=[10000, 0])
+    G.add_edge(11, 12, bw=[10000, 0])
+
+    for i in range(1, 13):
+        if(i in [1, 4, 6, 11]):
+            G.nodes[i]["role"] = "DataCentre"
+        elif(i in [5, 7, 9, 10]):
+            G.nodes[i]["role"] = "Ingress"
+        else:
+            G.nodes[i]["role"] = "Switch"
 
     return G
