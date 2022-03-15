@@ -21,14 +21,23 @@ class Simulator():
         self.SFCs = []
 
         self.reqQueue = simpy.Store(self.env)
+
         self.considerPipes = []
         for DC in self.DataCentres:
             DC.create_pipe(self)
             self.considerPipes.append(DC.considerPipe)
         self.considerResults = simpy.Store(self.env)
 
+        # self.SFCs = []
+
+        self.SFCs = {
+            "all": [],
+            "running": [],
+            "accepted": [],
+            "failed": []
+        }
+
         self.SFCcounter = 0
-        self.SFCfailed = 0
 
 
 
@@ -46,18 +55,18 @@ class Simulator():
             while received < len(self.DataCentres):
                 result = yield self.considerResults.get()
                 received += 1
-                if(result["deploy"]):
+                if(result): # result["deploy"] is sfc after analysing
                     topo = copy.deepcopy(self.topology)
-                    # print("received SFCid = ", result['deploy']['sfc']['id'])
+                    sfc = result["sfc"]
                     for p_link in list(topo.edges.data()):
                         if(p_link[2]["bw"][0] - p_link[2]['bw'][1] < sfc["outlink"]):
                             topo.remove_edge(p_link[0], p_link[1])
                     try:
-                        route = nx.shortest_path(topo, sfc["ingress"], result["DCid"])
+                        route = nx.shortest_path(topo, sfc["Ingress"], sfc["DataCentre"])
                     except:
                         failed += 1
                     if(len(route) > 0): # exist route
-                        if(not power):
+                        if(power == 0):
                             power = result["deltaPower"]
                             step = len(route)
                             deploy = {**result, "route": route}
@@ -69,12 +78,13 @@ class Simulator():
                     else: failed += 1
                 else: failed += 1
             if(failed == len(self.DataCentres)):
-                self.SFCfailed += 1
-                self.logger.log_event(self.time(), self.logger.DROP, SFC=sfc)
+                self.SFCs["failed"].append(sfc["id"])
+                self.logger.log_event(self.time(), self.logger.DROP, SFC=sfc, sim=self)
                 # print(f"{self.time()}: SFC-{sfc['id']} has been dropped")
             else:
-                print(f"{self.time()}: SFC-{deploy['deploy']['sfc']['id']} has been deployed in DC-{deploy['DCid']} and use deltaPower = {power}")
-                [DC for DC in self.DataCentres if DC.id == deploy['DCid']][0].deployer(deploy, self)
+                self.SFCs["accepted"].append(sfc["id"])
+                print(f"{self.time()}: SFC-{deploy['sfc']['id']} has been deployed in DC-{deploy['sfc']['DataCentre']} and use deltaPower = {power}")
+                [DC for DC in self.DataCentres if DC.id == deploy['sfc']['DataCentre']][0].deployer(deploy, self)
 
 
 
@@ -93,7 +103,10 @@ class Simulator():
 
         self.env.run(until=runtime)
         self.logger.close()
+
         print()
-        print(f"total: {self.SFCcounter} SFCs")
-        print(f"failed: {self.SFCfailed} SFCs")
-        print(f"acceptance ratio: {round((self.SFCcounter - self.SFCfailed) / self.SFCcounter * 100, 1)}%")
+        total = len(self.SFCs['all'])
+        failed = len(self.SFCs['failed'])
+        print(f"total: {total} SFCs")
+        print(f"failed: {failed} SFCs")
+        print(f"acceptance ratio: {round((total - failed) / total * 100, 1)}%")

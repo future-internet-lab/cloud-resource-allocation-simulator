@@ -13,7 +13,7 @@ class Logger():
 
     def __init__(self, folder_log=None):
         # definition of .csv fields
-        eventFields = ["id", "time", "action", "ingress", "DC", "app", "SFC", "n_VNFs", "TTL", "n_SFCs", "running", "failed", "power"]
+        eventFields = ["id", "time", "action", "ingress", "DC", "app", "SFC", "n_VNFs", "TTL", "all", "running", "accepted", "failed", "DC-power"]
         energyFields = ["id", "time", "P_Servers", "P_Switches", "E_All"]
 
         path = "result"
@@ -36,18 +36,28 @@ class Logger():
         self.__countEnergy = 0
 
     
-    def log_event(self, time, action, ingress="-", DC="-", appname="-", SFC=None, n_SFCs="-", running="-", failed="-", power="-", topo="-"):
+    # def log_event(self, time, action, ingress="-", DC="-", appname="-", SFC=None, n_SFCs="-", running="-", failed="-", power="-", topo="-"):
+    def log_event(self, time, action, SFC, sim, DCpower="-", topo="-"):
         self.__countEvent += 1
+        ingress = "-"
+        DC = "-"
         if(action == self.CREATE):
-            print(f"{time}: Ingress-{ingress} create SFC-{SFC['id']} with {len(SFC['struct'].nodes)} VNFs, TTL = {SFC['TTL']}")
-            # print(f"{time}: {action} SFC-{SFC}, {n_VNFs} VNFs, TTL = {TTL}")
+            ingress = SFC['Ingress']
+            print(f"{time}: Ingress-{SFC['Ingress']} create SFC-{SFC['id']} with {len(SFC['struct'].nodes)} VNFs, TTL = {SFC['TTL'][0]}")
         if(action == self.DROP):
             print(f"{time}: {action} SFC-{SFC['id']}")
         if(action == self.DEPLOYED):
-            print(f"{time}: {action} SFC-{SFC['id']} on DC-{DC}")
+            DC = SFC['DataCentre']
+            print(f"{time}: {action} SFC-{SFC['id']} on DC-{SFC['DataCentre']}")
         if(action == self.REMOVE):
-            print(f"{time}: {action} SFC-{SFC['id']} on DC-{DC}")
-        self.__wEvent.writerow([self.__countEvent, time, action, ingress, DC, appname, SFC['id'], len(SFC['struct'].nodes), SFC['TTL'], n_SFCs, running, failed, power])
+            DC = SFC['DataCentre']
+            print(f"{time}: {action} SFC-{SFC['id']} on DC-{SFC['DataCentre']}")
+
+        self.__wEvent.writerow([self.__countEvent, time, action,
+            ingress, DC, SFC['app'].name, SFC['id'], len(SFC['struct'].nodes),
+            SFC['TTL'][0], len(sim.SFCs["all"]), sim.SFCs["running"],
+            sim.SFCs["running"], sim.SFCs["failed"], DCpower])
+
         if(topo != "-"):
             topo = json.dumps({"event": self.__countEvent, **(json.loads(topo))})
             self.__fTopo.write(topo + ",")
