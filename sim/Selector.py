@@ -154,7 +154,7 @@ class WaxmanSelector_0(Selector):
                 _topo = copy.deepcopy(topo)
                 v_link = sfc["struct"].edges[i, j]
                 # print()
-                print("v_link = sfcbw", sfc["struct"].edges[i, j]["bw"], v_link["bw"])
+                # print(sfc["struct"].edges[i, j]["bw"], v_link["bw"])
                 for p_link in list(topo.edges.data()):
                     # print(p_link[2]["bw"][1], p_link[2]['bw'][0])
                     if(p_link[2]["bw"][0] - p_link[2]['bw'][1] < v_link["bw"]):
@@ -169,12 +169,8 @@ class WaxmanSelector_0(Selector):
                             topo.edges[route[i], route[i+1]]['bw'][0],
                             topo.edges[route[i], route[i+1]]['bw'][1] + v_link["bw"]
                         ]
-
+                    # print(sfc["struct"].edges[i, j]["bw"], v_link["bw"])
                     sfc["struct"].edges[i, j]["bw"] = v_link["bw"]
-                    if(sfc["struct"].edges[i, j]["bw"] != v_link["bw"]):
-                        print("----------------------------after routing", sfc["struct"].edges[i, j]["bw"], v_link["bw"])
-                        exit()
-                    
                     sfc["struct"].edges[i, j]["route"] = route
                 except:
                     print(f"cannot routing from {s} to {d}")
@@ -192,8 +188,6 @@ class WaxmanSelector_0(Selector):
 
         else:
             return False
-
-
 
 
 class WaxmanSelector(Selector):
@@ -302,35 +296,28 @@ class WaxmanSelector(Selector):
             for (i, j) in sfc["struct"].edges:
                 s = sfc["struct"].nodes[i]["server"]
                 d = sfc["struct"].nodes[j]["server"]
-                _topo = fat_tree(round((len(serverCap)*4)**(1/3)))
                 if s == d: continue
+                # print('s:',s,'d:',d)
+                _topo = fat_tree(round((len(serverCap)*4)**(1/3)))
                 v_link = sfc["struct"].edges[i, j]
                 for p_link in list(topo.edges.data()):
                     if(p_link[2]["bw"][0] - p_link[2]['bw'][1] < v_link["bw"]):
                         _topo.remove_edge(p_link[0], p_link[1])
                 try:
                     route = nx.shortest_path(_topo, s, d)
-                    for i in range(len(route)-1):
-                        topo.edges[route[i],route[i+1]]['bw'] = [
-                            topo.edge[route[i],route[i+1]]['bw'][0],
-                            topo.edge[route[i],route[i+1]]['bw'][1] + v_link["bw"]
+                    # print(route)
+                    for a in range(len(route)-1):
+                        topo.edges[route[a],route[a+1]]['bw'] = [
+                            topo.edges[route[a],route[a+1]]['bw'][0],
+                            topo.edges[route[a],route[a+1]]['bw'][1] + v_link["bw"]
                         ]
                     sfc["struct"].edges[i, j]["bw"] = v_link["bw"]
                     sfc["struct"].edges[i, j]["route"] = route
                 except:
                     return False
-                # deploy["link"].append({
-                #     "bw": v_link["bw"],
-                #     "route": route
-                # })
-            
-            # deploy["sfc"] = sfc
-            # print(deploy["sfc"]["id"])
-            # exit()
             
             sfc["DataCentre"] = DC.id
 
             return copy.deepcopy(sfc)
-            # deploy has format like deploy in formdata.py     
 
         else: return False
