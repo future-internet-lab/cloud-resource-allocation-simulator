@@ -40,13 +40,14 @@ def fat_tree(k, switchSpecs, serverSpecs):
         for switchID in range(*rangeSwitch):
             G.nodes[switchID]['model'] = 'switch'
             G.nodes[switchID]['tag'] = type
-            G.nodes[switchID]['status'] = False
+            G.nodes[switchID]['state'] = False
             for index in switchSpecs:
                 G.nodes[switchID][index] = switchSpecs[index]
 
         for serverID in range(lastEdge + 1, lastServer + 1):
             G.nodes[serverID]['model'] = 'server'
             G.nodes[serverID]['deployed'] = []
+            G.nodes[serverID]['state'] = True
             for index in serverSpecs:
                 G.nodes[serverID][index] = serverSpecs[index]
 

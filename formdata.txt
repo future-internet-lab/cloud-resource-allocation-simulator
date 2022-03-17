@@ -38,11 +38,6 @@ topology : networkx.Graph() = {
 
 
 
-sim = Sumulator(topology, folder_log, )
-
-
-
-
 
 class Simulator {
     env = simpy.Environment()
@@ -58,7 +53,6 @@ class Simulator {
         edge: [
             (1, 2, {
                 "bw": [10000, 131], // [capacity, usage]
-                "pr": 0
             })
         ]
     }
@@ -82,26 +76,29 @@ class Application() {
 
 SFC = {
     "id": 1,
-    "app": "SimpleCase"
+    "app": Application(),
     "outLink": 56, // bandwidth of out link which connect this SFC in DC to Ingress
+    "ingress": 5,
+    "DataCentre": 2
     "struct" : networkx.Graph() = {
         node: [
             (1, { // vnf id start from 1
                 "SFC": 1 // belong to SFC-1
                 "RAM": 1 // always = 1
-                "place": [2, 3] // [DataCentre, server]
+                "server": 3
             })
         ],
         edges : [
             (1, 2, {
                 "bw": 12 // bw of virtual link
+                "route": [1, 2, 3, 4, 5]
             })
         ]
     }
-    "TTL": 32
+    "TTL": [32, 13] // [original, ramain]
 }
 
-Selector.analyse() = {
+Selector.analyse(DataCentre, sfc) = {
     "node": [
         [0, 25], // [vnf, server]
         [1, 23]
@@ -116,56 +113,24 @@ Selector.analyse() = {
 }
 
 
-class Distribution {
-
-}
-
-class Selector {
-    analyse(DataCentre.topology, SFC) {
-        _topo = DataCentre.topology.deepcopy() //IMPORTANT: make sure that this function doesnt change status of node and link in topo
-        if(can deploy):
-            return result = {
-                "deploy": { // mandatory field
-                    "sfc": "1",
-                    "node": [
-                        [0, 25], // [vnf, server]
-                        [1, 23]
-                    ],
-                    "link": [
-                        {
-                            "bw": 60,
-                            "route": [26, 15, 7, 1, 5, 14, 24]
-                        }
-                    ]
-                }
-            }
-    }
-}
-
-
-
-class Ingress {
-    apps = [] // list of Application
-}
-
-
 class DataCentre: {
     topology : networkx.Graph() = {
         node: [ // node id start from 1
             (1, {
                 "model": "switch", // ["switch", "server"]
                 "tag": "core", // ["core", "aggregation", "edge"]
-                "status": True // [True, False]
+                "state": True // [True, False]
                 "basePower": 39,
                 "portPower": [0.42, 0.48, 0.9],
             }),
             (2, {
                 "model": "server",
-                "RAM": [4, 0] // [capacity, usage]
-                "power": [205.1, 232.9, 260.7, 288.6, 316.4],
                 "deployed": [
                     [1, 0], [2, 3], [2, 5], [3, 2]
-                ] // [sfc, vnf]
+                ], // [sfc, vnf]
+                "state": False, // [True, False]
+                "RAM": [4, 0] // [capacity, usage]
+                "power": [205.1, 232.9, 260.7, 288.6, 316.4],
             })
         ],
         edge: [

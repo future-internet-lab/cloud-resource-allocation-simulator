@@ -70,6 +70,7 @@ class WaxmanApp(Application):
             G.nodes[i]["server"] = False
         out_link = np.random.randint(self.arg[2][0], self.arg[2][1] + 1)
         time_to_live = round(np.random.exponential(scale=self.arg[0]))
+        if time_to_live == 0: time_to_live = 1
 
         # nx.draw(G, with_labels=True, font_weight='bold')
         # plt.show()

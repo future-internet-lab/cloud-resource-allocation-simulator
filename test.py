@@ -1,3 +1,4 @@
+from http import server
 from library import *
 
 import networkx as nx
@@ -20,6 +21,26 @@ diction = {
     "marks": [9, 8, 10]
 }
 
+diction_2 = [
+    {
+        "name": "John",
+        "age": 12
+    },
+    {
+        "name": "Anna",
+        "age": 10
+    },
+    {
+        "name": "Petre",
+        "age": 13
+    },
+    {
+        "name": "Linda",
+        "age": 9
+    },
+]
+def age(diction): return diction["age"]
+
 
 switchSpecs = {
     "basePower": 39,
@@ -28,34 +49,33 @@ switchSpecs = {
 
 serverSpecs = {
     "RAM": [4, 0],
+    # "RAM": {"cap": 4, "usage": 0},
     "power": [205.1, 232.9, 260.7, 288.6, 316.4]
 }
 
-# print(json.dumps(dict(G.nodes.data())))
+G = fat_tree(4, switchSpecs, serverSpecs)
+for i in range(21, 25):
+    print(G.nodes[i]["RAM"], end=" ")
 
-class A():
-    def __init__(self):
-        self.value = 1
+for i in range(21, 25):
+    G.nodes[i]["RAM"] = [
+        G.nodes[i]["RAM"][0],
+        G.nodes[i]["RAM"][1] + 1
+    ]
+    
+print()
+for i in range(21, 25):
+    print(G.nodes[i]["RAM"], end=" ")
 
-    def function(self):
-        copy.copy(self).increase()
 
-    def increase(self):
-        self.value += 1
+# for i in range (21, 37):
+#     print(G.nodes[i]["RAM"][1])
 
-    def copy(self):
-        other = copy.deepcopy(self)
-        return other
 
-# G = fat_tree(4, switchSpecs, serverSpecs)
-# topo = json.loads(topo)
-# print(topo)
 
-G = nx.waxman_graph(8, alpha=0.5, beta=0.5)
-
-time = [1, 2, 3, 4, 5, 6, 7, 8]
-power = [8, 7, 6, 5, 4, 3, 2, 1]
-u = [4, 4, 4, 4, 4, 4, 4, 4, 4]
+# time = [1, 2, 3, 4, 5, 6, 7, 8]
+# power = [8, 7, 6, 5, 4, 3, 2, 1]
+# u = [4, 4, 4, 4, 4, 4, 4, 4, 4]
 
 # with open("results/result_event.csv", "r") as f:
 #     data = csv.reader(f)
@@ -64,8 +84,8 @@ u = [4, 4, 4, 4, 4, 4, 4, 4, 4]
 #             time.append(int(row[1]))
 #             power.append(float(row[9]))
 
-plt.plot(time, power, u)
-plt.show()
+# plt.plot(time, power, u)
+# plt.show()
 
 
 # try:

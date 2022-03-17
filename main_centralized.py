@@ -28,17 +28,20 @@ def main():
     }
     serverSpecs = {
         "RAM": [4, 0],
-        "power": [205.1, 232.9, 260.7, 288.6, 316.4]
+        "power": [0, 232.9, 260.7, 288.6, 316.4]
     }
 
     # create one app
-    dist = Poisson(lamda=8)
-    selector = SimpleSelector()
+    dist = Poisson(lamda=2)
+    # selector = SimpleSelector()
+    selector = WaxmanSelector()
     avg_TTL = 120 # average time_to_live of SFC, exponential distribution
     n_VNFs_range = [4, 20] # number of VNFs per SFC, uniform distribution
     bw_range = [10, 90] # bw for each virtual link, uniform distribution
-    arg = [avg_TTL, n_VNFs_range, bw_range]
-    app = SimpleApplication("SimpleApp", dist, selector, *arg)
+    waxman = [0.5, 0.5]
+    arg = [avg_TTL, n_VNFs_range, bw_range, waxman]
+    # app = SimpleApp("SimpleApp", dist, selector, *arg)
+    app = WaxmanApp("SimpleApp", dist, selector, *arg)
     apps = [app]
 
     # big topo
@@ -52,12 +55,15 @@ def main():
     Ingresses.append(Ingress(10, apps))
 
     sim = Simulator(topology, DCs, Ingresses, 1, folder_log)
-    sim.run(120) # runtime = 120 minutes
+    sim.run(30) # runtime = 120 minutes
+    # acceptance = sim.run(120) # runtime = 120 minutes
+    # return acceptance
 
     # draw graph, un completed
     time = []
-    n_SFCs = []
+    all = []
     running = []
+    accepted = []
     failed = []
     acceptance = []
     power = []
@@ -66,11 +72,18 @@ def main():
         for row in data:
             if row[2] == "deployed" or row[2] == "remove":
                 time.append(int(row[1]))
-                n_SFCs.append(int(row[9]))
-                running.append(int(row[10]))
-                failed.append(int(row[11]))
-                acceptance.append(round((int(row[9]) - int(row[11])) / int(row[9]) * 100))
-                power.append(float(row[12]))
+                _all = int(row[9])
+                _running = len(list((row[10])))
+                _accepted = len(list((row[11])))
+                _failed = len(list((row[12])))
+                _acceptance = round(_accepted / _all * 100, 1)
+
+                all.append(_all)
+                running.append(_running)
+                accepted.append(_accepted)
+                failed.append(_failed)
+                acceptance.append(_acceptance)
+                power.append(float(row[13]))
     plt.plot(time, power)
     plt.show()
     # plt.plot(time, acceptance)
@@ -78,4 +91,9 @@ def main():
 
 if __name__ == "__main__":
     print("-----START SIMULATION-----")
-    main()
+    acceptance = []
+    for i in range(0, 20):
+        act = main()
+        acceptance.append(act)
+    print(f"acceptance ratio: {round(sum(acceptance) / len(acceptance), 1)}%")
+    # main()

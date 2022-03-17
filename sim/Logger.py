@@ -45,17 +45,17 @@ class Logger():
             ingress = SFC['Ingress']
             print(f"{time}: Ingress-{SFC['Ingress']} create SFC-{SFC['id']} with {len(SFC['struct'].nodes)} VNFs, TTL = {SFC['TTL'][0]}")
         if(action == self.DROP):
-            print(f"{time}: {action} SFC-{SFC['id']}")
+            print(f"{time}: {action} SFC-{SFC['id']}, remain {SFC['TTL'][1]}")
         if(action == self.DEPLOYED):
             DC = SFC['DataCentre']
-            print(f"{time}: {action} SFC-{SFC['id']} on DC-{SFC['DataCentre']}")
+            print(f"{time}: {action} SFC-{SFC['id']} on DC-{SFC['DataCentre']}, remain {SFC['TTL'][1]}")
         if(action == self.REMOVE):
             DC = SFC['DataCentre']
             print(f"{time}: {action} SFC-{SFC['id']} on DC-{SFC['DataCentre']}")
 
         self.__wEvent.writerow([self.__countEvent, time, action,
             ingress, DC, SFC['app'].name, SFC['id'], len(SFC['struct'].nodes),
-            SFC['TTL'][0], len(sim.SFCs["all"]), sim.SFCs["running"],
+            SFC['TTL'][0], len(sim.SFCs["running"]), sim.SFCs["running"],
             sim.SFCs["running"], sim.SFCs["failed"], DCpower])
 
         if(topo != "-"):

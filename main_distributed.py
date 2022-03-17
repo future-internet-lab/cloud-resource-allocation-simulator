@@ -10,11 +10,13 @@ from library import *
 from pathlib import Path
 import sys
 import json
+import random
 
 
 
 def main():
     np.random.seed(2405)
+    random.seed(2405)
     # define log file
     folder_log = Path("results")
     folder_log.mkdir(parents=True, exist_ok=True)
@@ -31,12 +33,13 @@ def main():
 
     # create one app
     dist = Poisson(lamda=8)
-    selector = SimpleSelector()
+    selector = WaxmanSelector_0()
     avg_TTL = 120 # average time_to_live of SFC, exponential distribution
     n_VNFs_range = [4, 20] # number of VNFs per SFC, uniform distribution
     bw_range = [10, 90] # bw for each virtual link, uniform distribution
-    arg = [avg_TTL, n_VNFs_range, bw_range]
-    app = SimpleApplication("SimpleApp", dist, selector, *arg)
+    waxman = [0.5, 0.5]
+    arg = [avg_TTL, n_VNFs_range, bw_range, waxman]
+    app = WaxmanApp("SimpleApp", dist, selector, *arg)
     apps = [app]
 
     # big topo
@@ -53,10 +56,19 @@ def main():
     Ingresses.append(Ingress(10, apps))
 
     sim = Simulator(topology, DCs, Ingresses, 1, folder_log)
-    sim.run(120) # runtime = 120 minutes
+    sim.run(120)
+    # acceptance = sim.run(120) # runtime = 120 minutes
+    # return acceptance
 
 
 
 if __name__ == "__main__":
     print("-----START SIMULATION-----")
+    # acceptance = []
+    # for i in range(0, 50):
+    #     act = main()
+    #     acceptance.append(act)
+    # print(f"acceptance ratio: {round(sum(acceptance) / len(acceptance), 1)}%")
     main()
+    
+    
