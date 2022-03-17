@@ -91,8 +91,9 @@ class SimpleSelector(Selector):
                 
 
 
+import matplotlib.pyplot as plt
 
-class WaxmanSelector(Selector):
+class WaxmanSelector_0(Selector):
     """
     selector algorithm for analysing SFC waxman random topo
     """
@@ -102,6 +103,24 @@ class WaxmanSelector(Selector):
 
     def analyse(self, DC, sfc):
         topo = copy.deepcopy(DC.topo)
+
+        def fat_tree(k):
+            lastCore = int((k/2)**2)
+            lastAggre = int(lastCore + k**2 / 2)
+            lastEdge = int(lastAggre  + k**2 / 2)
+            lastServer = int(lastEdge + k**3 / 4)
+            G = nx.Graph()
+            for i in range(lastServer): G.add_node(i + 1)
+            for pod in range(k): # create all links
+                for aggre in range(int(k / 2)):
+                    for i in range(int(k / 2)):
+                        G.add_edge(int(lastCore+pod*k/2+aggre+1), int(2*lastCore/k*aggre+i+1))
+                        G.add_edge(int(lastCore+pod*k/2+aggre+1), int(lastAggre+pod*k/2+i+1))
+                        G.add_edge(int(lastAggre+pod*k/2+i+1), int(lastEdge+pod*k**2/4+k/2*i+aggre+1))
+            return G
+
+        # nx.draw(topo, with_labels=True, font_weight='bold')
+        # plt.show()
 
         def Placement(serverCap, package):
             arg = round(5 / 4 * pow(4 * len(serverCap), 2/3) + 1)
@@ -154,7 +173,6 @@ class WaxmanSelector(Selector):
 
         # alloc vnf to server
         serverCap = []
-        k = round((len(topo.nodes.data())*4)**(1/3))-1
         for node in list(topo.nodes.data()):
             if(node[1]["model"] == "server"):
                 serverCap.append(node[1]["RAM"][0] - node[1]["RAM"][1])
@@ -168,6 +186,10 @@ class WaxmanSelector(Selector):
 
         if(alloc):
             deploy = {"node": [], "link": []}
+            """temp = list(nx.connected_components(sfc["struct"]))
+            print(temp)
+            for i in temp:
+                print(i)"""
 
             for vnf in list(sfc["struct"].nodes.data()):
                 c_server = alloc[vnf[0]] # the choosen server
@@ -177,12 +199,19 @@ class WaxmanSelector(Selector):
             for (i, j) in sfc["struct"].edges:
                 s = sfc["struct"].nodes[i]["place"][1]
                 d = sfc["struct"].nodes[j]["place"][1]
+                _topo = fat_tree(round((len(serverCap)*4)**(1/3)))
+                if s == d: continue
                 v_link = sfc["struct"].edges[i, j]
                 for p_link in list(topo.edges.data()):
                     if(p_link[2]["bw"][0] - p_link[2]['bw'][1] < v_link["bw"]):
-                        topo.remove_edge(p_link[0], p_link[1])
+                        _topo.remove_edge(p_link[0], p_link[1])
                 try:
-                    route = nx.shortest_path(topo, s, d)
+                    route = nx.shortest_path(_topo, s, d)
+                    for i in range(len(route)-1):
+                        topo.edges[route[i],route[i+1]]['bw'] = [
+                            topo.edge[route[i],route[i+1]]['bw'][0],
+                            topo.edge[route[i],route[i+1]]['bw'][1] + v_link["bw"]
+                        ]
                 except:
                     return False
                 deploy["link"].append({
