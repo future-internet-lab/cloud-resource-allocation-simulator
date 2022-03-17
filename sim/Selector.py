@@ -197,7 +197,6 @@ class WaxmanSelector(Selector):
     def __init__(self):
         pass
 
-
     def analyse(self, DC, sfc):
         topo = copy.deepcopy(DC.topo)
 
@@ -215,9 +214,6 @@ class WaxmanSelector(Selector):
                         G.add_edge(int(lastCore+pod*k/2+aggre+1), int(lastAggre+pod*k/2+i+1))
                         G.add_edge(int(lastAggre+pod*k/2+i+1), int(lastEdge+pod*k**2/4+k/2*i+aggre+1))
             return G
-
-        # nx.draw(topo, with_labels=True, font_weight='bold')
-        # plt.show()
 
         def Placement(serverCap, package):
             arg = round(5 / 4 * pow(4 * len(serverCap), 2/3) + 1)
@@ -282,22 +278,13 @@ class WaxmanSelector(Selector):
         # print(alloc)
 
         if(alloc):
-            # deploy = {"node": [], "link": []}
-            """temp = list(nx.connected_components(sfc["struct"]))
-            print(temp)
-            for i in temp:
-                print(i)"""
-
             for vnf in list(sfc["struct"].nodes.data()):
                 c_server = alloc[vnf[0]] # the choosen server
-                # deploy["node"].append([vnf[0], c_server])
                 vnf[1]["server"] = c_server
 
             for (i, j) in sfc["struct"].edges:
                 s = sfc["struct"].nodes[i]["server"]
                 d = sfc["struct"].nodes[j]["server"]
-                if s == d: continue
-                # print('s:',s,'d:',d)
                 _topo = fat_tree(round((len(serverCap)*4)**(1/3)))
                 v_link = sfc["struct"].edges[i, j]
                 for p_link in list(topo.edges.data()):
@@ -305,19 +292,22 @@ class WaxmanSelector(Selector):
                         _topo.remove_edge(p_link[0], p_link[1])
                 try:
                     route = nx.shortest_path(_topo, s, d)
-                    # print(route)
                     for a in range(len(route)-1):
                         topo.edges[route[a],route[a+1]]['bw'] = [
                             topo.edges[route[a],route[a+1]]['bw'][0],
                             topo.edges[route[a],route[a+1]]['bw'][1] + v_link["bw"]
                         ]
-                    sfc["struct"].edges[i, j]["bw"] = v_link["bw"]
-                    sfc["struct"].edges[i, j]["route"] = route
                 except:
                     return False
+
+                sfc["struct"].edges[i, j]["bw"] = v_link["bw"]
+                sfc["struct"].edges[i, j]["route"] = route
             
+            # deploy["sfc"] = sfc
+            # print(deploy["sfc"]["id"])
+            # exit()
             sfc["DataCentre"] = DC.id
 
-            return copy.deepcopy(sfc)
+            return copy.deepcopy(sfc)  
 
         else: return False
