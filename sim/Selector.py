@@ -104,6 +104,21 @@ class WaxmanSelector_0(Selector):
     def analyse(self, DC, sfc):
         topo = copy.deepcopy(DC.topo)
 
+        def fat_tree(k):
+            lastCore = int((k/2)**2)
+            lastAggre = int(lastCore + k**2 / 2)
+            lastEdge = int(lastAggre  + k**2 / 2)
+            lastServer = int(lastEdge + k**3 / 4)
+            G = nx.Graph()
+            for i in range(lastServer): G.add_node(i + 1)
+            for pod in range(k): # create all links
+                for aggre in range(int(k / 2)):
+                    for i in range(int(k / 2)):
+                        G.add_edge(int(lastCore+pod*k/2+aggre+1), int(2*lastCore/k*aggre+i+1))
+                        G.add_edge(int(lastCore+pod*k/2+aggre+1), int(lastAggre+pod*k/2+i+1))
+                        G.add_edge(int(lastAggre+pod*k/2+i+1), int(lastEdge+pod*k**2/4+k/2*i+aggre+1))
+            return G
+
         def randPlacement(bin, package):
             # print(bin)
             # print(package)
@@ -140,48 +155,35 @@ class WaxmanSelector_0(Selector):
         # print("alloc =",alloc)
 
         if(alloc):
-            # anaRes = {"node": [], "link": []}
-
             for vnf in list(sfc["struct"].nodes.data()):
                 c_server = alloc[vnf[0]] # the choosen server
-                # deploy["node"].append([vnf[0], c_server])
                 vnf[1]["server"] = c_server
 
             for (i, j) in sfc["struct"].edges:
                 s = sfc["struct"].nodes[i]["server"]
                 d = sfc["struct"].nodes[j]["server"]
-                # print(s, d)
-                _topo = copy.deepcopy(topo)
+                # _topo = copy.deepcopy(topo)
+                _topo = fat_tree(round((len(serverCap)*4)**(1/3)))
                 v_link = sfc["struct"].edges[i, j]
-                # print()
-                # print(sfc["struct"].edges[i, j]["bw"], v_link["bw"])
                 for p_link in list(topo.edges.data()):
-                    # print(p_link[2]["bw"][1], p_link[2]['bw'][0])
                     if(p_link[2]["bw"][0] - p_link[2]['bw'][1] < v_link["bw"]):
                         _topo.remove_edge(p_link[0], p_link[1])
-                # if(len(topo.edges) != len(_topo.edges)):
-                #     print(len(topo.edges), len(_topo.edges))
                 try:
                     route = nx.shortest_path(_topo, s, d)
-                    # print(route)
-                    for i in range(len(route) - 1):
-                        topo.edges[route[i], route[i+1]]['bw'] = [
-                            topo.edges[route[i], route[i+1]]['bw'][0],
-                            topo.edges[route[i], route[i+1]]['bw'][1] + v_link["bw"]
+                    for a in range(len(route)-1):
+                        topo.edges[route[a],route[a+1]]['bw'] = [
+                            topo.edges[route[a],route[a+1]]['bw'][0],
+                            topo.edges[route[a],route[a+1]]['bw'][1] + v_link["bw"]
                         ]
-                    # print(sfc["struct"].edges[i, j]["bw"], v_link["bw"])
-                    sfc["struct"].edges[i, j]["bw"] = v_link["bw"]
-                    sfc["struct"].edges[i, j]["route"] = route
                 except:
-                    print(f"cannot routing from {s} to {d}")
                     return False
-                # anaRes["link"].append({
-                #     "bw": v_link["bw"],
-                #     "route": route
-                # })
-                
+
+                sfc["struct"].edges[i, j]["bw"] = v_link["bw"]
+                sfc["struct"].edges[i, j]["route"] = route
             
-            # anaRes["sfc"] = sfc
+            # deploy["sfc"] = sfc
+            # print(deploy["sfc"]["id"])
+            # exit()
             sfc["DataCentre"] = DC.id
 
             return copy.deepcopy(sfc)
@@ -190,9 +192,9 @@ class WaxmanSelector_0(Selector):
             return False
 
 
-class WaxmanSelector(Selector):
+class VNFMappingSelector(Selector):
     """
-    selector algorithm for analysing SFC waxman random topo
+    selector algorithm for analysing SFC waxman random topo and VNFMapping
     """
     def __init__(self):
         pass
@@ -285,6 +287,7 @@ class WaxmanSelector(Selector):
             for (i, j) in sfc["struct"].edges:
                 s = sfc["struct"].nodes[i]["server"]
                 d = sfc["struct"].nodes[j]["server"]
+                # _topo = copy.deepcopy(topo)
                 _topo = fat_tree(round((len(serverCap)*4)**(1/3)))
                 v_link = sfc["struct"].edges[i, j]
                 for p_link in list(topo.edges.data()):
