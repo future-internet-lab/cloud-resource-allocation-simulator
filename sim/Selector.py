@@ -422,6 +422,7 @@ class VNFFG_node_splitting(Selector):
                                 topo.edges[route[i], route[i+1]]['usage'] + v_link["demand"]
                             sfc["struct"].edges[vlink[0], vlink[1]]["route"] = route
                         except:
+                            sfc["struct"].edges[vlink[0], vlink[1]]["route"] = []
                             return False
             sfc["DataCentre"] = DC.id
             return copy.deepcopy(sfc)  
