@@ -61,13 +61,15 @@ class WaxmanApp(Application):
     def create_SFC(self, id):
         n_VNFs = np.random.randint(self.arg[1][0], self.arg[1][1] + 1)
         G = nx.waxman_graph(n_VNFs, self.arg[3][0], self.arg[3][1])
+
         for (i, j) in G.edges:
-            G[i][j]['bw'] = np.random.randint(self.arg[2][0], self.arg[2][1] + 1)
+            G[i][j]['demand'] = np.random.randint(self.arg[2][0], self.arg[2][1] + 1)
             G[i][j]['route'] = []
         for i in range(n_VNFs):
             G.nodes[i]["SFC"] = id
-            G.nodes[i]["RAM"] = 1
+            G.nodes[i]["demand"] = 1
             G.nodes[i]["server"] = False
+            G.nodes[i].pop("pos", None)
         out_link = np.random.randint(self.arg[2][0], self.arg[2][1] + 1)
         time_to_live = round(np.random.exponential(scale=self.arg[0]))
         if time_to_live == 0: time_to_live = 1
@@ -93,7 +95,7 @@ class VNFGApp(Application):
         for i in range(n_VNFs):
             for j in range(n_VNFs-i-1):
                 G.add_edge(i,i+j+1)
-                G[i][i+j+1]['bw'] = np.random.randint(self.arg[2][0], self.arg[2][1] + 1)
+                G[i][i+j+1]['demand'] = np.random.randint(self.arg[2][0], self.arg[2][1] + 1)
 
         temp = all_nodes[0]
         all_nodes = all_nodes[1:]
@@ -101,11 +103,11 @@ class VNFGApp(Application):
         while len(all_nodes) > 0:
             bw_temp = []
             for i in all_nodes:
-                G.edges[temp,i]['bw']
-                bw_temp.append(G.edges[temp,i]['bw'])
+                G.edges[temp,i]['demand']
+                bw_temp.append(G.edges[temp,i]['demand'])
             # print(min(bw_temp),np.argmin(bw_temp),all_nodes[np.argmin(bw_temp)])
             G_result.add_edge(temp, all_nodes[np.argmin(bw_temp)])
-            G_result[temp][all_nodes[np.argmin(bw_temp)]]['bw'] = min(bw_temp)
+            G_result[temp][all_nodes[np.argmin(bw_temp)]]['demand'] = min(bw_temp)
             G_result[temp][all_nodes[np.argmin(bw_temp)]]['route'] = []
             G_result[temp][all_nodes[np.argmin(bw_temp)]]['split'] = all_nodes[np.argmin(bw_temp)]
             temp = all_nodes[np.argmin(bw_temp)]
@@ -113,7 +115,7 @@ class VNFGApp(Application):
 
         for i in range(n_VNFs):
             G_result.nodes[i]["SFC"] = id
-            G_result.nodes[i]["RAM"] = 1
+            G_result.nodes[i]["demand"] = 1
             G_result.nodes[i]["server"] = False
             
         out_link = np.random.randint(self.arg[2][0], self.arg[2][1] + 1)

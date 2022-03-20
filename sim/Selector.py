@@ -5,6 +5,7 @@ import networkx as nx
 
 import json
 import copy
+import random
 
 
 
@@ -15,8 +16,6 @@ class Selector(ABC):
     @abstractmethod
     def analyse(self):
         pass
-
-
 
 
 
@@ -140,6 +139,12 @@ class WaxmanSelector_0(Selector):
                         return 0
             return alloc
 
+        def usagebw(_topo):
+            usage = 0
+            for link in list(_topo.edges.data()):
+                usage += link[2]["bw"][1]
+            return usage
+
         # alloc vnf to server
         serverCap = []
         for node in list(topo.nodes.data()):
@@ -150,40 +155,32 @@ class WaxmanSelector_0(Selector):
             vnfCap.append(vnf[1]["RAM"])
 
         alloc = randPlacement(serverCap, vnfCap)
-        # print(serverCap)
-        # print(vnfCap)
-        # print("alloc =",alloc)
 
         if(alloc):
             for vnf in list(sfc["struct"].nodes.data()):
                 c_server = alloc[vnf[0]] # the choosen server
                 vnf[1]["server"] = c_server
 
-            for (i, j) in sfc["struct"].edges:
-                s = sfc["struct"].nodes[i]["server"]
-                d = sfc["struct"].nodes[j]["server"]
-                # _topo = copy.deepcopy(topo)
-                _topo = fat_tree(round((len(serverCap)*4)**(1/3)))
-                v_link = sfc["struct"].edges[i, j]
-                for p_link in list(topo.edges.data()):
+            for vlink in list(sfc["struct"].edges.data()):
+                s = sfc["struct"].nodes[vlink[0]]["server"]
+                d = sfc["struct"].nodes[vlink[1]]["server"]
+                _topo = copy.deepcopy(topo)
+                
+                v_link = sfc["struct"].edges[vlink[0], vlink[1]]
+                for p_link in list(_topo.edges.data()):
                     if(p_link[2]["bw"][0] - p_link[2]['bw'][1] < v_link["bw"]):
                         _topo.remove_edge(p_link[0], p_link[1])
                 try:
                     route = nx.shortest_path(_topo, s, d)
-                    for a in range(len(route)-1):
-                        topo.edges[route[a],route[a+1]]['bw'] = [
-                            topo.edges[route[a],route[a+1]]['bw'][0],
-                            topo.edges[route[a],route[a+1]]['bw'][1] + v_link["bw"]
+                    for i in range(len(route) - 1):
+                        topo.edges[route[i], route[i+1]]['bw'] = [
+                            topo.edges[route[i], route[i+1]]['bw'][0],
+                            topo.edges[route[i], route[i+1]]['bw'][1] + v_link["bw"]
                         ]
+                    sfc["struct"].edges[vlink[0], vlink[1]]["route"] = route
                 except:
+                    print(f"cannot routing from {s} to {d}")
                     return False
-
-                sfc["struct"].edges[i, j]["bw"] = v_link["bw"]
-                sfc["struct"].edges[i, j]["route"] = route
-            
-            # deploy["sfc"] = sfc
-            # print(deploy["sfc"]["id"])
-            # exit()
             sfc["DataCentre"] = DC.id
 
             return copy.deepcopy(sfc)
@@ -192,30 +189,18 @@ class WaxmanSelector_0(Selector):
             return False
 
 
+
+
 class VNFMappingSelector(Selector):
     """
-    selector algorithm for analysing SFC waxman random topo and VNFMapping
+    selector algorithm for analysing SFC waxman random topo
     """
     def __init__(self):
         pass
 
+
     def analyse(self, DC, sfc):
         topo = copy.deepcopy(DC.topo)
-
-        def fat_tree(k):
-            lastCore = int((k/2)**2)
-            lastAggre = int(lastCore + k**2 / 2)
-            lastEdge = int(lastAggre  + k**2 / 2)
-            lastServer = int(lastEdge + k**3 / 4)
-            G = nx.Graph()
-            for i in range(lastServer): G.add_node(i + 1)
-            for pod in range(k): # create all links
-                for aggre in range(int(k / 2)):
-                    for i in range(int(k / 2)):
-                        G.add_edge(int(lastCore+pod*k/2+aggre+1), int(2*lastCore/k*aggre+i+1))
-                        G.add_edge(int(lastCore+pod*k/2+aggre+1), int(lastAggre+pod*k/2+i+1))
-                        G.add_edge(int(lastAggre+pod*k/2+i+1), int(lastEdge+pod*k**2/4+k/2*i+aggre+1))
-            return G
 
         def Placement(serverCap, package):
             arg = round(5 / 4 * pow(4 * len(serverCap), 2/3) + 1)
@@ -266,56 +251,88 @@ class VNFMappingSelector(Selector):
                 alloc += [i[0]+arg]*i[1]
             return alloc
 
+        # def usedtopo(topo):
+        #     unode = 0
+        #     ulink = 0
+        #     for node in list(topo.nodes.data()):
+        #         if(node[1]["model"] == "server"):
+        #             unode += node[1]["RAM"][1]
+        #     for link in list(topo.edges.data()):
+        #         ulink += link[2]["bw"][1]
+        #     return [unode, ulink]
+
         # alloc vnf to server
         serverCap = []
         for node in list(topo.nodes.data()):
             if(node[1]["model"] == "server"):
-                serverCap.append(node[1]["RAM"][0] - node[1]["RAM"][1])
+                serverCap.append(node[1]["capacity"] - node[1]["usage"])
         vnfCap = []
         for vnf in list(sfc["struct"].nodes.data()):
-            vnfCap.append(vnf[1]["RAM"])
-
-        # print(serverCap)
+            vnfCap.append(vnf[1]["demand"])
         alloc = Placement(serverCap, vnfCap)
-        # print(alloc)
 
         if(alloc):
             for vnf in list(sfc["struct"].nodes.data()):
                 c_server = alloc[vnf[0]] # the choosen server
                 vnf[1]["server"] = c_server
 
-            for (i, j) in sfc["struct"].edges:
-                s = sfc["struct"].nodes[i]["server"]
-                d = sfc["struct"].nodes[j]["server"]
-                # _topo = copy.deepcopy(topo)
-                _topo = fat_tree(round((len(serverCap)*4)**(1/3)))
-                v_link = sfc["struct"].edges[i, j]
-                for p_link in list(topo.edges.data()):
-                    if(p_link[2]["bw"][0] - p_link[2]['bw'][1] < v_link["bw"]):
+            for vlink in list(sfc["struct"].edges.data()):
+                s = sfc["struct"].nodes[vlink[0]]["server"]
+                d = sfc["struct"].nodes[vlink[1]]["server"]
+
+                _topo = copy.deepcopy(topo)
+                
+                v_link = sfc["struct"].edges[vlink[0], vlink[1]]
+                for p_link in list(_topo.edges.data()):
+                    if (p_link[2]["capacity"] - p_link[2]['usage'] < v_link["demand"]):
                         _topo.remove_edge(p_link[0], p_link[1])
                 try:
                     route = nx.shortest_path(_topo, s, d)
-                    for a in range(len(route)-1):
-                        topo.edges[route[a],route[a+1]]['bw'] = [
-                            topo.edges[route[a],route[a+1]]['bw'][0],
-                            topo.edges[route[a],route[a+1]]['bw'][1] + v_link["bw"]
-                        ]
+                    for i in range(len(route) - 1):
+                        topo.edges[route[i], route[i+1]]['usage'] + v_link["demand"]
+                    sfc["struct"].edges[vlink[0], vlink[1]]["route"] = route
                 except:
+                    print(f"cannot routing from {s} to {d}, bw = {v_link['demand']} ---------")
+                    sfc["struct"].edges[vlink[0], vlink[1]]["route"] = []
                     return False
-
-                sfc["struct"].edges[i, j]["bw"] = v_link["bw"]
-                sfc["struct"].edges[i, j]["route"] = route
-            
-            # deploy["sfc"] = sfc
-            # print(deploy["sfc"]["id"])
-            # exit()
             sfc["DataCentre"] = DC.id
+            return copy.deepcopy(sfc)
+        else:
+            print("cannot alloc")
+            return False
 
-            return copy.deepcopy(sfc)  
 
-        else: return False
 
-import random
+
+        # if(alloc):
+        #     for vnf in list(sfc["struct"].nodes.data()):
+        #         c_server = alloc[vnf[0]] # the choosen server
+        #         vnf[1]["server"] = c_server
+
+        #     for (i, j) in sfc["struct"].edges:
+        #         s = sfc["struct"].nodes[i]["server"]
+        #         d = sfc["struct"].nodes[j]["server"]
+        #         _topo = fat_tree(round((len(serverCap)*4)**(1/3)))
+        #         v_link = sfc["struct"].edges[i, j]
+        #         for p_link in list(topo.edges.data()):
+        #             if(p_link[2]["bw"][0] - p_link[2]['bw'][1] < v_link["bw"]):
+        #                 _topo.remove_edge(p_link[0], p_link[1])
+        #         try:
+        #             route = nx.shortest_path(_topo, s, d)
+        #             for a in range(len(route)-1):
+        #                 topo.edges[route[a],route[a+1]]['bw'] = [
+        #                     topo.edges[route[a],route[a+1]]['bw'][0],
+        #                     topo.edges[route[a],route[a+1]]['bw'][1] + v_link["bw"]
+        #                 ]
+        #         except:
+        #             return False
+
+        #         sfc["struct"].edges[i, j]["bw"] = v_link["bw"]
+        #         sfc["struct"].edges[i, j]["route"] = route
+            
+        #     sfc["DataCentre"] = DC.id
+        #     return copy.deepcopy(sfc)
+        # else: return False
 
 class VNFFG_node_splitting(Selector):
     """
@@ -326,21 +343,6 @@ class VNFFG_node_splitting(Selector):
 
     def analyse(self, DC, sfc):
         topo = copy.deepcopy(DC.topo)
-
-        def fat_tree(k):
-            lastCore = int((k/2)**2)
-            lastAggre = int(lastCore + k**2 / 2)
-            lastEdge = int(lastAggre  + k**2 / 2)
-            lastServer = int(lastEdge + k**3 / 4)
-            G = nx.Graph()
-            for i in range(lastServer): G.add_node(i + 1)
-            for pod in range(k): # create all links
-                for aggre in range(int(k / 2)):
-                    for i in range(int(k / 2)):
-                        G.add_edge(int(lastCore+pod*k/2+aggre+1), int(2*lastCore/k*aggre+i+1))
-                        G.add_edge(int(lastCore+pod*k/2+aggre+1), int(lastAggre+pod*k/2+i+1))
-                        G.add_edge(int(lastAggre+pod*k/2+i+1), int(lastEdge+pod*k**2/4+k/2*i+aggre+1))
-            return G
 
         def status(sc):
             result = []
@@ -364,11 +366,10 @@ class VNFFG_node_splitting(Selector):
         serverCap = []
         for node in list(topo.nodes.data()):
             if(node[1]["model"] == "server"):
-                serverCap.append(node[1]["RAM"][0] - node[1]["RAM"][1])
+                serverCap.append(node[1]["capacity"] - node[1]["usage"])
         vnfCap = []
         for vnf in list(sfc["struct"].nodes.data()):
-            vnfCap.append(vnf[1]["RAM"])
-            
+            vnfCap.append(vnf[1]["demand"])
         alloc = Placement(serverCap, vnfCap)
 
         def split_a_node(sfc_struct, node, vnf_splited):
@@ -379,8 +380,8 @@ class VNFFG_node_splitting(Selector):
             sfc_struct.nodes[node_new]['server'] = Placement(serverCap, [1])[0]     # them node split
             for (i,j) in sfc_struct.edges(node):
                 sfc_struct.add_edge(j,node_new)     # them edge
-                sfc_struct[j][node_new]['bw'] = sfc_struct[j][node]['bw'] / 2   # chia doi
-                sfc_struct[j][node]['bw'] = sfc_struct[j][node]['bw'] / 2
+                sfc_struct[j][node_new]['demand'] = sfc_struct[j][node]['demand'] / 2   # chia doi
+                sfc_struct[j][node]['demand'] = sfc_struct[j][node]['demand'] / 2
                 sfc_struct[j][node]['route'] = []
 
 
@@ -390,48 +391,38 @@ class VNFFG_node_splitting(Selector):
                 vnf[1]["server"] = c_server
 
             vnf_splited = []
-            for (i, j) in sfc["struct"].edges:
-                s = sfc["struct"].nodes[i]["server"]
-                d = sfc["struct"].nodes[j]["server"]
+            for vlink in list(sfc["struct"].edges.data()):
+                s = sfc["struct"].nodes[vlink[0]]["server"]
+                d = sfc["struct"].nodes[vlink[1]]["server"]
 
-                _topo = fat_tree(round((len(serverCap)*4)**(1/3)))
-                v_link = sfc["struct"].edges[i, j]
-                for p_link in list(topo.edges.data()):
-                    if(p_link[2]["bw"][0] - p_link[2]['bw'][1] < v_link["bw"]):
+                _topo = copy.deepcopy(topo)
+                v_link = sfc["struct"].edges[vlink[0], vlink[1]]
+                for p_link in list(_topo.edges.data()):
+                    if (p_link[2]["capacity"] - p_link[2]['usage'] < v_link["demand"]):
                         _topo.remove_edge(p_link[0], p_link[1])
                 try:
                     route = nx.shortest_path(_topo, s, d)
-                    for a in range(len(route)-1):
-                        topo.edges[route[a],route[a+1]]['bw'] = [
-                            topo.edges[route[a],route[a+1]]['bw'][0],
-                            topo.edges[route[a],route[a+1]]['bw'][1] + v_link["bw"]
-                        ]
-
+                    for i in range(len(route) - 1):
+                        topo.edges[route[i], route[i+1]]['usage'] + v_link["demand"]
+                    sfc["struct"].edges[vlink[0], vlink[1]]["route"] = route
                 except:
-                    if len(status(serverCap)) == 0: return False
-                    elif s in vnf_splited or d in vnf_splited: return False
+                    if len(status(serverCap)) == 0 or (s in vnf_splited) or (d in vnf_splited):
+                        sfc["struct"].edges[vlink[0], vlink[1]]["route"] = []
+                        return False
                     else:     # try to splitting
-                        # split 1 server
+                        # spliting 1 server
                         split_a_node(sfc["struct"], sfc["struct"][s][d]['split'], vnf_splited)
-                        _topo = fat_tree(round((len(serverCap)*4)**(1/3)))
+                        _topo = copy.deepcopy(topo)
                         for p_link in list(topo.edges.data()):
-                            if(p_link[2]["bw"][0] - p_link[2]['bw'][1] < v_link["bw"]):     # mot nua bw
+                            if(p_link[2]["capacity"][0] - p_link[2]['usage'][1] < v_link["demand"]):    # mot nua bw
                                 _topo.remove_edge(p_link[0], p_link[1])
                         try:
                             route = nx.shortest_path(_topo, s, d)
-                            for a in range(len(route)-1):
-                                topo.edges[route[a],route[a+1]]['bw'] = [
-                                    topo.edges[route[a],route[a+1]]['bw'][0],
-                                    topo.edges[route[a],route[a+1]]['bw'][1] + v_link["bw"]
-                                ]
+                            for i in range(len(route) - 1):
+                                topo.edges[route[i], route[i+1]]['usage'] + v_link["demand"]
+                            sfc["struct"].edges[vlink[0], vlink[1]]["route"] = route
                         except:
                             return False
-
-                sfc["struct"].edges[i, j]["bw"] = v_link["bw"]
-                sfc["struct"].edges[i, j]["route"] = route
-            
             sfc["DataCentre"] = DC.id
-
             return copy.deepcopy(sfc)  
-
         else: return False
