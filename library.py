@@ -27,9 +27,9 @@ def fat_tree(k, switchSpecs, serverSpecs):
     for pod in range(k): # create all links
         for aggre in range(int(k / 2)):
             for i in range(int(k / 2)):
-                G.add_edge(int(lastCore+pod*k/2+aggre+1), int(2*lastCore/k*aggre+i+1), bw=[1000, 0])
-                G.add_edge(int(lastCore+pod*k/2+aggre+1), int(lastAggre+pod*k/2+i+1), bw=[1000, 0])
-                G.add_edge(int(lastAggre+pod*k/2+i+1), int(lastEdge+pod*k**2/4+k/2*i+aggre+1), bw=[1000, 0])
+                G.add_edge(int(lastCore+pod*k/2+aggre+1), int(2*lastCore/k*aggre+i+1), capacity=1000, usage=0)
+                G.add_edge(int(lastCore+pod*k/2+aggre+1), int(lastAggre+pod*k/2+i+1), capacity=1000, usage=0)
+                G.add_edge(int(lastAggre+pod*k/2+i+1), int(lastEdge+pod*k**2/4+k/2*i+aggre+1), capacity=1000, usage=0)
 
 
     for type in ["core", "aggregation", "edge"]:
@@ -57,21 +57,23 @@ def fat_tree(k, switchSpecs, serverSpecs):
 def DistributedTopo():
     G = nx.Graph()
 
-    G.add_edge(1, 2, bw=[10000, 0])
-    G.add_edge(1, 12, bw=[10000, 0])
-    G.add_edge(2, 3, bw=[10000, 0])
-    G.add_edge(2, 12, bw=[10000, 0])
-    G.add_edge(3, 5, bw=[10000, 0])
-    G.add_edge(3, 10, bw=[10000, 0])
-    G.add_edge(4, 5, bw=[10000, 0])
-    G.add_edge(4, 6, bw=[10000, 0])
-    G.add_edge(5, 9, bw=[10000, 0])
-    G.add_edge(6, 7, bw=[10000, 0])
-    G.add_edge(7, 9, bw=[10000, 0])
-    G.add_edge(8, 9, bw=[10000, 0])
-    G.add_edge(9, 10, bw=[10000, 0])
-    G.add_edge(10, 11, bw=[10000, 0])
-    G.add_edge(11, 12, bw=[10000, 0])
+    BW = [2000, 0]
+
+    G.add_edge(1, 2, capacity=BW[0], usage=BW[1])
+    G.add_edge(1, 12, capacity=BW[0], usage=BW[1])
+    G.add_edge(2, 3, capacity=BW[0], usage=BW[1])
+    G.add_edge(2, 12, capacity=BW[0], usage=BW[1])
+    G.add_edge(3, 5, capacity=BW[0], usage=BW[1])
+    G.add_edge(3, 10, capacity=BW[0], usage=BW[1])
+    G.add_edge(4, 5, capacity=BW[0], usage=BW[1])
+    G.add_edge(4, 6, capacity=BW[0], usage=BW[1])
+    G.add_edge(5, 9, capacity=BW[0], usage=BW[1])
+    G.add_edge(6, 7, capacity=BW[0], usage=BW[1])
+    G.add_edge(7, 9, capacity=BW[0], usage=BW[1])
+    G.add_edge(8, 9, capacity=BW[0], usage=BW[1])
+    G.add_edge(9, 10, capacity=BW[0], usage=BW[1])
+    G.add_edge(10, 11, capacity=BW[0], usage=BW[1])
+    G.add_edge(11, 12, capacity=BW[0], usage=BW[1])
 
     for i in range(1, 13):
         if(i in [1, 4, 6, 11]):

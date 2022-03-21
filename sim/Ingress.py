@@ -31,19 +31,22 @@ class Ingress():
                 "Ingress": self.id,
                 "DataCentre": False,
                 "struct": sfcCreated[0],
-                "TTL": [sfcCreated[2], sfcCreated[2]]
+                "TTL": sfcCreated[2],
+                "remain": sfcCreated[2],
+                "outroute": []
             }
-            sim.SFCs["all"].append(sfc)
+            sim.SFCs.append(sfc)
+            sim.VNFs[0] += len(sfc["struct"].nodes)
 
             # change sfc from python dictionary to json format to logging to .csv
-            struct = {"vnf": [], "vlink": []}
+            struct = {"id": sfc["id"], "vnf": [], "vlink": []}
             for vnf in list(sfc["struct"].nodes.data()):
                 struct["vnf"].append({"id": vnf[0], **vnf[1]})
             for vlink in list(sfc["struct"].edges.data()):
                 struct["vlink"].append({"s": vlink[0], "d": vlink[1], **vlink[2]})
             struct = json.dumps(struct)
 
-            sim.logger.log_event(sim.time(), sim.logger.CREATE, SFC=sfc, sim=sim, topo=struct)
+            sim.logger.log_event(sim, sim.logger.CREATE, SFC=sfc, topo=struct)
             # print(f"{sim.time()}: Ingress-{self.id} create SFC-{sfc['id']} with {len(sfc['struct'].nodes)} VNFs TTL = {sfc['TTL']}")
             sim.reqQueue.put(sfc)
 

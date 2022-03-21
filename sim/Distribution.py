@@ -21,4 +21,6 @@ class Poisson(Distribution):
         self.lamda = lamda
 
     def next(self):
-        return round(60 * np.random.exponential(scale=1/self.lamda))
+        duration = round(60 * np.random.exponential(scale=1/self.lamda))
+        if duration == 0: duration = 1
+        return duration

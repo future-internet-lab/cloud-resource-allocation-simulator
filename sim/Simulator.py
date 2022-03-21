@@ -1,128 +1,169 @@
 from sqlite3 import DatabaseError
+from turtle import back
 from sim.SFC import *
 from sim.Logger import *
 
 import copy
 import simpy
 import networkx as nx
+import random
 
 
 
 class Simulator():
-    def __init__(self, topology, DCs, Ingresses, strategy, folder_log):
+    def __init__(self, topology, DCs, Ingresses, folder_log, *arg):
         self.env = simpy.Environment()
-        self.logger = Logger(folder_log)
-        self.strategy = strategy
+        self.logger = Logger(self, folder_log)
+        self.strategy = arg[0]
+
+        if(len(arg) == 2): self.sortmode = arg[1]
 
         self.topology = topology
         self.DataCentres = DCs
         self.Ingresses = Ingresses
 
-        self.SFCs = []
+        self.capacity = 0
+        for DC in self.DataCentres:
+            for node in list(DC.topo.nodes.data()):
+                if(node[1]["model"] == "server"):
+                    self.capacity += node[1]["capacity"]
 
         self.reqQueue = simpy.Store(self.env)
 
-        self.considerPipes = []
-        for DC in self.DataCentres:
-            DC.create_pipe(self)
-            self.considerPipes.append(DC.considerPipe)
-        self.considerResults = simpy.Store(self.env)
+        self.SFCcounter = 0 # for numbering SFC
 
-        # self.SFCs = []
-
-        self.SFCs = {
-            "all": [],
-            "running": [],
-            "accepted": [],
-            "failed": []
+        self.SFCs = []
+        self.runningSFCs = []
+        self.stat = {
+            "accepted": [], # id
+            "failed": [] # id
         }
-
-        self.SFCcounter = 0
+        self.VNFs = [0, 0] # [load, util]
+        self.power = 0
+        self.activeServer = 0
 
 
 
     def pickup(self): # get sfc from reqQueue
         while True:
             sfc = yield self.reqQueue.get()
+            print(f"get sfc-{sfc['id']}")
 
             if(self.strategy == 1):
                 self.handler(sfc)
             if(self.strategy == 2):
-                for aliveSFC in self.SFCs["running"]:
-                    aliveSFC["event"].interrupt()
-                yield self.env.timeout(0)
+                backupRunningSFCs = []
+                for e in self.runningSFCs:
+                    backupRunningSFCs.append(e["sfc"])
+                self.logger.log_event(self, self.logger.REMAP_START)
+                try:
+                    for aliveSFC in self.runningSFCs:
+                        aliveSFC["event"].interrupt()
+                        yield self.env.timeout(0)
 
-                for DC in self.DataCentres:
-                    DC.reset()
-                    for link in list(DC.topo.edges.data()):
-                        if(link[2]["bw"][1]):
-                            print("DC reset error")
-                            exit()
-                            
+                    for DC in self.DataCentres:
+                        DC.reset()
+                    for outlink in list(self.topology.edges.data()):
+                        outlink[2]["usage"] = 0
 
-                runningSFC = self.SFCs["running"]
-                runningSFC.sort(reverse=True, key=lambda e : len(e["sfc"]["struct"].nodes))
-                self.SFCs["running"] = []
+                    _runningSFCs = copy.deepcopy(backupRunningSFCs)
+                    if(self.sortmode == 'd'):
+                        _runningSFCs.sort(reverse=True, key=lambda e : len(e["struct"].nodes))
+                    if(self.sortmode == 'i'):
+                        _runningSFCs.sort(reverse=False, key=lambda e : len(e["struct"].nodes))
+                    self.runningSFCs = []
 
-                for e in runningSFC:
-                    self.handler(e["sfc"])
-                self.handler(sfc)
+                    for _sfc in _runningSFCs:
+                        self.handler(_sfc)
+                    self.logger.log_event(self, self.logger.REMAP_SUCCESS)
+                    self.handler(sfc)
+                except:
+                    print("\n\n-----remap failed, turn back previous status-----\n\n")
 
+                    for aliveSFC in self.runningSFCs:
+                        try:
+                            aliveSFC["event"].interrupt()
+                        except:
+                            pass
+                        yield self.env.timeout(0)
+                    
+                    for DC in self.DataCentres:
+                        DC.reset()
+                    for outlink in list(self.topology.edges.data()):
+                        outlink[2]["usage"] = 0
 
+                    self.runningSFCs = []
 
-    def handler(self, sfcinput): # consider if it's possible to implement sfc
+                    for _sfc in backupRunningSFCs:
+                        print(f"deploy SFC-{_sfc['id']} using backup")
+                        [DC for DC in self.DataCentres if DC.id == _sfc["DataCentre"]][0].deployer(_sfc, self)
+                    self.logger.log_event(self, self.logger.REMAP_FAIL)
+                    self.handler(sfc)
+
+                    
+
+    def handler(self, sfc): # consider if it's possible to implement sfc
         failed = 0
         power = 0
-        deploy = {}
+        deploy = {"sfc": {}, "outroute": 0}
         for DC in self.DataCentres:
-            result = DC.consider(self, sfcinput)
+            result = DC.consider(self, sfc)
             if(result): # result["deploy"] is sfc after analysing
                 topo = copy.deepcopy(self.topology)
-                sfc = result["sfc"]
-                for p_link in list(topo.edges.data()):
-                    if(p_link[2]["bw"][0] - p_link[2]['bw'][1] < sfc["outlink"]):
-                        topo.remove_edge(p_link[0], p_link[1])
+                _sfc = result["sfc"]
+                for out_link in list(topo.edges.data()):
+                    if(out_link[2]["capacity"] - out_link[2]["usage"] < _sfc["outlink"]):
+                        topo.remove_edge(out_link[0], out_link[1])
                 try:
-                    route = nx.shortest_path(topo, sfc["Ingress"], sfc["DataCentre"])
+                    route = nx.shortest_path(topo, _sfc["Ingress"], _sfc["DataCentre"])
                 except:
-                    print(f"cannot routing to DC-{DC.id}")
+                    print(f"Cannot routing from Ingress-{_sfc['Ingress']} to DC-{DC.id}")
                     failed += 1
                     continue
-                if(len(route) > 0): # exist route
+                else: # exist route
                     if(power == 0
                         or (result["deltaPower"] < power)
                         or (result["deltaPower"] == power and len(route) < step)):
                         power = result["deltaPower"]
                         step = len(route)
-                        deploy = {**result, "route": route}
-                else: failed += 1
+                        result["sfc"]["outroute"] = route
+                        deploy = result["sfc"]
+                        # deploy = {**result["sfc"], "outroute": route}
             else:
-                print(f"cannot deploy SFC-{sfcinput['id']} on DC-{DC.id}")
+                print(f"cannot deploy SFC-{sfc['id']} on DC-{DC.id}")
                 failed += 1
         if(failed == len(self.DataCentres)):
-            if((sfcinput["id"] in self.SFCs["accepted"])):
-                # f = open("results/result_test_link.json", "w")
-                # f.write("[")
-                # for DC in self.DataCentres:
-                #     f.write(json.dumps(list(DC.topo.edges.data())) + ",")
-                # print(json.dumps(dict(sfcinput["struct"].nodes.data())))
-                # f.seek(0, 2)
-                # f.seek(f.tell() - 1)
-                # f.truncate()
-                # f.write("]")
-                # f.close()
-                # exit()
+            if((sfc["id"] in self.stat["accepted"])):
+                exit()
                 print("-----------------------------------------------")
-            if((not sfcinput["id"] in self.SFCs["failed"])):
-                self.SFCs["failed"].append(sfcinput["id"])
-            self.logger.log_event(self.time(), self.logger.DROP, SFC=sfcinput, sim=self)
+            if((not sfc["id"] in self.stat["failed"])):
+                self.stat["failed"].append(sfc["id"])
+            self.logger.log_event(self, self.logger.DROP, sfc)
+            self.VNFs[0] -= len(sfc["struct"].nodes)
             # print(f"{self.time()}: SFC-{sfc['id']} has been dropped")
         else:
-            if(not sfcinput["id"] in self.SFCs["accepted"]):
-                self.SFCs["accepted"].append(sfcinput["id"])
+            if(not sfc["id"] in self.stat["accepted"]):
+                self.stat["accepted"].append(sfc["id"])
             # print(f"{self.time()}: SFC-{deploy['sfc']['id']} has been deployed in DC-{deploy['sfc']['DataCentre']} and use deltaPower = {power}")
-            [DC for DC in self.DataCentres if DC.id == deploy['sfc']['DataCentre']][0].deployer(deploy, self)
+            # print(f"deploy SFC-{_sfc['id']} first time")
+            [DC for DC in self.DataCentres if DC.id == deploy['DataCentre']][0].deployer(deploy, self)
         
+
+
+    def cal_power(self):
+        self.power = 0
+        for DC in self.DataCentres:
+            self.power += DC.power
+        return self.power
+
+
+
+    def cal_active_server(self):
+        self.activeServer = 0
+        for DC in self.DataCentres:
+            self.activeServer += len(DC.activeServer)
+        return self.activeServer
+
 
 
     def time(self): # return time
@@ -134,22 +175,16 @@ class Simulator():
     def run(self, runtime):
         for ingress in self.Ingresses:
             ingress.generator(self)
-        # for DC in self.DataCentres:
-        #     self.env.process(DC.consider(self))
         self.env.process(self.pickup())
 
         self.env.run(until=runtime)
         self.logger.close()
 
         print()
-        total = len(self.SFCs['all'])
-        accepted = len(self.SFCs['accepted'])
-        failed = len(self.SFCs['failed'])
+        total = len(self.SFCs)
+        accepted = len(self.stat['accepted'])
+        failed = len(self.stat['failed'])
         acceptance = round(accepted / total * 100, 1)
-        print(f"total: {total} SFCs")
-        print(f"accepted: {accepted} SFCs")
+        print(f"accepted: {accepted} / {total} SFCs ({acceptance}%)")
         print(f"failed: {failed} SFCs")
-        print(f"acceptance ratio: {acceptance}%")
-        # print(self.SFCs["accepted"])
-        # print(self.SFCs["failed"])
         return acceptance

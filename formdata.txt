@@ -52,7 +52,9 @@ class Simulator {
         ],
         edge: [
             (1, 2, {
-                "bw": [10000, 131], // [capacity, usage]
+                // "bw": [10000, 131], // [capacity, usage]
+                "capacity": 2000,
+                "usage": 131
             })
         ]
     }
@@ -79,23 +81,25 @@ SFC = {
     "app": Application(),
     "outLink": 56, // bandwidth of out link which connect this SFC in DC to Ingress
     "ingress": 5,
-    "DataCentre": 2
+    "DataCentre": 2 // False - Selector.analyse
     "struct" : networkx.Graph() = {
         node: [
             (1, { // vnf id start from 1
                 "SFC": 1 // belong to SFC-1
-                "RAM": 1 // always = 1
-                "server": 3
+                "demand": 1 // always = 1
+                "server": 3 // null - Selector.analyse
             })
         ],
         edges : [
             (1, 2, {
-                "bw": 12 // bw of virtual link
-                "route": [1, 2, 3, 4, 5]
+                "demand": 12 // bw of virtual link
+                "route": [1, 2, 3, 4, 5] // null - Selector.analyse
             })
         ]
     }
-    "TTL": [32, 13] // [original, ramain]
+    "TTL": 32, // [original, ramain]
+    "remain": 13
+    "outroute": [1, 2, 3, 4]
 }
 
 Selector.analyse(DataCentre, sfc) = {
@@ -129,67 +133,20 @@ class DataCentre: {
                     [1, 0], [2, 3], [2, 5], [3, 2]
                 ], // [sfc, vnf]
                 "state": False, // [True, False]
-                "RAM": [4, 0] // [capacity, usage]
+                "capacity": 4 // [capacity, usage]
+                "usage": 0
                 "power": [205.1, 232.9, 260.7, 288.6, 316.4],
             })
         ],
         edge: [
             (1, 2, {
-                "bw": [1000, 90] // [capacity, usage]
+                // "bw": [1000, 90] // [capacity, usage]
+                "capacity": 1000,
+                "usage": 90
             })
         ]
     }
 }
 
-
-
-
-
-
-
-topology = {
-    "node": [
-        {
-            "model": "switch", // mandatory
-            "tag": "core", // [core, aggregation, edge]
-            "basePower": 39,
-            "portPower": [0.42, 0.48, 0.9],
-        },
-        {
-            "model": "server",
-            "RAM": 4,
-            "power": [205.1, 232.9, 260.7, 288.6, 316.4],
-            "deployed": [
-                [1, 0], [2, 3], [2, 5], [3, 2]
-            ] # [sfc, vnf]
-        }
-    ],
-    "link": [
-        {
-            "s": 0,
-            "d": 1,
-            "bw": 1000,
-            "usage": 90
-        }
-    ]
-}
-
-sfc["structure"] = {
-    "VNF": [
-        {
-            "id": 0,
-            "SFC": 1,
-            "RAM": 1,
-            "onServer": 2
-        }
-    ],
-    "vLink": [
-        {
-            "s": 0,
-            "d": 1,
-            "bw": 60
-        }
-    ]
-}
 
 
