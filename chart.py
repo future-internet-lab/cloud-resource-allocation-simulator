@@ -4,7 +4,7 @@ import numpy as np
 import csv
 
 if __name__ == "__main__":
-    f = open("edgecloud-simulator-daohiep/results/dist_1_event.csv")
+    f = open("edgecloud-simulator-daohiep/4_20_80_1020_10150_120/VNFGApp/cent_1_event.csv")
     data = csv.reader(f)
 
     create = np.array([0]*12)
