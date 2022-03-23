@@ -74,11 +74,10 @@ class WaxmanApp(Application):
         time_to_live = round(np.random.exponential(scale=self.arg[0]))
         if time_to_live == 0: time_to_live = 1
 
-        # nx.draw(G, with_labels=True, font_weight='bold')
-        # plt.show()
-        # exit()
-
         return [G, out_link, time_to_live]
+
+
+
 
 class VNFGApp(Application):
     def __init__(self, name, distribution, selector, *arg):
@@ -109,7 +108,10 @@ class VNFGApp(Application):
             G_result.add_edge(temp, all_nodes[np.argmin(bw_temp)])
             G_result[temp][all_nodes[np.argmin(bw_temp)]]['demand'] = min(bw_temp)
             G_result[temp][all_nodes[np.argmin(bw_temp)]]['route'] = []
-            G_result[temp][all_nodes[np.argmin(bw_temp)]]['split'] = all_nodes[np.argmin(bw_temp)]
+            if len(all_nodes) > 1:
+                G_result[temp][all_nodes[np.argmin(bw_temp)]]['split'] = all_nodes[np.argmin(bw_temp)]
+            else: 
+                G_result[temp][all_nodes[np.argmin(bw_temp)]]['split'] = None
             temp = all_nodes[np.argmin(bw_temp)]
             all_nodes.remove(all_nodes[np.argmin(bw_temp)])
 
@@ -121,8 +123,5 @@ class VNFGApp(Application):
         out_link = np.random.randint(self.arg[2][0], self.arg[2][1] + 1)
         time_to_live = round(np.random.exponential(scale=self.arg[0]))
         if time_to_live == 0: time_to_live = 1
-
-        # nx.draw(G_result, with_labels=True, font_weight='bold')
-        # plt.show()
         
         return [G_result, out_link, time_to_live]
