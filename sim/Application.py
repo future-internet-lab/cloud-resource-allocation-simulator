@@ -111,7 +111,7 @@ class VNFGApp(Application):
             if len(all_nodes) > 1:
                 G_result[temp][all_nodes[np.argmin(bw_temp)]]['split'] = all_nodes[np.argmin(bw_temp)]
             else: 
-                G_result[temp][all_nodes[np.argmin(bw_temp)]]['split'] = None
+                G_result[temp][all_nodes[np.argmin(bw_temp)]]['split'] = ''
             temp = all_nodes[np.argmin(bw_temp)]
             all_nodes.remove(all_nodes[np.argmin(bw_temp)])
 

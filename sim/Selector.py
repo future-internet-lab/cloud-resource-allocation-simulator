@@ -333,7 +333,6 @@ class VNFFG_node_splitting(Selector):
 
         def split_a_node(sfc_struct, node, vnf_splited, count):
             node_new = count
-            print(node_new)
             count += 1
             vnf_splited.append(node)
             vnf_splited.append(node_new)
@@ -344,9 +343,10 @@ class VNFFG_node_splitting(Selector):
                 sfc_struct.add_edge(j,node_new)     # them edge
                 sfc_struct[j][node_new]['demand'] = sfc_struct[j][node]['demand'] / 2   # chia doi
                 sfc_struct[j][node]['demand'] = sfc_struct[j][node]['demand'] / 2
-                sfc_struct[j][node]['route'] = []
                 sfc_struct[j][node_new]['route'] = []
-
+                sfc_struct[j][node]['route'] = []
+                sfc_struct[j][node_new]['split'] = ''
+                sfc_struct[j][node]['split'] = ''
         c = len(vnfCap)
 
         if(alloc):
@@ -370,7 +370,7 @@ class VNFFG_node_splitting(Selector):
                         topo.edges[route[i], route[i+1]]['usage'] + v_link["demand"]
                     sfc["struct"].edges[vlink[0], vlink[1]]["route"] = route
                 except:
-                    if len(status(serverCap)) == 0 or (vlink[0] in vnf_splited) or (vlink[1] in vnf_splited) or sfc["struct"][vlink[0]][vlink[1]]['split'] == None:
+                    if len(status(serverCap)) == 0 or vlink[0] in vnf_splited or vlink[1] in vnf_splited or sfc["struct"][vlink[0]][vlink[1]]['split'] == '':
                         sfc["struct"].edges[vlink[0], vlink[1]]["route"] = []
                         # print(f"cannot routing from {s} to {d}, bw = {v_link['demand']} ---------")
                         return False
