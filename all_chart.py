@@ -6,9 +6,13 @@ COLUMN_TIME = 1
 COLUMN_ACTION = 2
 COLUMN_NVNFS = 5
 COLUMN_UTIL = 9
+COLUMN_MIGRATION = 10
 COLUMN_POWER = 12
 COLUMN_PPERSFC = 13
 COLUMN_ACTIVE_SERVER = 14
+
+markers = ["^","o","s","x",">","<","*","+"]
+colors = ["c","orange","yellow","black","brown","gray","r","b"]
 
 def open_data():
     folder_name = 'edgecloud-simulator-daohiep/results/4_2_120_420_1090_600/'
@@ -72,8 +76,6 @@ def Figure1(data_id = None):
         plt.plot(load[np.argsort(load)], acceptance[np.argsort(load)], marker=marker, color=color, label=label)
     
     fig, ax = plt.subplots()
-    markers = ["^","o","s","x",">","<","*","+"]
-    colors = ["c","orange","yellow","black","brown","gray","r","b"]
 
     if data_id == None:
         for itr in range(len(data)):
@@ -117,8 +119,6 @@ def Figure2(data_id = None):
         plt.plot(load[np.argsort(load)], utilization[np.argsort(load)], marker=marker, color=color, label=label)
             
     fig, ax = plt.subplots()
-    markers = ["^","o","s","x",">","<","*","+"]
-    colors = ["c","orange","yellow","black","brown","gray","r","b"]
     
     if data_id == None:
         for itr in range(len(data)):
@@ -155,8 +155,6 @@ def Figure3(data_id = None):
         plt.plot([(i+1)*10 for i in range(len(power))], power, marker=marker, color=color, label=label)
     
     fig, ax = plt.subplots()
-    markers = ["^","o","s","x",">","<","*","+"]
-    colors = ["c","orange","yellow","black","brown","gray","r","b"]
 
     if data_id == None:
         for itr in range(len(data)):
@@ -193,8 +191,6 @@ def Figure4(data_id = None):
         plt.plot([(i+1)*10 for i in range(len(power))], power, marker=marker, color=color, label=label)
     
     fig, ax = plt.subplots()
-    markers = ["^","o","s","x",">","<","*","+"]
-    colors = ["c","orange","yellow","black","brown","gray","r","b"]
 
     if data_id == None:
         for itr in range(len(data)):
@@ -231,8 +227,6 @@ def Figure5(data_id = None):
         plt.plot([(i+1)*10 for i in range(len(number))], number, marker=marker, color=color, label=label)
     
     fig, ax = plt.subplots()
-    markers = ["^","o","s","x",">","<","*","+"]
-    colors = ["c","orange","yellow","black","brown","gray","r","b"]
 
     if data_id == None:
         for itr in range(len(data)):
@@ -247,9 +241,51 @@ def Figure5(data_id = None):
     ax.legend()
     plt.show()
 
+def Figure6(start_time,end_time,time_format='hour',data_id = None,):
+    """Fluctuation of system utilization:
+
+    Time (hour) - Utilization (%)
+
+    start_time, end_time: Thời gian bắt đầu và kết thúc
+
+    time_format: Định dạng thời gian của start_time và end_time, có giá trị là 'hour' và 'minute'. Mặc định là 'hour'
+    """
+    data, name = open_data()
+    if time_format == 'hour':
+        start_time = start_time*60
+        end_time = end_time*60
+
+    def plottable(data, marker, color, label):
+        time = []
+        util = []
+        for row in data:
+            if row[1] == 'time' or int(row[COLUMN_TIME]) < start_time or int(row[COLUMN_TIME]) > end_time or row[COLUMN_ACTION] == 'create' or row[COLUMN_UTIL] == '-': continue
+            else:
+                time.append(int(row[COLUMN_TIME]))
+                util.append(float(row[COLUMN_UTIL]))
+
+        plt.plot(np.array(time)/60, np.array(util), marker=marker, color=color, label=label)
+    
+    fig, ax = plt.subplots()
+
+    if data_id == None:
+        for itr in range(len(data)):
+            plottable(data[itr], marker=markers[itr], color=colors[itr], label=name[itr])
+    else:
+        for itr in data_id:
+            plottable(data[itr], marker=markers[itr], color=colors[itr], label=name[itr])
+
+    plt.xlabel("Time (hour)")
+    plt.ylabel("Utilization (%)")
+    ax.set_title("Fluctuation of system utilization")
+    ax.legend()
+    plt.show()
+
+
 if __name__ == "__main__":
     Figure1()
     Figure2()
     Figure3([0,1,2,3])
     Figure4([0,1,2,3])
     Figure5([0,1,2,3])
+    Figure6(start_time=0,end_time=6,data_id=[0,2])
