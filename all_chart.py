@@ -15,7 +15,7 @@ markers = ["^","o","s","x",">","<","*","+"]
 colors = ["c","orange","yellow","black","brown","gray","r","b"]
 
 def open_data():
-    folder_name = 'edgecloud-simulator-daohiep/results/4_2_120_420_1090_600/'
+    folder_name = 'edgecloud-simulator-daohiep/results/4_2_120_420_1090_700/'
     result = []
     label = []
 
@@ -46,7 +46,25 @@ def open_data():
 
     return result, label
 
-def Figure1(data_id = None):
+def round_load(load, ydata):
+    new_data = [0]*10
+    count = [0]*10
+    for i in range(len(load)):
+        if load[i] < 10: itr = 0
+        else:
+            itr = round(load[i]/10)-1
+        count[itr] += 1
+        new_data[itr] += ydata[i]
+    result_load = []
+    result_y = []
+    for i in range(len(count)):
+        if count[i] > 0:
+            result_load.append((i+1)*10)
+            result_y.append(new_data[i]/count[i])
+    
+    return result_load, result_y
+
+def Figure1(data_id = None, round = False):
     """Acceptance ratio:
 
     Load (%) - Acceptance Ratio (%)
@@ -73,7 +91,11 @@ def Figure1(data_id = None):
                 drop[t] += 1
         load = np.array(N_vnf)/np.array([10]*len(N_vnf))
         acceptance = (np.array(deploy))*100/(np.array(deploy)+np.array(drop))
-        plt.plot(load[np.argsort(load)], acceptance[np.argsort(load)], marker=marker, color=color, label=label)
+        if round == False:
+            plt.plot(load[np.argsort(load)], acceptance[np.argsort(load)], marker=marker, color=color, label=label)
+        else:
+            load, acceptance = round_load(load,acceptance)
+            plt.plot(load, acceptance, marker=marker, color=color, label=label)
     
     fig, ax = plt.subplots()
 
@@ -90,7 +112,7 @@ def Figure1(data_id = None):
     ax.legend()
     plt.show()
 
-def Figure2(data_id = None):
+def Figure2(data_id = None, round = False):
     """System utilization:
 
     Load (%) - Utilization (%)
@@ -116,7 +138,11 @@ def Figure2(data_id = None):
                 n_util[t] += 1
         load = np.array(N_vnf)/np.array([10]*len(N_vnf))
         utilization = np.array(util)/np.array(n_util)
-        plt.plot(load[np.argsort(load)], utilization[np.argsort(load)], marker=marker, color=color, label=label)
+        if round == False:
+            plt.plot(load[np.argsort(load)], utilization[np.argsort(load)], marker=marker, color=color, label=label)
+        else:
+            load, utilization = round_load(load,utilization)
+            plt.plot(load, utilization, marker=marker, color=color, label=label)
             
     fig, ax = plt.subplots()
     
@@ -283,8 +309,8 @@ def Figure6(start_time,end_time,time_format='hour',data_id = None,):
 
 
 if __name__ == "__main__":
-    Figure1()
-    Figure2()
+    Figure1(round=True)
+    Figure2(round=True)
     Figure3([0,1,2,3])
     Figure4([0,1,2,3])
     Figure5([0,1,2,3])
