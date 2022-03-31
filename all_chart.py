@@ -12,31 +12,38 @@ COLUMN_PPERSFC = 13
 COLUMN_ACTIVE_SERVER = 14
 
 markers = ["^","o","s","x",">","<","*","+"]
-colors = ["c","orange","yellow","black","brown","gray","r","b"]
+colors = ["r","r","green","green","black","black","blue","blue"]
 
 def open_data():
     folder_name = 'edgecloud-simulator-daohiep/results/4_2_120_420_1090_700/'
     result = []
     label = []
+    linestyle = []
 
     f = open(folder_name+"limited/cent_1_event.csv")
     result.append(csv.reader(f))
     label.append('HRE-SFC cent')
+    linestyle.append('--')
     f = open(folder_name+"limited/dist_1_event.csv")
     result.append(csv.reader(f))
     label.append('HRE-SFC dist')
+    linestyle.append(None)
     f = open(folder_name+"limited/cent_2d_event.csv")
     result.append(csv.reader(f))
     label.append('HRE-SFC cent + remap')
+    linestyle.append('--')
     f = open(folder_name+"limited/dist_2d_event.csv")
     result.append(csv.reader(f))
     label.append('HRE-SFC dist + remap')
+    linestyle.append(None)
     f = open(folder_name+"inf/cent_1_event.csv")
     result.append(csv.reader(f))
     label.append('HRE-SFC cent + bw=inf')
+    linestyle.append('--')
     f = open(folder_name+"inf/dist_1_event.csv")
     result.append(csv.reader(f))
     label.append('HRE-SFC dist + bw=inf')
+    linestyle.append(None)
     """f = open(folder_name+"VNFGApp/cent_1_event.csv")
     result.append(csv.reader(f))
     label.append('VNFG cent')
@@ -44,7 +51,7 @@ def open_data():
     result.append(csv.reader(f))
     label.append('VNFG dist')"""
 
-    return result, label
+    return result, label, linestyle
 
 def round_load(load, ydata):
     new_data = [0]*10
@@ -69,8 +76,8 @@ def Figure1(data_id = None, round = False):
 
     Load (%) - Acceptance Ratio (%)
     """
-    data, name = open_data()
-    def plottable(data, marker, color, label):
+    data, name, ls = open_data()
+    def plottable(data, marker, color, label, linestyle):
         N_vnf = [0]
         drop = [0]
         deploy = [0]
@@ -92,19 +99,19 @@ def Figure1(data_id = None, round = False):
         load = np.array(N_vnf)/np.array([10]*len(N_vnf))
         acceptance = (np.array(deploy))*100/(np.array(deploy)+np.array(drop))
         if round == False:
-            plt.plot(load[np.argsort(load)], acceptance[np.argsort(load)], marker=marker, color=color, label=label)
+            plt.plot(load[np.argsort(load)], acceptance[np.argsort(load)], linestyle=linestyle, marker=marker, color=color, label=label)
         else:
             load, acceptance = round_load(load,acceptance)
-            plt.plot(load, acceptance, marker=marker, color=color, label=label)
+            plt.plot(load, acceptance, linestyle=linestyle, marker=marker, color=color, label=label)
     
     fig, ax = plt.subplots()
 
     if data_id == None:
         for itr in range(len(data)):
-            plottable(data[itr], marker=markers[itr], color=colors[itr], label=name[itr])
+            plottable(data[itr], marker=markers[itr], color=colors[itr], label=name[itr], linestyle=ls[itr])
     else:
         for itr in data_id:
-            plottable(data[itr], marker=markers[itr], color=colors[itr], label=name[itr])
+            plottable(data[itr], marker=markers[itr], color=colors[itr], label=name[itr], linestyle=ls[itr])
 
     plt.xlabel("Load (%)")
     plt.ylabel("Acceptance ratio (%)")
@@ -117,8 +124,8 @@ def Figure2(data_id = None, round = False):
 
     Load (%) - Utilization (%)
     """
-    data, name = open_data()
-    def plottable(data, marker, color, label):
+    data, name, ls = open_data()
+    def plottable(data, marker, color, label, linestyle):
         N_vnf = [0]
         util = [0]
         n_util = [0]
@@ -139,19 +146,19 @@ def Figure2(data_id = None, round = False):
         load = np.array(N_vnf)/np.array([10]*len(N_vnf))
         utilization = np.array(util)/np.array(n_util)
         if round == False:
-            plt.plot(load[np.argsort(load)], utilization[np.argsort(load)], marker=marker, color=color, label=label)
+            plt.plot(load[np.argsort(load)], utilization[np.argsort(load)], marker=marker, color=color, label=label, linestyle=linestyle)
         else:
             load, utilization = round_load(load,utilization)
-            plt.plot(load, utilization, marker=marker, color=color, label=label)
+            plt.plot(load, utilization, marker=marker, color=color, label=label, linestyle=linestyle)
             
     fig, ax = plt.subplots()
     
     if data_id == None:
         for itr in range(len(data)):
-            plottable(data[itr], marker=markers[itr], color=colors[itr], label=name[itr])
+            plottable(data[itr], marker=markers[itr], color=colors[itr], label=name[itr], linestyle=ls[itr])
     else:
         for itr in data_id:
-            plottable(data[itr], marker=markers[itr], color=colors[itr], label=name[itr])
+            plottable(data[itr], marker=markers[itr], color=colors[itr], label=name[itr], linestyle=ls[itr])
 
 
     plt.xlabel("Load (%)")
@@ -165,8 +172,8 @@ def Figure3(data_id = None):
 
     Utilization (%) - Power Consumption (W)
     """
-    data, name = open_data()
-    def power_con(data, marker, color, label):
+    data, name, ls = open_data()
+    def power_con(data, marker, color, label, linestyle):
         power = [0]*10
         count = [0]*10
         for row in data:
@@ -178,16 +185,16 @@ def Figure3(data_id = None):
         while len(power)>0:
             if power[-1] == 0: power = power[:-1]
             else: break
-        plt.plot([(i+1)*10 for i in range(len(power))], power, marker=marker, color=color, label=label)
+        plt.plot([(i+1)*10 for i in range(len(power))], power, marker=marker, color=color, label=label, linestyle=linestyle)
     
     fig, ax = plt.subplots()
 
     if data_id == None:
         for itr in range(len(data)):
-            power_con(data[itr], marker=markers[itr], color=colors[itr], label=name[itr])
+            power_con(data[itr], marker=markers[itr], color=colors[itr], label=name[itr], linestyle=ls[itr])
     else:
         for itr in data_id:
-            power_con(data[itr], marker=markers[itr], color=colors[itr], label=name[itr])
+            power_con(data[itr], marker=markers[itr], color=colors[itr], label=name[itr], linestyle=ls[itr])
 
     
     plt.xlabel("Utilization (%)")
@@ -201,8 +208,8 @@ def Figure4(data_id = None):
 
     Utilization (%) - Power Per SFC (W)
     """
-    data, name = open_data()
-    def power_per_sfc(data, marker, color, label):
+    data, name, ls = open_data()
+    def power_per_sfc(data, marker, color, label, linestyle):
         power = [0]*10
         count = [0]*10
         for row in data:
@@ -214,16 +221,16 @@ def Figure4(data_id = None):
         while len(power)>0:
             if power[-1] == 0: power = power[:-1]
             else: break
-        plt.plot([(i+1)*10 for i in range(len(power))], power, marker=marker, color=color, label=label)
+        plt.plot([(i+1)*10 for i in range(len(power))], power, marker=marker, color=color, label=label, linestyle=linestyle)
     
     fig, ax = plt.subplots()
 
     if data_id == None:
         for itr in range(len(data)):
-            power_per_sfc(data[itr], marker=markers[itr], color=colors[itr], label=name[itr])
+            power_per_sfc(data[itr], marker=markers[itr], color=colors[itr], label=name[itr], linestyle=ls[itr])
     else:
         for itr in data_id:
-            power_per_sfc(data[itr], marker=markers[itr], color=colors[itr], label=name[itr])
+            power_per_sfc(data[itr], marker=markers[itr], color=colors[itr], label=name[itr], linestyle=ls[itr])
 
     
     plt.xlabel("Utilization (%)")
@@ -237,8 +244,8 @@ def Figure5(data_id = None):
 
     Utilization (%) - Number of Active Servers
     """
-    data, name = open_data()
-    def active_server(data, marker, color, label):
+    data, name, ls = open_data()
+    def active_server(data, marker, color, label, linestyle):
         number = [0]*10
         count = [0]*10
         for row in data:
@@ -250,16 +257,16 @@ def Figure5(data_id = None):
         while len(number)>0:
             if number[-1] == 0: number = number[:-1]
             else: break
-        plt.plot([(i+1)*10 for i in range(len(number))], number, marker=marker, color=color, label=label)
+        plt.plot([(i+1)*10 for i in range(len(number))], number, marker=marker, color=color, label=label, linestyle=linestyle)
     
     fig, ax = plt.subplots()
 
     if data_id == None:
         for itr in range(len(data)):
-            active_server(data[itr], marker=markers[itr], color=colors[itr], label=name[itr])
+            active_server(data[itr], marker=markers[itr], color=colors[itr], label=name[itr], linestyle=ls[itr])
     else:
         for itr in data_id:
-            active_server(data[itr], marker=markers[itr], color=colors[itr], label=name[itr])
+            active_server(data[itr], marker=markers[itr], color=colors[itr], label=name[itr], linestyle=ls[itr])
 
     plt.xlabel("Utilization (%)")
     plt.ylabel("Number of Active Servers")
@@ -267,7 +274,7 @@ def Figure5(data_id = None):
     ax.legend()
     plt.show()
 
-def Figure6(start_time,end_time,time_format='hour',data_id = None,):
+def Figure6(start_time,end_time,time_format='hour',data_id = None):
     """Fluctuation of system utilization:
 
     Time (hour) - Utilization (%)
@@ -276,12 +283,12 @@ def Figure6(start_time,end_time,time_format='hour',data_id = None,):
 
     time_format: Định dạng thời gian của start_time và end_time, có giá trị là 'hour' và 'minute'. Mặc định là 'hour'
     """
-    data, name = open_data()
+    data, name, ls = open_data()
     if time_format == 'hour':
         start_time = start_time*60
         end_time = end_time*60
 
-    def plottable(data, marker, color, label):
+    def plottable(data, marker, color, label, linestyle):
         time = []
         util = []
         for row in data:
@@ -290,16 +297,16 @@ def Figure6(start_time,end_time,time_format='hour',data_id = None,):
                 time.append(int(row[COLUMN_TIME]))
                 util.append(float(row[COLUMN_UTIL]))
 
-        plt.plot(np.array(time)/60, np.array(util), marker=marker, color=color, label=label)
+        plt.plot(np.array(time)/60, np.array(util), marker=marker, color=color, label=label, linestyle=linestyle)
     
     fig, ax = plt.subplots()
 
     if data_id == None:
         for itr in range(len(data)):
-            plottable(data[itr], marker=markers[itr], color=colors[itr], label=name[itr])
+            plottable(data[itr], marker=markers[itr], color=colors[itr], label=name[itr], linestyle=ls[itr])
     else:
         for itr in data_id:
-            plottable(data[itr], marker=markers[itr], color=colors[itr], label=name[itr])
+            plottable(data[itr], marker=markers[itr], color=colors[itr], label=name[itr], linestyle=ls[itr])
 
     plt.xlabel("Time (hour)")
     plt.ylabel("Utilization (%)")
@@ -309,7 +316,7 @@ def Figure6(start_time,end_time,time_format='hour',data_id = None,):
 
 
 if __name__ == "__main__":
-    Figure1(round=True)
+    Figure1(round=False)
     Figure2(round=True)
     Figure3([0,1,2,3])
     Figure4([0,1,2,3])
