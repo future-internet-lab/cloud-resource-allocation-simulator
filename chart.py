@@ -43,8 +43,8 @@ def open_data():
     foo(["limited/cent_2i_event.csv", "limited/dist_2i_event.csv"],
         ["HRE-SFC cent + remap incr", "HRE-SFC dist + remap incr"])
 
-    foo(["inf/cent_1_event.csv", "inf/dist_1_event.csv"],
-        ["HRE-SFC cent inf", "HRE-SFC dist inf"])
+    # foo(["inf/cent_1_event.csv", "inf/dist_1_event.csv"],
+    #     ["HRE-SFC cent inf", "HRE-SFC dist inf"])
 
     return data, label, linestyle
 
@@ -202,19 +202,23 @@ def Power(data_id=[]):
                 power[i] += float(row[COLUMN_POWER])
                 util[i] += float(row[COLUMN_UTIL])
                 count[i] += 1
-        for i in range(len(count)):
+
+        _length = len(count)
+        i = 0
+        while i < _length:
             try:
                 if count[i] == 0:
                     power.pop(i)
                     util.pop(i)
                     count.pop(i)
+                    _length -= 1
+                else:
+                    i += 1
             except:
                 break
             
-        power = np.array(power) / np.array(count)        
+        power = np.array(power) / np.array(count)
         util = np.array(util) / np.array(count)
-        print(power)
-        print(util)
         plt.plot(util, power, marker=marker, color=color, label=label, linestyle=linestyle)
 
     fig, ax = plt.subplots()
@@ -241,20 +245,29 @@ def PowerPerSFC(data_id = None):
     def draw(data, reso, marker, color, label, linestyle):
         n_value = 100 // reso
         pps = [0] * n_value
-        n_pps = [0] * n_value
         util = [0] * n_value
-        n_util = [0] * n_value
+        count = [0] * n_value
         for row in data:
             if(row[COLUMN_ACTION] in ["deploy", "remove"]):
                 i = int(float(row[COLUMN_UTIL]) / reso)
-                pps[i] += float(row[COLUMN_PPERSFC])
-                n_pps[i] += 1
+                pps[i] += float(row[COLUMN_POWER])
                 util[i] += float(row[COLUMN_UTIL])
-                n_util[i] += 1
-        for i in range(len(n_pps)):
-            if n_pps[i] == 0: n_pps[i] = 1
-        for i in range(len(n_util)):
-            if n_util[i] == 0: n_util[i] = 1
+                count[i] += 1
+        _length = len(count)
+        i = 0
+        while i < _length:
+            try:
+                if count[i] == 0:
+                    pps.pop(i)
+                    util.pop(i)
+                    count.pop(i)
+                    _length -= 1
+                else:
+                    i += 1
+            except:
+                break
+        pps = np.array(pps) / np.array(count)
+        util = np.array(util) / np.array(count)
         plt.plot(util, pps, marker=marker, color=color, label=label, linestyle=linestyle)
         
         
@@ -355,7 +368,7 @@ def Figure6(start_time,end_time,time_format='hour',data_id = None):
 if __name__ == "__main__":
     # Acceptance(data_id=[0, 1, 2, 3], round=False)
     # Utilization(data_id=[0, 1, 2, 3], round=False)
-    Power(data_id=[8, 9])
-    # PowerPerSFC(data_id=[0, 1, 2, 3])
+    # Power(data_id=[0, 1, 2, 3])
+    PowerPerSFC(data_id=[0, 1, 2, 3])
     # ActiveServer([0, 1, 2, 3])
     # Figure6(start_time=0,end_time=6,data_id=[0,2])
