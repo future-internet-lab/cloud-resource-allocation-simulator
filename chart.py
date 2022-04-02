@@ -289,33 +289,48 @@ def PowerPerSFC(data_id = None):
 
 
 def ActiveServer(data_id = None):
-    """Number of active servers:
-
-    Utilization (%) - Number of Active Servers
+    """
+    Number of active servers: Utilization (%) - Number of Active Servers
     """
     data, name, ls = open_data()
-    def active_server(data, marker, color, label, linestyle):
-        number = [0]*10
-        count = [0]*10
+    def draw(data, reso, marker, color, label, linestyle):
+        n_value = 100 // reso
+        aserver = [0] * n_value
+        util = [0] * n_value
+        count = [0] * n_value
         for row in data:
-            if row[COLUMN_ACTION] == 'create':
-                i = int(float(row[COLUMN_UTIL])/10)
-                if i >= 10: i = 9
-                number[i] = (count[i]*number[i] + float(row[COLUMN_ACTIVE_SERVER]))/(count[i]+1)
+            if(row[COLUMN_ACTION] in ["deploy", "remove"]):
+                i = int(float(row[COLUMN_UTIL]) / reso)
+                aserver[i] += int(row[COLUMN_ACTIVE_SERVER])
+                util[i] += float(row[COLUMN_UTIL])
                 count[i] += 1
-        while len(number)>0:
-            if number[-1] == 0: number = number[:-1]
-            else: break
-        plt.plot([(i+1)*10 for i in range(len(number))], number, marker=marker, color=color, label=label, linestyle=linestyle)
+
+        _length = len(count)
+        i = 0
+        while i < _length:
+            try:
+                if count[i] == 0:
+                    aserver.pop(i)
+                    util.pop(i)
+                    count.pop(i)
+                    _length -= 1
+                else:
+                    i += 1
+            except:
+                break
+
+        aserver = np.array(aserver) // np.array(count)
+        util = np.array(util) / np.array(count)
+        plt.plot(util, aserver, marker=marker, color=color, label=label, linestyle=linestyle)
     
     fig, ax = plt.subplots()
 
     if data_id == None:
         for itr in range(len(data)):
-            active_server(data[itr], marker=markers[itr], color=colors[itr], label=name[itr], linestyle=ls[itr])
+            draw(data[itr], 5, marker=markers[itr], color=colors[itr], label=name[itr], linestyle=ls[itr])
     else:
         for itr in data_id:
-            active_server(data[itr], marker=markers[itr], color=colors[itr], label=name[itr], linestyle=ls[itr])
+            draw(data[itr], 5, marker=markers[itr], color=colors[itr], label=name[itr], linestyle=ls[itr])
 
     plt.xlabel("Utilization (%)")
     plt.ylabel("Number of Active Servers")
@@ -366,9 +381,11 @@ def Figure6(start_time,end_time,time_format='hour',data_id = None):
 
 
 if __name__ == "__main__":
-    # Acceptance(data_id=[0, 1, 2, 3], round=False)
-    # Utilization(data_id=[0, 1, 2, 3], round=False)
-    # Power(data_id=[0, 1, 2, 3])
-    PowerPerSFC(data_id=[0, 1, 2, 3])
-    # ActiveServer([0, 1, 2, 3])
+    paper_input = [0, 1, 2, 3]
+    all_input = [0, 1, 2, 3, 4, 5, 6, 7]
+    Acceptance(data_id=all_input, round=False)
+    Utilization(data_id=all_input, round=False)
+    # Power(data_id=paper_input)
+    # PowerPerSFC(data_id=paper_input)
+    # ActiveServer(paper_input)
     # Figure6(start_time=0,end_time=6,data_id=[0,2])
