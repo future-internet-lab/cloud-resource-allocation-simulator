@@ -19,6 +19,7 @@ def fat_tree(k, switchSpecs, serverSpecs):
     lastAggre = int(lastCore + k**2 / 2)
     lastEdge = int(lastAggre  + k**2 / 2)
     lastServer = int(lastEdge + k**3 / 4)
+    bwCapacity = 1000
 
     G = nx.Graph()
 
@@ -27,9 +28,9 @@ def fat_tree(k, switchSpecs, serverSpecs):
     for pod in range(k): # create all links
         for aggre in range(int(k / 2)):
             for i in range(int(k / 2)):
-                G.add_edge(int(lastCore+pod*k/2+aggre+1), int(2*lastCore/k*aggre+i+1), capacity=1000, usage=0)
-                G.add_edge(int(lastCore+pod*k/2+aggre+1), int(lastAggre+pod*k/2+i+1), capacity=1000, usage=0)
-                G.add_edge(int(lastAggre+pod*k/2+i+1), int(lastEdge+pod*k**2/4+k/2*i+aggre+1), capacity=1000, usage=0)
+                G.add_edge(int(lastCore+pod*k/2+aggre+1), int(2*lastCore/k*aggre+i+1), capacity=bwCapacity, usage=0)
+                G.add_edge(int(lastCore+pod*k/2+aggre+1), int(lastAggre+pod*k/2+i+1), capacity=bwCapacity, usage=0)
+                G.add_edge(int(lastAggre+pod*k/2+i+1), int(lastEdge+pod*k**2/4+k/2*i+aggre+1), capacity=bwCapacity, usage=0)
 
 
     for type in ["core", "aggregation", "edge"]:
@@ -57,7 +58,7 @@ def fat_tree(k, switchSpecs, serverSpecs):
 def DistributedTopo():
     G = nx.Graph()
 
-    BW = [2000, 0]
+    BW = [100, 0]
 
     G.add_edge(1, 2, capacity=BW[0], usage=BW[1])
     G.add_edge(1, 12, capacity=BW[0], usage=BW[1])

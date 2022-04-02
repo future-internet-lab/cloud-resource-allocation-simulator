@@ -18,35 +18,45 @@ class Ingress():
 
     def generate_SFC(self, sim, app):
         while True:
-            duration = app.distribution.next()
+            duration = app.distribution.next(sim.time())
             yield sim.env.timeout(duration)
 
             sim.SFCcounter += 1
             sfcID = sim.SFCcounter
-            sfcCreated = app.create_SFC(sfcID)
+            sfcInit = app.create_SFC(sfcID)
             sfc = {
                 "id": sfcID,
                 "app": app,
-                "outlink": sfcCreated[1],
+                "outlink": sfcInit[1],
                 "Ingress": self.id,
                 "DataCentre": False,
-                "struct": sfcCreated[0],
-                "TTL": sfcCreated[2],
-                "remain": sfcCreated[2],
+                "struct": sfcInit[0],
+                "demand": sfcInit[2],
+                "TTL": sfcInit[3],
+                "remain": sfcInit[3],
                 "outroute": []
             }
             sim.SFCs.append(sfc)
-            sim.VNFs[0] += len(sfc["struct"].nodes)
+            # sim.load += sfc["demand"]
 
             # change sfc from python dictionary to json format to logging to .csv
-            struct = {"id": sfc["id"], "vnf": [], "vlink": []}
+            sfc_log = {
+                "id": sfc["id"],
+                "outlink": sfc["outlink"],
+                "Ingress": sfc["Ingress"],
+                "demand": sfc["demand"],
+                "TTL": sfc["TTL"],
+                "vnf": [],
+                "vlink": []
+            }
             for vnf in list(sfc["struct"].nodes.data()):
-                struct["vnf"].append({"id": vnf[0], **vnf[1]})
+                sfc_log["vnf"].append({"id": vnf[0], **vnf[1]})
             for vlink in list(sfc["struct"].edges.data()):
-                struct["vlink"].append({"s": vlink[0], "d": vlink[1], **vlink[2]})
-            struct = json.dumps(struct)
+                sfc_log["vlink"].append({"s": vlink[0], "d": vlink[1], **vlink[2]})
+            sfc_log = json.dumps(sfc_log)
 
-            sim.logger.log_event(sim, sim.logger.CREATE, SFC=sfc, topo=struct)
+            sim.logger.log_event(sim, sim.logger.CREATE, SFC=sfc, topo=sfc_log)
+            # sim.logger.log_event(sim, sim.logger.CREATE, SFC=sfc)
             # print(f"{sim.time()}: Ingress-{self.id} create SFC-{sfc['id']} with {len(sfc['struct'].nodes)} VNFs TTL = {sfc['TTL']}")
             sim.reqQueue.put(sfc)
 

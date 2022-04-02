@@ -17,28 +17,29 @@ import random
 
 
 def main(argument):
-    np.random.seed(2405)
-    random.seed(2405)
+    np.random.seed(1)
+    random.seed(1)
 
     switchSpecs = {
         "basePower": 39,
         "portPower": [0.42, 0.48, 0.9]
     }
-    serverCapacity = 4
+    serverCapacity = 100
     serverSpecs = {
         "capacity": serverCapacity,
         "usage": 0,
         # "power": [205.1, 232.9, 260.7, 288.6, 316.4]
-        "power": [0, 232.9, 260.7, 288.6, 316.4]
+        # "power": [0, 232.9, 260.7, 288.6, 316.4]
     }
 
     ############################################################ CONFIG HERE
-    dist = Poisson(lamda=10)
-    avg_TTL = 30
-    n_VNFs_range = [10, 20]
-    bw_range = [10, 150]
-    runtime = 60
-    arg = [avg_TTL, n_VNFs_range, bw_range, [0.5, 0.5]]
+    dist = Poisson(lamda=2)
+    avg_TTL = 120
+    n_VNFs = [4, 20]
+    demand_VNF = [10, 40]
+    bw = [10, 90]
+    runtime = 700
+    arg = [avg_TTL, n_VNFs, bw, demand_VNF, [0.5, 0.5]]
     ########################################################################
 
     selector = WaxmanSelector()
@@ -48,7 +49,7 @@ def main(argument):
 
     apps = [app]
 
-    folder_result = f"{serverCapacity}_{dist.lamda}_{avg_TTL}_{n_VNFs_range[0]}{n_VNFs_range[1]}_{bw_range[0]}{bw_range[1]}_{runtime}"
+    folder_result = f"{serverCapacity}_{dist.lamda}_{avg_TTL}_{n_VNFs[0]}{n_VNFs[1]}_{demand_VNF[0]}{demand_VNF[1]}_{bw[0]}{bw[1]}_{runtime}"
     folder_log = Path(f"results/{folder_result}/{apps[0].name}")
     folder_log.mkdir(parents=True, exist_ok=True)
     folder_log = str(folder_log) + "/cent_"
@@ -71,7 +72,7 @@ def main(argument):
     sim.run(runtime) # runtime = 120 minutes
     print("CENTRALIZED")
     print(f"ram = {serverCapacity}, L = {dist.lamda}, TTL = {avg_TTL}")
-    print(f"nvnf = {n_VNFs_range}, bw = {bw_range}")
+    print(f"nvnf = {n_VNFs}, bw = {bw}")
     print(f"runtime = {runtime}, strategy = {argument[0]}")
     if(len(argument) == 2):
         print(f"sortmode = {argument[1]}")

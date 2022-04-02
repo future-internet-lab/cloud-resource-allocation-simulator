@@ -8,10 +8,10 @@ import networkx as nx
 class DataCentre():
     def __init__(self, id, topo):
         self.id = id
-        self.freeTopo = copy.deepcopy(topo)
+        # self.freeTopo = copy.deepcopy(topo)
         self.topo = topo
 
-        self.activeServer = []
+        self.activeServer = [] # list of id
         self.power = 0
 
 
@@ -38,7 +38,7 @@ class DataCentre():
 
 
 
-    def deployer(self, sfc, sim):
+    def deployer(self, sfc, sim, redeploy):
         self.topo = self.install(sfc)
         self.power = self.energy(self.topo)
         route = sfc["outroute"]
@@ -51,20 +51,23 @@ class DataCentre():
             "sfc": sfc,
             "event": sim.env.process(self.release(sfc, sim))
         })
-        sim.cal_power()
-        sim.VNFs[1] += len(sfc["struct"].nodes)
+
+        sim.util += sfc["demand"]
         
-        topo = self.topo_status_json()
-        sim.logger.log_event(sim, sim.logger.DEPLOY, SFC=sfc, topo=topo)
-        
+        # topo = self.topo_status_json()
+        if(redeploy):
+            sim.logger.log_event(sim, sim.logger.REDEPLOY, SFC=sfc)
+        else:
+            sim.logger.log_event(sim, sim.logger.DEPLOY, SFC=sfc)
+
 
 
     def release(self, sfc, sim):
         try:
             start = sim.env.now
             yield sim.env.timeout(sfc["remain"])
-            sim.VNFs[0] -= len(sfc["struct"].nodes)
-            sim.VNFs[1] -= len(sfc["struct"].nodes)
+            # sim.VNFs[0] -= len(sfc["struct"].nodes)
+            sim.util -= sfc["demand"]
             sfc["remain"] = 0
 
             sfcTopo = sfc["struct"]
@@ -72,6 +75,7 @@ class DataCentre():
                 onServer = vnf[1]["server"]
                 self.topo.nodes[onServer]["usage"] -= sfcTopo.nodes[vnf[0]]["demand"]
                 self.topo.nodes[onServer]['deployed'].remove([sfc["id"], vnf[0]])
+
             self.cal_active_server()
 
             for vLink in list(sfcTopo.edges.data()): # release link
@@ -98,21 +102,18 @@ class DataCentre():
                     sim.runningSFCs.remove(e)
                     break
 
-            topo = self.topo_status_json()
-
-            sim.logger.log_event(sim, sim.logger.REMOVE, SFC=sfc, topo=topo)
+            # topo = self.topo_status_json()
+            sim.logger.log_event(sim, sim.logger.REMOVE, SFC=sfc)
 
         except simpy.Interrupt:
             sfc["remain"] -= sim.env.now - start
+            sim.util -= sfc["demand"]
             # print(f"{sim.time()}: SFC-{sfc['id']} is interrupted! remain {sfc['remain']} ----->{sfc['id']}")
             sim.logger.log_event(sim, sim.logger.INTERRUPT, sfc)
-            # if(sim.runningSFCs):
-            #     print(sim.runningSFCs[0]["sfc"]["TTL"])
 
         
 
     def reset(self):
-        # print(f"DC-{self.id} has been reset")
         for node in list(self.topo.nodes.data()):
             if(node[1]["model"] == "server"):
                 node[1]["deployed"] = []
@@ -168,9 +169,15 @@ class DataCentre():
 
         for node in list(topo.nodes.data()):
             if(node[1]["model"] == "server"):
-                n_VNFs = len(node[1]["deployed"])
-                if(n_VNFs > 0):
-                    serverPower += node[1]["power"][n_VNFs]
+                if(node[1]["usage"] != 0):
+                    node[1]["state"] = True
+                    serverPower += 205.1 + 1.113 * node[1]["usage"]
+                else:
+                    node[1]["state"] = False
+                
+                # n_VNFs = len(node[1]["deployed"])
+                # if(n_VNFs > 0):
+                #     serverPower += node[1]["power"][n_VNFs]
                 
             if(node[1]["model"] == "switch"):
                 if(node[1]["state"]): # switch is online
