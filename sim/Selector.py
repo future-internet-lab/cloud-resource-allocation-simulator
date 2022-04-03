@@ -207,7 +207,7 @@ class WaxmanSelector(Selector):
             k = round((len(serverCap)*4)**(1/3))
             a,b,a2,b2,onState = [],[],[],[],[]
             for i in serverCap:
-                if i==4: onState.append(1)
+                if i==100: onState.append(1)
                 else: onState.append(0)
             for i in range(2*len(serverCap)//k):
                 a.append(sum(onState[i*k//2:(i+1)*k//2]))
@@ -215,40 +215,30 @@ class WaxmanSelector(Selector):
             for i in range(4*len(serverCap)//(k**2)):
                 b.append(a[i*(k//2):(i+1)*k//2])
                 b2.append(a2[i*(k//2):(i+1)*k//2])
-            sfc_len = len(package)
-            if sfc_len > sum(serverCap): return False
             b = np.array(b)
-            def smallfunction(addr, num_vnf, result):
-                temp = np.array(serverCap[addr*(k//2):(addr+1)*(k//2)])
-                for l in np.argsort(temp)[::-1]:
-                    if num_vnf > temp[l]:
-                        if temp[l] == 0: continue
-                        num_vnf -= temp[l]
-                        # print(addr*(k//2)+l,'--',temp[l])
-                        result.append([addr*(k//2)+l,temp[l]])
-                    else:
-                        # print(addr*(k//2)+l,'--',num_vnf)
-                        result.append([addr*(k//2)+l,num_vnf])
-                        break
                     
-            result = []
-            for j in np.argsort(np.sum(b,axis=1)):
-                if sfc_len == 0: break
-                # print(b[j])
-                temp_array = np.argsort(b[j])
-                # print(temp_array)
-                for i in temp_array:
-                    if b2[j][i] >= sfc_len:
-                        smallfunction((k//2)*j+i,sfc_len,result)
-                        sfc_len = 0
-                        break
-                    else:
-                        smallfunction((k//2)*j+i,b2[j][i],result)
-                        sfc_len -= b2[j][i]
+            def process():
+                vnf_c = 0
+                result = []
+                for j in np.argsort(np.sum(b,axis=1))[::-1]:
+                    # choose candidate groups with the least number of servers in ON State
+                    for i in np.argsort(b[j])[::-1]:
+                        addr = (k//2)*j+i
+                        temp = np.array(serverCap[addr*(k//2):(addr+1)*(k//2)])
+                        for l in np.argsort(temp):
+                            while temp[l] >= package[vnf_c]:
+                                temp[l] -= package[vnf_c]
+                                result.append([addr*(k//2)+l,temp[l]])
+                                vnf_c += 1
+                                print(temp)
+                                if vnf_c >= len(package): return result
 
+            result = process()
+            if len(result) < len(package): return False
             alloc = []
             for i in result:
-                alloc += [i[0]+arg]*i[1]
+                alloc += [i[0]+arg]
+            print(alloc)
             return alloc
 
         # alloc vnf to server
@@ -259,6 +249,7 @@ class WaxmanSelector(Selector):
         vnfCap = []
         for vnf in list(sfc["struct"].nodes.data()):
             vnfCap.append(vnf[1]["demand"])
+        print('serverCap',serverCap)
         alloc = Placement(serverCap, vnfCap)
 
         if(alloc):
@@ -292,7 +283,7 @@ class WaxmanSelector(Selector):
             return False
 
 
-import matplotlib.pyplot as plt
+
 
 class VNFFG_node_splitting(Selector):
     """
