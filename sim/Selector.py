@@ -195,6 +195,8 @@ class WaxmanSelector_0(Selector):
 class WaxmanSelector(Selector):
     """
     selector algorithm for analysing SFC waxman random topo
+
+    using for old paper
     """
     def __init__(self):
         pass
@@ -206,16 +208,14 @@ class WaxmanSelector(Selector):
         def Placement(serverCap, package):
             arg = round(5 / 4 * pow(4 * len(serverCap), 2/3) + 1)
             k = round((len(serverCap)*4)**(1/3))
-            a,b,a2,b2,onState = [],[],[],[],[]
+            a,b,onState = [],[],[]
             for i in serverCap:
                 if i==100: onState.append(1)
                 else: onState.append(0)
             for i in range(2*len(serverCap)//k):
                 a.append(sum(onState[i*k//2:(i+1)*k//2]))
-                a2.append(sum(serverCap[i*k//2:(i+1)*k//2]))
             for i in range(4*len(serverCap)//(k**2)):
                 b.append(a[i*(k//2):(i+1)*k//2])
-                b2.append(a2[i*(k//2):(i+1)*k//2])
             b = np.array(b)
                     
             def process():
@@ -229,18 +229,15 @@ class WaxmanSelector(Selector):
                         for l in np.argsort(temp):
                             while temp[l] >= package[vnf_c]:
                                 temp[l] -= package[vnf_c]
-                                result.append([addr*(k//2)+l,temp[l]])
+                                result.append(addr*(k//2)+l+arg)
                                 vnf_c += 1
                                 # print(temp)
                                 if vnf_c >= len(package): return result
+                return result
 
             result = process()
             if len(result) < len(package): return False
-            alloc = []
-            for i in result:
-                alloc += [i[0]+arg]
-            # print(alloc)
-            return alloc
+            return result
 
         # alloc vnf to server
         serverCap = []
@@ -250,7 +247,6 @@ class WaxmanSelector(Selector):
         vnfCap = []
         for vnf in list(sfc["struct"].nodes.data()):
             vnfCap.append(vnf[1]["demand"])
-        print('serverCap',serverCap)
         alloc = Placement(serverCap, vnfCap)
 
         if(alloc):
@@ -284,11 +280,10 @@ class WaxmanSelector(Selector):
             return False
 
 
-
-
 class VNFFG_node_splitting(Selector):
     """
-    use with VNF-FG app
+    using VNF-FG algorithm for the paper: Online Joint VNF Chain
+    Composition Embedding for 5G Networks
     """
     def __init__(self):
         pass
@@ -306,6 +301,8 @@ class VNFFG_node_splitting(Selector):
             return result[id]
 
         def RandPlacement(serverCap, package):
+            """ random placement with the node spliting
+            """
             arg = round(5 / 4 * pow(4 * len(serverCap), 2/3) + 1)
             alloc = []
             count = len(package)
@@ -318,31 +315,28 @@ class VNFFG_node_splitting(Selector):
                     sfc["struct"].nodes[i]["server"] = rand_id+arg
                     serverCap[rand_id] -= package[i]
                 else: # splitting
-                    print('try to split node',i,'----------------------------')
+                    print('try to split virtual node:',i)
                     alloc.append(rand_id+arg)
                     old_cap = serverCap[rand_id]
                     new_cap = package[i] - serverCap[rand_id]
                     new_id = rand_FeasibleNodes(serverCap, new_cap)
                     if new_id: new_server = new_id + arg
                     else: return False
-                    # add new node
+                    # create a new node: count
                     sfc["struct"].add_node(count,SFC=sfc["struct"].nodes[0]['SFC'],demand=new_cap,server=new_server)
                     serverCap[new_id] -= new_cap
                     # edit old
                     sfc["struct"].nodes[i]["server"] = rand_id+arg
                     serverCap[rand_id] = 0
                     sfc["struct"].nodes[i]['demand'] = old_cap
-
-
                         
                     for neig in sfc["struct"].neighbors(i):
                         abc = sfc["struct"][i][neig]['demand']
                         old_bw = (abc*old_cap)//package[i]
                         sfc["struct"][i][neig]['demand'] = old_bw
                         new_bw = abc - old_bw
-                        # add new edge
+                        # add new edge, with properties as same as old node
                         sfc["struct"].add_edge(count,neig,demand=new_bw,route=[])
-                    # create a new node: count
                     count += 1
                     # print(sfc["struct"].edges.data())
 
