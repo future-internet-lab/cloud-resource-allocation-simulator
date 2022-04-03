@@ -230,7 +230,7 @@ class WaxmanSelector(Selector):
                                 temp[l] -= package[vnf_c]
                                 result.append([addr*(k//2)+l,temp[l]])
                                 vnf_c += 1
-                                print(temp)
+                                # print(temp)
                                 if vnf_c >= len(package): return result
 
             result = process()
@@ -238,7 +238,7 @@ class WaxmanSelector(Selector):
             alloc = []
             for i in result:
                 alloc += [i[0]+arg]
-            print(alloc)
+            # print(alloc)
             return alloc
 
         # alloc vnf to server
