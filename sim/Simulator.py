@@ -2,6 +2,7 @@ from sim.SFC import *
 from sim.Logger import *
 
 import copy
+import time
 import simpy
 import networkx as nx
 import random
@@ -27,6 +28,8 @@ class Simulator():
                     self.capacity += node[1]["capacity"]
 
         self.reqQueue = simpy.Store(self.env)
+
+        self.justRemove = -1
 
         self.SFCcounter = 0 # for numbering SFC in Ingress.py
 
@@ -55,10 +58,13 @@ class Simulator():
             if(self.strategy == 2):
                 # backup running SFCs for redeployment if remapping is failed 
                 backupRunningSFCs = self.runningSFCs
-                # backupRunningSFCs = []
-                # for e in self.runningSFCs:
-                #     backupRunningSFCs.append(sfc)
-                #     print(sfc["id"], sfc["TTL"], sfc["remain"])
+                # if(len(self.runningSFCs) > 0):
+                #     # print(backupRunningSFCs)
+                #     print("len backup =", len(backupRunningSFCs))
+                #     self.runningSFCs = []
+                #     # print(backupRunningSFCs)
+                #     print("len backup =", len(backupRunningSFCs))
+                #     exit()
 
                 self.logger.log_event(self, self.logger.REMAP_START)
                 try:
@@ -73,33 +79,96 @@ class Simulator():
                     for outlink in list(self.topology.edges.data()):
                         outlink[2]["usage"] = 0
 
-                    # create a copy of backup, then empty runningSFCs
-                    _runningSFCs = backupRunningSFCs
-                    if(self.sortmode == 'd'):
-                        _runningSFCs.sort(reverse=True, key=lambda e : len(e["sfc"]["struct"].nodes))
-                    if(self.sortmode == 'i'):
-                        _runningSFCs.sort(reverse=False, key=lambda e : len(e["sfc"]["struct"].nodes))
-                    self.runningSFCs = []
+                    _runningSFCs = copy.copy(backupRunningSFCs)
+                    print("in sim:", self.justRemove)
 
-                    for e in _runningSFCs: # redeploy
-                        self.handler(e["sfc"], True)
-                    self.logger.log_event(self, self.logger.REMAP_SUCCESS)
+                    if(self.justRemove == -1):
+                        if(_runningSFCs != []):
+                            lastSFC = _runningSFCs[-1]
+                            if self.sortmode == "d":
+                                _runningSFCs.sort(reverse=True, key=lambda e : len(e["sfc"]["struct"].nodes))
+                            if self.sortmode == "i":
+                                _runningSFCs.sort(reverse=False, key=lambda e : len(e["sfc"]["struct"].nodes))
+                            
+                            for e in _runningSFCs:
+                                if(e["sfc"]["id"] == lastSFC["sfc"]["id"]):
+                                    index = _runningSFCs.index(e)
+                                    break
+                            
+                            sortedSFCs = _runningSFCs[:index]
+                            remapSFCs = _runningSFCs[index:]
 
-                    # if(len(_runningSFCs) > 0):
-                    #     for i in range(len(_runningSFCs)):
-                    #         if(_runningSFCs[i]["DataCentre"] != backupRunningSFCs[i]["DataCentre"]):
-                    #             self.migration += 1
-                    #             continue
-                    #         newsfc = _runningSFCs[i]["struct"]
-                    #         oldsfc = backupRunningSFCs[i]["struct"]
-                    #         for j in range(len(newsfc.nodes.data())):
-                    #             if(newsfc.nodes[j]["server"] != oldsfc.nodes[j]["server"]):
-                    #                 self.migration
-                    #                 continue
+                            # nvnf_lastsfc = len(lastSFC["sfc"]["struct"].nodes)
+                            # for i in range(len(_runningSFCs)):
+                            #     nvnf_currentsfc = len(_runningSFCs[i]["sfc"]["struct"].nodes)
+                            #     if((self.sortmode == 'd' and nvnf_currentsfc > nvnf_lastsfc) \
+                            #         or (self.sortmode == 'i' and nvnf_currentsfc < nvnf_lastsfc)):
+                            #             sortedSFCs.append(_runningSFCs[i])
+                            #             continue
+                            #     if(self.sortmode == "n"):
+                            #         remapSFCs = _runningSFCs
+                            #         break
+                            #     remapSFCs = _runningSFCs[i:-1]
+                            #     remapSFCs.insert(0, lastSFC)
+                            #     break
+
+                            self.runningSFCs = []
+
+                            for e in sortedSFCs:
+                                print(f"deploy SFC-{e['sfc']['id']} using backup")
+                                [DC for DC in self.DataCentres if DC.id == e['sfc']["DataCentre"]][0].deployer(e['sfc'], self, True)
+
+                            for e in remapSFCs:
+                                self.handler(e["sfc"], True)
+                            self.logger.log_event(self, self.logger.REMAP_SUCCESS)
+                    else:
+                        print("\njust Remove -----------------------\n")
+                        if(self.sortmode == 'd'):
+                            _runningSFCs.sort(reverse=True, key=lambda e : len(e["sfc"]["struct"].nodes))
+                        if(self.sortmode == 'i'):
+                            _runningSFCs.sort(reverse=False, key=lambda e : len(e["sfc"]["struct"].nodes))
+                        self.runningSFCs = []
+                        for e in _runningSFCs: # redeploy
+                            self.handler(e["sfc"], True)
+
+                        # if(_runningSFCs != []):
+                        #     if self.sortmode == "d":
+                        #         _runningSFCs.sort(reverse=True, key=lambda e : len(e["sfc"]["struct"].nodes))
+                        #     if self.sortmode == "i":
+                        #         _runningSFCs.sort(reverse=False, key=lambda e : len(e["sfc"]["struct"].nodes))
+                        #     sortedSFCs = _runningSFCs[:self.justRemove]
+                        #     remapSFCs = _runningSFCs[self.justRemove:]
+                        #     _run = [e["sfc"]["id"] for e in _runningSFCs]
+                        #     _sorted = [e["sfc"]["id"] for e in sortedSFCs]
+                        #     _remap = [e["sfc"]["id"] for e in remapSFCs]
+                        #     print("index:", self.justRemove)
+                        #     print("runningSFCs after:", _run)
+                        #     print("sorted =", _sorted)
+                        #     print("remap =",_remap)
+                        #     self.runningSFCs = []
+                        #     for e in sortedSFCs:
+                        #         print(f"deploy SFC-{e['sfc']['id']} using backup")
+                        #         [DC for DC in self.DataCentres if DC.id == e['sfc']["DataCentre"]][0].deployer(e['sfc'], self, True)
+                        #     for e in remapSFCs:
+                        #         self.handler(e["sfc"], True)
+
+                        self.justRemove = -1
+                        self.logger.log_event(self, self.logger.REMAP_SUCCESS)
+
+                    #####
+                    # if(self.sortmode == 'd'):
+                    #     _runningSFCs.sort(reverse=True, key=lambda e : len(e["sfc"]["struct"].nodes))
+                    # if(self.sortmode == 'i'):
+                    #     _runningSFCs.sort(reverse=False, key=lambda e : len(e["sfc"]["struct"].nodes))
+                    # self.runningSFCs = []
+                    # for e in _runningSFCs: # redeploy
+                    #     self.handler(e["sfc"], True)
+                    # self.logger.log_event(self, self.logger.REMAP_SUCCESS)
+                    #####
 
                     self.handler(sfc, False) # deploy new SFC
                 except:
-                    print(f"\n\n{self.time()}:-----remap failed, turn back previous status-----\n\n")
+                    print(f"\n{self.time()}:-----remap failed, turn back previous status-----\n")
 
                     # interrupt running SFC
                     for aliveSFC in self.runningSFCs:
@@ -206,8 +275,9 @@ class Simulator():
             ingress.generator(self)
 
         self.env.process(self.pickup())
-
+        startTime = int(time.time())
         self.env.run(until=runtime)
+        endTime = int(time.time())
         self.logger.close()
 
         print()
@@ -218,4 +288,6 @@ class Simulator():
         print(f"accepted: {accepted} / {total} SFCs ({acceptance}%)")
         print(f"failed: {failed} SFCs")
         print(f"migration: {self.migration} times")
+        print(f"Simulator time: {(endTime - startTime) // 60}m{(endTime - startTime) % 60}s")
+        print()
         return acceptance

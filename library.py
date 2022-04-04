@@ -58,7 +58,7 @@ def fat_tree(k, switchSpecs, serverSpecs):
 def DistributedTopo():
     G = nx.Graph()
 
-    BW = [100, 0]
+    BW = [150, 0]
 
     G.add_edge(1, 2, capacity=BW[0], usage=BW[1])
     G.add_edge(1, 12, capacity=BW[0], usage=BW[1])

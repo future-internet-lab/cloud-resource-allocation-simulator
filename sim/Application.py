@@ -60,7 +60,7 @@ class WaxmanApp(Application):
 
     def create_SFC(self, id):
         n_VNFs = np.random.randint(self.arg[1][0], self.arg[1][1] + 1)
-        G = nx.waxman_graph(n_VNFs, self.arg[2][0], self.arg[2][1])
+        G = nx.waxman_graph(n_VNFs, self.arg[4][0], self.arg[4][1])
 
         for (i, j) in G.edges:
             G[i][j]['demand'] = np.random.randint(self.arg[2][0], self.arg[2][1] + 1)

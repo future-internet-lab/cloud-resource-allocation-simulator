@@ -51,44 +51,42 @@ class SimpleSelector(Selector):
         serverCap = []
         for node in list(topo.nodes.data()):
             if(node[1]["model"] == "server"):
-                serverCap.append(node[1]["RAM"][0] - node[1]["RAM"][1])
+                serverCap.append(node[1]["capacity"] - node[1]["usage"])
         vnfCap = []
         for vnf in list(sfc["struct"].nodes.data()):
-            vnfCap.append(vnf[1]["RAM"])
+            vnfCap.append(vnf[1]["demand"])
         
         alloc = randPlacement(serverCap, vnfCap)
-        print(alloc)
 
         if(alloc):
-            deploy = {"node": [], "link": []}
-
             for vnf in list(sfc["struct"].nodes.data()):
                 c_server = alloc[vnf[0]] # the choosen server
-                deploy["node"].append([vnf[0], c_server])
-                vnf[1]["place"] = [DC.id, c_server]
+                vnf[1]["server"] = c_server
 
-            for vnf in range(len(sfc["struct"].nodes) - 1):
-                s = sfc["struct"].nodes[vnf]["place"][1]
-                d = sfc["struct"].nodes[vnf + 1]["place"][1]
-                v_link = sfc["struct"].edges[vnf, vnf + 1]
-                for p_link in list(topo.edges.data()):
-                    if(p_link[2]["bw"][0] - p_link[2]['bw'][1] < v_link["bw"]):
-                        topo.remove_edge(p_link[0], p_link[1])
-                try:
-                    route = nx.shortest_path(topo, s, d)
-                except:
-                    return False
-                deploy["link"].append({
-                    "bw": v_link["bw"],
-                    "route": route
-                })
+            for vlink in list(sfc["struct"].edges.data()):
+                s = sfc["struct"].nodes[vlink[0]]["server"]
+                d = sfc["struct"].nodes[vlink[1]]["server"]
 
-            deploy["sfc"] = sfc
-
-            return deploy
-
-        else: return False
+                _topo = copy.deepcopy(topo)
                 
+                v_link = sfc["struct"].edges[vlink[0], vlink[1]]
+                for p_link in list(_topo.edges.data()):
+                    if(p_link[2]["capacity"] - p_link[2]['usage'] < v_link["demand"]):
+                        _topo.remove_edge(p_link[0], p_link[1])
+                try:
+                    route = nx.shortest_path(_topo, s, d)
+                    for i in range(len(route) - 1):
+                        topo.edges[route[i], route[i+1]]['usage'] + v_link["demand"]
+                    sfc["struct"].edges[vlink[0], vlink[1]]["route"] = route
+                except:
+                    print(f"cannot routing from {s} to {d}, bw = {v_link['demand']} ---------")
+                    sfc["struct"].edges[vlink[0], vlink[1]]["route"] = []
+                    return False
+            sfc["DataCentre"] = DC.id
+            return copy.deepcopy(sfc)
+        else:
+            print("cannot alloc")
+            return False
 
 
 
@@ -207,7 +205,7 @@ class WaxmanSelector(Selector):
             k = round((len(serverCap)*4)**(1/3))
             a,b,a2,b2,onState = [],[],[],[],[]
             for i in serverCap:
-                if i==4: onState.append(1)
+                if i==100: onState.append(1)
                 else: onState.append(0)
             for i in range(2*len(serverCap)//k):
                 a.append(sum(onState[i*k//2:(i+1)*k//2]))
@@ -215,40 +213,40 @@ class WaxmanSelector(Selector):
             for i in range(4*len(serverCap)//(k**2)):
                 b.append(a[i*(k//2):(i+1)*k//2])
                 b2.append(a2[i*(k//2):(i+1)*k//2])
-            sfc_len = len(package)
-            if sfc_len > sum(serverCap): return False
             b = np.array(b)
-            def smallfunction(addr, num_vnf, result):
-                temp = np.array(serverCap[addr*(k//2):(addr+1)*(k//2)])
-                for l in np.argsort(temp)[::-1]:
-                    if num_vnf > temp[l]:
-                        if temp[l] == 0: continue
-                        num_vnf -= temp[l]
-                        # print(addr*(k//2)+l,'--',temp[l])
-                        result.append([addr*(k//2)+l,temp[l]])
-                    else:
-                        # print(addr*(k//2)+l,'--',num_vnf)
-                        result.append([addr*(k//2)+l,num_vnf])
-                        break
                     
-            result = []
-            for j in np.argsort(np.sum(b,axis=1)):
-                if sfc_len == 0: break
-                # print(b[j])
-                temp_array = np.argsort(b[j])
-                # print(temp_array)
-                for i in temp_array:
-                    if b2[j][i] >= sfc_len:
-                        smallfunction((k//2)*j+i,sfc_len,result)
-                        sfc_len = 0
-                        break
-                    else:
-                        smallfunction((k//2)*j+i,b2[j][i],result)
-                        sfc_len -= b2[j][i]
+            def process():
+                vnf_c = 0
+                result = []
+                for j in np.argsort(np.sum(b,axis=1))[::-1]:
+                    # choose candidate groups with the least number of servers in ON State
+                    for i in np.argsort(b[j])[::-1]:
+                        addr = (k//2)*j+i
+                        temp = np.array(serverCap[addr*(k//2):(addr+1)*(k//2)])
+                        for l in np.argsort(temp):
+                            while temp[l] >= package[vnf_c]:
+                                temp[l] -= package[vnf_c]
+                                result.append([addr*(k//2)+l,temp[l]])
+                                vnf_c += 1
+                                # print(temp)
+                                if vnf_c >= len(package): return result
+                return result
 
+            result = process()
+            # print("result =", result)
+            # print("package =", package)
+            if len(result) < len(package): return False
+            # try:
+            #     if len(result) < len(package): return False
+            # except:
+            #     print(result)
+            #     print(package)
+            #     exit()
+            #     return False
             alloc = []
             for i in result:
-                alloc += [i[0]+arg]*i[1]
+                alloc += [i[0]+arg]
+            # print(alloc)
             return alloc
 
         # alloc vnf to server
@@ -259,6 +257,7 @@ class WaxmanSelector(Selector):
         vnfCap = []
         for vnf in list(sfc["struct"].nodes.data()):
             vnfCap.append(vnf[1]["demand"])
+        # print('serverCap',serverCap)
         alloc = Placement(serverCap, vnfCap)
 
         if(alloc):

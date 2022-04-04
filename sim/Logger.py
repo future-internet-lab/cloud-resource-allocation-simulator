@@ -63,10 +63,10 @@ class Logger():
         if(action == self.DROP):
             print(f"{sim.time()}: drop SFC-{SFC['id']}, remain {SFC['remain']}")
         if(action == self.DEPLOY):
-            print(f"{sim.time()}: deploy SFC-{SFC['id']} on DC-{SFC['DataCentre']}, remain {SFC['remain']}")
+            print(f"{sim.time()}: deploy SFC-{SFC['id']}({len(SFC['struct'].nodes)} vnfs) on DC-{SFC['DataCentre']}, remain {SFC['remain']}")
             bigNode = SFC['DataCentre']
         if(action == self.REDEPLOY):
-            print(f"{sim.time()}: redeploy SFC-{SFC['id']} on DC-{SFC['DataCentre']}, remain {SFC['remain']}")
+            print(f"{sim.time()}: redeploy SFC-{SFC['id']}({len(SFC['struct'].nodes)} vnfs) on DC-{SFC['DataCentre']}, remain {SFC['remain']}")
             bigNode = SFC['DataCentre']
         if(action == self.REMOVE):
             print(f"{sim.time()}: remove SFC-{SFC['id']} on DC-{SFC['DataCentre']}, remain {SFC['remain']}")

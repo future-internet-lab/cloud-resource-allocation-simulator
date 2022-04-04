@@ -99,6 +99,10 @@ class DataCentre():
 
             for e in sim.runningSFCs:
                 if(e["sfc"]["id"] == sfc["id"]):
+                    sim.justRemove = sim.runningSFCs.index(e)
+                    print("remove sfc has index: ", sim.justRemove)
+                    _run = [e["sfc"]["id"] for e in sim.runningSFCs]
+                    print("runningSFCs before = ", _run)
                     sim.runningSFCs.remove(e)
                     break
 

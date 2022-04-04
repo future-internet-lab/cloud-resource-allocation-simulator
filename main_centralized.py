@@ -38,7 +38,7 @@ def main(argument):
     n_VNFs = [4, 20]
     demand_VNF = [10, 40]
     bw = [10, 90]
-    runtime = 700
+    runtime = 300
     arg = [avg_TTL, n_VNFs, bw, demand_VNF, [0.5, 0.5]]
     ########################################################################
 
