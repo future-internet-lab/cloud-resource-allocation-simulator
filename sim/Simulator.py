@@ -1,4 +1,3 @@
-from sim.SFC import *
 from sim.Logger import *
 
 import copy
@@ -10,16 +9,16 @@ import random
 
 
 class Simulator():
-    def __init__(self, topology, DCs, Ingresses, folder_log, *arg):
+    def __init__(self, substrate, folder_log, *arg):
         self.env = simpy.Environment()
         self.logger = Logger(self, folder_log)
         self.strategy = arg[0]
 
         if(len(arg) == 2): self.sortmode = arg[1]
 
-        self.topology = topology
-        self.DataCentres = DCs
-        self.Ingresses = Ingresses
+        self.topology = copy.deepcopy(substrate.topology)
+        self.DataCentres = copy.deepcopy(substrate.DCs)
+        self.Ingresses = copy.deepcopy(substrate.Ingresses)
 
         self.capacity = 0
         for DC in self.DataCentres:
@@ -79,7 +78,7 @@ class Simulator():
                     for outlink in list(self.topology.edges.data()):
                         outlink[2]["usage"] = 0
 
-                    _runningSFCs = copy.copy(backupRunningSFCs)
+                    _runningSFCs = backupRunningSFCs
                     # print("in sim:", self.justRemove)
 
                     if(self.justRemove == -1):

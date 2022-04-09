@@ -90,6 +90,7 @@ class SimpleSelector(Selector):
 
 
 
+
 class WaxmanSelector_0(Selector):
     """
     selector algorithm for analysing SFC waxman random topo
@@ -279,13 +280,14 @@ class WaxmanSelector(Selector):
                 try:
                     route = nx.shortest_path(_topo, s, d)
                     for i in range(len(route) - 1):
-                        topo.edges[route[i], route[i+1]]['usage'] + v_link["demand"]
+                        topo.edges[route[i], route[i+1]]['usage'] += v_link["demand"]
                     sfc["struct"].edges[vlink[0], vlink[1]]["route"] = route
                 except:
                     print(f"cannot routing from {s} to {d}, bw = {v_link['demand']} ---------")
                     sfc["struct"].edges[vlink[0], vlink[1]]["route"] = []
                     return False
             sfc["DataCentre"] = DC.id
+            # return sfc
             return copy.deepcopy(sfc)
         else:
             print("cannot alloc")
@@ -388,7 +390,7 @@ class VNFG(Selector):
                 try:
                     route = nx.shortest_path(_topo, s, d)
                     for i in range(len(route) - 1):
-                        topo.edges[route[i], route[i+1]]['usage'] + v_link["demand"]
+                        topo.edges[route[i], route[i+1]]['usage'] += v_link["demand"]
                     sfc["struct"].edges[vlink[0], vlink[1]]["route"] = route
                 except:
                     print(f"cannot routing from {s} to {d}, bw = {v_link['demand']} ---------")

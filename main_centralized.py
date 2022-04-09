@@ -1,10 +1,10 @@
 from sim.Simulator import *
 from sim.Application import *
-from sim.SFC import *
 from sim.Distribution import *
 from sim.Selector import *
 from sim.DataCentre import *
 from sim.Ingress import *
+from sim.Substrate import *
 from library import *
 
 from pathlib import Path
@@ -16,41 +16,28 @@ import random
 
 
 
-def main(argument):
-    np.random.seed(1)
-    random.seed(1)
-
-    switchSpecs = {
-        "basePower": 39,
-        "portPower": [0.42, 0.48, 0.9]
-    }
-    serverCapacity = 100
-    serverSpecs = {
-        "capacity": serverCapacity,
-        "usage": 0,
-        # "power": [205.1, 232.9, 260.7, 288.6, 316.4]
-        # "power": [0, 232.9, 260.7, 288.6, 316.4]
-    }
-
-    ############################################################ CONFIG HERE
+def main_centralized(randomSeed, appArgs, runtime, argument):
+    np.random.seed(randomSeed)
+    random.seed(randomSeed)
+    
     dist = Poisson(lamda=2)
-    avg_TTL = 120
-    n_VNFs = [11, 13]
-    demand_VNF = [24, 26]
-    bw = [10, 20]
-    runtime = 800
-    arg = [avg_TTL, n_VNFs, bw, demand_VNF, [0.5, 0.5]]
-    ########################################################################
 
-    # selector = WaxmanSelector()
-    selector = VNFG()
-    app = WaxmanApp("WaxmanApp", dist, selector, *arg)
-    # app = VNFGApp("VNFGApp", dist, selector, *arg)
+    # selector = SimpleSelector()
+    selector = WaxmanSelector()
+    # selector = VNFG_node_splitting()
+    app = WaxmanApp(dist, selector, *appArgs)
 
     apps = [app]
 
-    folder_result = f"{serverCapacity}_{dist.lamda}_{avg_TTL}_{n_VNFs[0]}{n_VNFs[1]}_{demand_VNF[0]}{demand_VNF[1]}_{bw[0]}{bw[1]}_{runtime}"
-    folder_log = Path(f"results/{folder_result}/{apps[0].name}")
+    substrate = Abilene(DCPos=[2], IngressPos=[5, 7, 9, 10], 
+                        linkCap=100,
+                        DCArgs=[10], IngressArgs=[apps, apps, apps, apps])
+
+    # folder name
+    spec = f"{n_VNFs[0]}{n_VNFs[1]}_{demand_VNF[0]}{demand_VNF[1]}_{bw[0]}{bw[1]}_{runtime}"
+    folder_result = f"{selector.name}/{spec}_seed{randomSeed}"
+
+    folder_log = Path(f"results/{folder_result}")
     folder_log.mkdir(parents=True, exist_ok=True)
     folder_log = str(folder_log) + "/cent_"
     if(len(argument) == 1):
@@ -58,20 +45,11 @@ def main(argument):
     if(len(argument) == 2):
         folder_log = str(folder_log) + f"{argument[0]}{argument[1]}"
 
-    # big topo
-    topology = DistributedTopo()
-    DCs = []
-    DCs.append(DataCentre(2, fat_tree(10, switchSpecs, serverSpecs)))
-    Ingresses = []
-    Ingresses.append(Ingress(5, apps))
-    Ingresses.append(Ingress(7, apps))
-    Ingresses.append(Ingress(9, apps))
-    Ingresses.append(Ingress(10, apps))
+    sim = Simulator(substrate, folder_log, *argument)
+    sim.run(runtime)
 
-    sim = Simulator(topology, DCs, Ingresses, folder_log, *argument)
-    sim.run(runtime) # runtime = 120 minutes
     print("CENTRALIZED")
-    print(f"ram = {serverCapacity}, L = {dist.lamda}, TTL = {avg_TTL}")
+    print(f"L = {dist.lamda}, TTL = {avg_TTL}")
     print(f"nvnf = {n_VNFs}, bw = {bw}")
     print(f"runtime = {runtime}, strategy = {argument[0]}")
     if(len(argument) == 2):
@@ -87,4 +65,14 @@ if __name__ == "__main__":
     else:
         arg = [strategy]
 
-    main(arg)
+    randomSeed = 2405
+
+    dist = Poisson(lamda=2)
+    avg_TTL = 120
+    n_VNFs = [11, 13]
+    demand_VNF = [24, 26]
+    bw = [10, 200]
+    runtime = 200
+    appArgs = [avg_TTL, n_VNFs, demand_VNF, bw, [0.5, 0.5]]
+
+    main_centralized(randomSeed, appArgs, runtime, arg)

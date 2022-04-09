@@ -33,7 +33,6 @@ class DataCentre():
         else:
             considerRes = False
             # print(f"DC-{self.id} drop SFC-{sfc['id']}")
-        # sim.considerResults.put(considerRes)
         return considerRes
 
 
@@ -184,10 +183,6 @@ class DataCentre():
                     serverPower += 205.1 + 1.113 * node[1]["usage"]
                 else:
                     node[1]["state"] = False
-                
-                # n_VNFs = len(node[1]["deployed"])
-                # if(n_VNFs > 0):
-                #     serverPower += node[1]["power"][n_VNFs]
                 
             if(node[1]["model"] == "switch"):
                 if(node[1]["state"]): # switch is online

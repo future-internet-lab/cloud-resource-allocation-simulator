@@ -1,13 +1,15 @@
 from sim.Simulator import *
 from sim.Application import *
-from sim.SFC import *
 from sim.Distribution import *
 from sim.Selector import *
 from sim.DataCentre import *
 from sim.Ingress import *
+from sim.Substrate import *
 from library import *
-
+from threading import Thread
 from pathlib import Path
+
+import threading
 import numpy as np
 import matplotlib.pyplot as plt
 import sys
@@ -16,41 +18,28 @@ import random
 
 
 
-def main_centralized(argument):
-    np.random.seed(1)
-    random.seed(1)
-
-    switchSpecs = {
-        "basePower": 39,
-        "portPower": [0.42, 0.48, 0.9]
-    }
-    serverCapacity = 100
-    serverSpecs = {
-        "capacity": serverCapacity,
-        "usage": 0,
-        # "power": [205.1, 232.9, 260.7, 288.6, 316.4]
-        # "power": [0, 232.9, 260.7, 288.6, 316.4]
-    }
-
-    ############################################################ CONFIG HERE
+def main_centralized(randomSeed, appArgs, runtime, argument):
+    np.random.seed(randomSeed)
+    random.seed(randomSeed)
+    
     dist = Poisson(lamda=2)
-    avg_TTL = 120
-    n_VNFs = [4, 20]
-    demand_VNF = [10, 40]
-    bw = [10, 90]
-    runtime = 400
-    arg = [avg_TTL, n_VNFs, bw, demand_VNF, [0.5, 0.5]]
-    ########################################################################
 
+    # selector = SimpleSelector()
     selector = WaxmanSelector()
-    app = WaxmanApp("WaxmanApp", dist, selector, *arg)
-    # selector = VNFFG_node_splitting()
-    # app = VNFGApp("VNFGApp", dist, selector, *arg)
+    # selector = VNFG_node_splitting()
+    app = WaxmanApp(dist, selector, *appArgs)
 
     apps = [app]
 
-    folder_result = f"{serverCapacity}_{dist.lamda}_{avg_TTL}_{n_VNFs[0]}{n_VNFs[1]}_{demand_VNF[0]}{demand_VNF[1]}_{bw[0]}{bw[1]}_{runtime}"
-    folder_log = Path(f"results/{folder_result}/{apps[0].name}")
+    substrate = Abilene(DCPos=[2], IngressPos=[5, 7, 9, 10], 
+                        linkCap=100,
+                        DCArgs=[10], IngressArgs=[apps, apps, apps, apps])
+
+    # folder name
+    spec = f"{n_VNFs[0]}{n_VNFs[1]}_{demand_VNF[0]}{demand_VNF[1]}_{bw[0]}{bw[1]}_{runtime}"
+    folder_result = f"{selector.name}/{spec}_seed{randomSeed}"
+
+    folder_log = Path(f"results/{folder_result}")
     folder_log.mkdir(parents=True, exist_ok=True)
     folder_log = str(folder_log) + "/cent_"
     if(len(argument) == 1):
@@ -58,62 +47,40 @@ def main_centralized(argument):
     if(len(argument) == 2):
         folder_log = str(folder_log) + f"{argument[0]}{argument[1]}"
 
-    # big topo
-    topology = DistributedTopo()
-    DCs = []
-    DCs.append(DataCentre(2, fat_tree(10, switchSpecs, serverSpecs)))
-    Ingresses = []
-    Ingresses.append(Ingress(5, apps))
-    Ingresses.append(Ingress(7, apps))
-    Ingresses.append(Ingress(9, apps))
-    Ingresses.append(Ingress(10, apps))
+    sim = Simulator(substrate, folder_log, *argument)
+    sim.run(runtime)
 
-    sim = Simulator(topology, DCs, Ingresses, folder_log, *argument)
-    sim.run(runtime) # runtime = 120 minutes
     print("CENTRALIZED")
-    print(f"ram = {serverCapacity}, L = {dist.lamda}, TTL = {avg_TTL}")
+    print(f"L = {dist.lamda}, TTL = {avg_TTL}")
     print(f"nvnf = {n_VNFs}, bw = {bw}")
     print(f"runtime = {runtime}, strategy = {argument[0]}")
     if(len(argument) == 2):
         print(f"sortmode = {argument[1]}")
 
 
-def main_distributed(argument):
-    np.random.seed(1)
-    random.seed(1)
 
-    switchSpecs = {
-        "basePower": 39,
-        "portPower": [0.42, 0.48, 0.9]
-    }
-    serverCapacity = 100
-    serverSpecs = {
-        "capacity": serverCapacity,
-        "usage": 0,
-        # "power": [205.1, 232.9, 260.7, 288.6, 316.4]
-        # "power": [0, 232.9, 260.7, 288.6, 316.4]
-    }
+def main_distributed(randomSeed, appArgs, runtime, argument):
+    np.random.seed(randomSeed)
+    random.seed(randomSeed)
     
-    ############################################################ CONFIG HERE
     dist = Poisson(lamda=2)
-    avg_TTL = 120
-    n_VNFs = [4, 20]
-    demand_VNF = [10, 40]
-    bw = [10, 90]
-    runtime = 400
-    arg = [avg_TTL, n_VNFs, bw, demand_VNF, [0.5, 0.5]]
-    ########################################################################
 
     # selector = SimpleSelector()
     selector = WaxmanSelector()
-    app = WaxmanApp("WaxmanApp", dist, selector, *arg)
-    # selector = VNFFG_node_splitting()
-    # app = VNFGApp("VNFGApp", dist, selector, *arg)
+    # selector = VNFG_node_splitting()
+    app = WaxmanApp(dist, selector, *appArgs)
 
     apps = [app]
 
-    folder_result = f"{serverCapacity}_{dist.lamda}_{avg_TTL}_{n_VNFs[0]}{n_VNFs[1]}_{demand_VNF[0]}{demand_VNF[1]}_{bw[0]}{bw[1]}_{runtime}"
-    folder_log = Path(f"results/{folder_result}/{apps[0].name}")
+    substrate = Abilene(DCPos=[1, 4, 6, 11], IngressPos=[5, 7, 9, 10], 
+                        linkCap=100,
+                        DCArgs=[4, 6, 6, 8], IngressArgs=[apps, apps, apps, apps])
+
+    # folder name
+    spec = f"{n_VNFs[0]}{n_VNFs[1]}_{demand_VNF[0]}{demand_VNF[1]}_{bw[0]}{bw[1]}_{runtime}"
+    folder_result = f"{selector.name}/{spec}_seed{randomSeed}"
+
+    folder_log = Path(f"results/{folder_result}")
     folder_log.mkdir(parents=True, exist_ok=True)
     folder_log = str(folder_log) + "/dist_"
     if(len(argument) == 1):
@@ -121,47 +88,60 @@ def main_distributed(argument):
     if(len(argument) == 2):
         folder_log = str(folder_log) + f"{argument[0]}{argument[1]}"
 
-    # big topo
-    topology = DistributedTopo()
-    DCs = []
-    DCs.append(DataCentre(1, fat_tree(4, switchSpecs, serverSpecs)))
-    DCs.append(DataCentre(4, fat_tree(6, switchSpecs, serverSpecs)))
-    DCs.append(DataCentre(6, fat_tree(6, switchSpecs, serverSpecs)))
-    DCs.append(DataCentre(11, fat_tree(8, switchSpecs, serverSpecs)))
-    Ingresses = []
-    Ingresses.append(Ingress(5, apps))
-    Ingresses.append(Ingress(7, apps))
-    Ingresses.append(Ingress(9, apps))
-    Ingresses.append(Ingress(10, apps))
-
-    sim = Simulator(topology, DCs, Ingresses, folder_log, *argument)
+    sim = Simulator(substrate, folder_log, *argument)
     sim.run(runtime)
 
     print("DISTRIBUTED")
-    print(f"ram = {serverCapacity}, L = {dist.lamda}, TTL = {avg_TTL}")
+    print(f"L = {dist.lamda}, TTL = {avg_TTL}")
     print(f"nvnf = {n_VNFs}, bw = {bw}")
     print(f"runtime = {runtime}, strategy = {argument[0]}")
     if(len(argument) == 2):
         print(f"sortmode = {argument[1]}")
 
-from threading import Thread
-import threading
+
 
 if __name__ == "__main__":
     print("-----START SIMULATION-----")
-    strategy = int(sys.argv[1])
-    if(len(sys.argv) == 3):
-        sortmode = sys.argv[2]
-        arg = [strategy, sortmode]
-    else:
-        arg = [strategy]
+    # strategy = int(sys.argv[1])
+    # if(len(sys.argv) == 3):
+    #     sortmode = sys.argv[2]
+    #     arg = [strategy, sortmode]
+    # else:
+    #     arg = [strategy]
 
-    
-    t1 = threading.Thread(target=main_centralized, args=(arg,))
-    t2 = threading.Thread(target=main_distributed, args=(arg,))
-    t1.start()
-    t2.start()
-    t1.join()
-    t2.join()
+    randomSeed = 2405
+
+    dist = Poisson(lamda=2)
+    avg_TTL = 120
+    n_VNFs = [4, 20]
+    demand_VNF = [10, 40]
+    bw = [10, 20]
+    runtime = 200
+    appArgs = [avg_TTL, n_VNFs, demand_VNF, bw, [0.5, 0.5]]
+
+    threads = []
+
+    t1 = threading.Thread(target=main_centralized, args=(randomSeed, appArgs, runtime, [1],))
+    threads.append(t1)
+    t2 = threading.Thread(target=main_distributed, args=(randomSeed, appArgs, runtime, [1],))
+    threads.append(t2)
+    t3 = threading.Thread(target=main_centralized, args=(randomSeed, appArgs, runtime, [2, "d"],))
+    threads.append(t3)
+    t4 = threading.Thread(target=main_distributed, args=(randomSeed, appArgs, runtime, [2, "d"],))
+    threads.append(t4)
+    t5 = threading.Thread(target=main_centralized, args=(randomSeed, appArgs, runtime, [2, "n"],))
+    threads.append(t5)
+    t6 = threading.Thread(target=main_distributed, args=(randomSeed, appArgs, runtime, [2, "n"],))
+    threads.append(t6)
+    t7 = threading.Thread(target=main_centralized, args=(randomSeed, appArgs, runtime, [2, "i"],))
+    threads.append(t7)
+    t8 = threading.Thread(target=main_distributed, args=(randomSeed, appArgs, runtime, [2, "i"],))
+    threads.append(t8)
+
+    for thread in threads:
+        thread.start()
+
+    for thread in threads:
+        thread.join()
     
     # main(arg)

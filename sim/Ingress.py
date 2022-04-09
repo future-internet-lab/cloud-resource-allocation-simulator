@@ -37,7 +37,6 @@ class Ingress():
                 "outroute": []
             }
             sim.SFCs.append(sfc)
-            # sim.load += sfc["demand"]
 
             # change sfc from python dictionary to json format to logging to .csv
             sfc_log = {

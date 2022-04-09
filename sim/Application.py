@@ -7,8 +7,8 @@ import matplotlib.pyplot as plt
 
 
 class Application(ABC):
-    def __init__(self, name, distribution, selector, *arg):
-        self.name = name
+    def __init__(self, distribution, selector, *arg):
+        self.name = self.__class__.__name__
         self.distribution = distribution
         self.selector = selector
         
@@ -63,12 +63,12 @@ class WaxmanApp(Application):
         G = nx.waxman_graph(n_VNFs, self.arg[4][0], self.arg[4][1])
 
         for (i, j) in G.edges:
-            G[i][j]['demand'] = np.random.randint(self.arg[2][0], self.arg[2][1] + 1)
+            G[i][j]['demand'] = np.random.randint(self.arg[3][0], self.arg[3][1] + 1)
             G[i][j]['route'] = []
         demand = 0
         for i in range(n_VNFs):
             G.nodes[i]["SFC"] = id
-            G.nodes[i]["demand"] = np.random.randint(self.arg[3][0], self.arg[3][1] + 1)
+            G.nodes[i]["demand"] = np.random.randint(self.arg[2][0], self.arg[2][1] + 1)
             demand += G.nodes[i]["demand"]
             G.nodes[i]["server"] = False
             G.nodes[i].pop("pos", None)
