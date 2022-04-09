@@ -35,16 +35,16 @@ def main(argument):
     ############################################################ CONFIG HERE
     dist = Poisson(lamda=2)
     avg_TTL = 120
-    n_VNFs = [4, 20]
-    demand_VNF = [10, 40]
-    bw = [10, 90]
-    runtime = 300
+    n_VNFs = [11, 13]
+    demand_VNF = [24, 26]
+    bw = [10, 20]
+    runtime = 800
     arg = [avg_TTL, n_VNFs, bw, demand_VNF, [0.5, 0.5]]
     ########################################################################
 
-    selector = WaxmanSelector()
+    # selector = WaxmanSelector()
+    selector = VNFG()
     app = WaxmanApp("WaxmanApp", dist, selector, *arg)
-    # selector = VNFFG_node_splitting()
     # app = VNFGApp("VNFGApp", dist, selector, *arg)
 
     apps = [app]

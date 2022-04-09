@@ -80,7 +80,7 @@ class Simulator():
                         outlink[2]["usage"] = 0
 
                     _runningSFCs = copy.copy(backupRunningSFCs)
-                    print("in sim:", self.justRemove)
+                    # print("in sim:", self.justRemove)
 
                     if(self.justRemove == -1):
                         if(_runningSFCs != []):

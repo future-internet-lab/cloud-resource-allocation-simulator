@@ -100,9 +100,9 @@ class DataCentre():
             for e in sim.runningSFCs:
                 if(e["sfc"]["id"] == sfc["id"]):
                     sim.justRemove = sim.runningSFCs.index(e)
-                    print("remove sfc has index: ", sim.justRemove)
+                    # print("remove sfc has index: ", sim.justRemove)
                     _run = [e["sfc"]["id"] for e in sim.runningSFCs]
-                    print("runningSFCs before = ", _run)
+                    # print("runningSFCs before = ", _run)
                     sim.runningSFCs.remove(e)
                     break
 
@@ -138,12 +138,18 @@ class DataCentre():
         for vnf in list(sfcTopo.nodes.data()):
             onServer = vnf[1]["server"]
             topo.nodes[onServer]["usage"] += sfcTopo.nodes[vnf[0]]["demand"]
+            if(topo.nodes[onServer]["usage"] > topo.nodes[onServer]["capacity"]):
+                print(f"ERROR: server {onServer} of DC-{self.id} is spilled")
+                exit()
             topo.nodes[onServer]['deployed'].append([sfc["id"], vnf[0]])
 
         for vLink in list(sfcTopo.edges.data()):
             route = vLink[2]['route']
             for i in range(len(route) - 1):
                 topo.edges[route[i], route[i+1]]['usage'] += vLink[2]["demand"]
+                if(topo.edges[route[i], route[i+1]]['usage'] > topo.edges[route[i], route[i+1]]["capacity"]):
+                    print(f"ERROR: link {route[i]}-{route[i+1]} of DC-{self.id} is spilled")
+                    exit()
                 
                 # turn on switch
                 if(topo.nodes[route[i]]["model"] == "switch"):
