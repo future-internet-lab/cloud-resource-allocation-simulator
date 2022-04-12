@@ -322,17 +322,17 @@ class VNFG(Selector):
                     alloc.append(rand_id + arg)
                     old_cap = serverCap[rand_id]
                     new_cap = package[i] - serverCap[rand_id]
+                    serverCap[rand_id] = 0
                     new_id = rand_FeasibleNodes(serverCap, new_cap)
-                    if new_id:
-                        new_server = new_id + arg
-                    else:
+                    if new_id == False:
                         return False
+                    else:
+                        new_server = new_id + arg
                     # create a new node: count
                     sfc["struct"].add_node(count, SFC=sfc["struct"].nodes[0]['SFC'], demand=new_cap, server=new_server)
                     serverCap[new_id] -= new_cap
                     # edit old
                     sfc["struct"].nodes[i]["server"] = rand_id + arg
-                    serverCap[rand_id] = 0
                     sfc["struct"].nodes[i]['demand'] = old_cap
                         
                     for neig in sfc["struct"].neighbors(i):
@@ -407,7 +407,7 @@ class ONP_SFO(Selector):
         avr_bw = 0
         for bw in sfcInput['struct'].edges.data():
             avr_bw += bw[2]['demand']
-        if len(sfcInput['struct'].edges.data()) == 0: return False
+        # if len(sfcInput['struct'].edges.data()) == 0: return False
         avr_bw = avr_bw // len(sfcInput['struct'].edges.data())
 
         splited_bw = [self.k_sub]*(avr_bw//self.k_sub)
@@ -421,20 +421,20 @@ class ONP_SFO(Selector):
             k = round((len(serverCap)*4)**(1/3))
             a,b=[],[]
 
-            def tranfer(array):
+            def transfer(array):
                 for i in range(2*len(array)//k):
                     a.append(sum(array[i*k//2:(i+1)*k//2]))
                 for i in range(4*len(array)//(k**2)):
                     b.append(a[i*(k//2):(i+1)*k//2])
                 return np.array(b)
 
-            b = tranfer(bwCap)
+            b = transfer(bwCap)
             def process():
                 vnf_c = 0
                 result = []
                 for i in np.argsort(np.sum(b,axis=1)):
                     for j in np.argsort(b[i]):
-                        addr = (k//2)*j+i
+                        addr = (k//2)*i+j
                         temp = np.array(serverCap[addr*(k//2):(addr+1)*(k//2)])
                         for l in np.argsort(np.array(bwCap[addr*(k//2):(addr+1)*(k//2)])):
                             # print(serverCap[addr+l])
@@ -451,7 +451,6 @@ class ONP_SFO(Selector):
             alloc = []
             for i in result:
                 alloc += [i[0]+arg]
-            # print(alloc)
             return alloc
 
         def processing(sfc):
