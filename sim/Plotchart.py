@@ -75,27 +75,62 @@ class Chart():
         Acceptance ratio: Load (%) - Acceptance Ratio (%)
         """
         data, label, ls = self.open_data()
-        def draw(data, marker, color, label, linestyle):
-            load = [0]
-            drop = [0]
-            deploy = [0]
-            c = 0
+        def draw_each_line(data, marker, color, label, linestyle):
+            demand_list = []
+            demand_time = []
+            deploy_time = []
+            drop_time = []
             for row in data:
-                if row[COLUMN_TIME] != 'time':
-                    hour = int(row[COLUMN_TIME]) // 60
-                    if hour > c:
-                        load.append(0)
-                        drop.append(0)
-                        deploy.append(0)
-                        c += 1
-                if row[COLUMN_ACTION] == 'create':
-                    load[hour] += int(row[COLUMN_DEMAND])
-                if row[COLUMN_ACTION] == 'deploy':
-                    deploy[hour] += 1
-                if row[COLUMN_ACTION] == 'drop':
-                    drop[hour] += 1
-            load = np.array(load) / np.array([100 * 250 / 100] * len(load))
-            acceptance = np.array(deploy) * 100 / (np.array(deploy) + np.array(drop))
+                if row[COLUMN_TIME] != "time":
+                    if row[COLUMN_ACTION] == "create":
+                        demand_list.append(int(row[COLUMN_DEMAND]))
+                        demand_time.append(int(row[COLUMN_TIME]))
+                    if row[COLUMN_ACTION] in ["deploy"]:
+                        deploy_time.append(int(row[COLUMN_TIME]))
+                    if row[COLUMN_ACTION] in ["drop"]:
+                        drop_time.append(int(row[COLUMN_TIME]))
+            runtime = max(demand_time)
+            load = []
+            acceptance = []
+            for i in range(len(demand_time)):
+                if demand_time[i] + 60 <= runtime:
+                    start = demand_time[i]
+                    _demand = 0
+                    for j in range(i, len(demand_time)):
+                        if demand_time[j] - start <= 60:
+                            _demand += demand_list[j]
+                        else:
+                            # print(f"from {demand_time[i]}({demand_list[i]}) to {demand_time[j-1]}({demand_list[j-1]}): {_demand}")
+                            _deploy = 0
+                            _drop = 0
+                            for k in range(len(deploy_time)):
+                                if deploy_time[k] >= demand_time[i] and deploy_time[k] <= demand_time[j-1]:
+                                    _deploy += 1
+                            for k in range(len(drop_time)):
+                                if drop_time[k] >= demand_time[i] and drop_time[k] <= demand_time[j-1]:
+                                    _drop += 1
+                            acceptance.append(_deploy / (_deploy + _drop) * 100)
+                            load.append(_demand / 250)
+                            break
+                else:
+                    break
+
+            combine = []
+            for i in range(len(load)):
+                combine.append({
+                    "acceptance": acceptance[i],
+                    "load": load[i]
+                })
+
+            roundAcceptance = []
+            roundLoad = [5 * i for i in range(1, 21)]
+            for rload in roundLoad:
+                combine.sort(key=lambda e : abs(e["load"] - rload))
+                roundAcceptance.append((combine[0]["acceptance"] + combine[1]["acceptance"]) / 2)
+
+            acceptance = np.array(roundAcceptance)
+            load = np.array(roundLoad)
+
             if(round == False):
                 plt.plot(load[np.argsort(load)], acceptance[np.argsort(load)], linestyle=linestyle, marker=marker, color=color, label=label)
             else:
@@ -106,10 +141,10 @@ class Chart():
 
         if data_id == []:
             for itr in range(len(data)):
-                draw(data[itr], marker=self.markers[itr], color=self.colors[itr], label=label[itr], linestyle=ls[itr])
+                draw_each_line(data[itr], self.markers[itr], color=self.colors[itr], label=label[itr], linestyle=ls[itr])
         else:
             for itr in data_id:
-                draw(data[itr], marker=self.markers[itr], color=self.colors[itr], label=label[itr], linestyle=ls[itr])
+                draw_each_line(data[itr], self.markers[itr], color=self.colors[itr], label=label[itr], linestyle=ls[itr])
 
         plt.xlabel("Load (%)")
         plt.ylabel("Acceptance ratio (%)")
@@ -117,55 +152,80 @@ class Chart():
         ax.legend()
         plt.show()
 
+
+
     def Utilization(self, data_id=[], round=False):
         """
         System utilization: Load (%) - Utilization (%)
         """
         data, label, ls = self.open_data()
-        def draw(data, marker, color, label, linestyle):
-            load = [0]
-
-            util = [0]
-            _util = []
-            time_util = []
-            last_util = 0
-
-            c = 0
-
+        def draw_each_line(data, marker, color, label, linestyle):
+            demand_list = []
+            demand_time = []
+            util_list = []
+            util_time = []
             for row in data:
-                if(row[COLUMN_TIME] != 'time'):
-                    hour = int(row[COLUMN_TIME]) // 60
-                    if hour > c:
-                        load.append(0)
+                if row[COLUMN_TIME] != "time":
+                    if row[COLUMN_ACTION] == "create":
+                        demand_list.append(int(row[COLUMN_DEMAND]))
+                        demand_time.append(int(row[COLUMN_TIME]))
+                    if row[COLUMN_ACTION] in ["deploy", "drop"]:
+                        util_list.append(float(row[COLUMN_UTIL]))
+                        util_time.append(int(row[COLUMN_TIME]))
+            runtime = max(demand_time)
+            load = []
+            util = []
+            for i in range(len(demand_time)):
+                if demand_time[i] + 60 <= runtime:
+                    start = demand_time[i]
+                    _demand = 0
+                    _util = 0
+                    n_util = 0
+                    for j in range(i, len(demand_time)):
+                        if demand_time[j] - start <= 60:
+                            _demand += demand_list[j]
+                            _util += util_list[j]
+                            n_util += 1
+                        else:
+                            util.append(_util / n_util)
+                            load.append(_demand / 250)
+                            _demand = 0
+                            _util = 0
+                            n_util = 0
+                            break
+                else:
+                    break
+            
+            combine = []
+            for i in range(len(load)):
+                combine.append({
+                    "util": util[i],
+                    "load": load[i]
+                })
 
-                        util.append(average(_util, time_util, 60, last_util))
-                        last_util = _util[-1]
-                        _util = []
-                        time_util = []
+            roundUtil = []
+            roundLoad = [5 * i for i in range(2, 21)]
+            for rload in roundLoad:
+                combine.sort(key=lambda e : abs(e["load"] - rload))
+                roundUtil.append((combine[0]["util"] + combine[1]["util"]) / 2)
 
-                        c += 1
-                if row[COLUMN_ACTION] == 'create':
-                    load[hour] += int(row[COLUMN_DEMAND])
-                if(row[COLUMN_ACTION] in ['deploy', 'remove']):
-                    _util.append(float(row[COLUMN_UTIL]))
-                    time_util.append(int(row[COLUMN_TIME]))
+            util = np.array(roundUtil)
+            load = np.array(roundLoad)
 
-            load = np.array(load) / np.array([100 * 250 / 100] * len(load))
-            util = np.array(util)
-            if round == False:
-                plt.plot(load[np.argsort(load)], util[np.argsort(load)], marker=marker, color=color, label=label, linestyle=linestyle)
+            if(round == False):
+                plt.plot(load[np.argsort(load)], util[np.argsort(load)], linestyle=linestyle, marker=marker, color=color, label=label)
             else:
-                load, util = round_load(load,util)
-                plt.plot(load, util, marker=marker, color=color, label=label, linestyle=linestyle)
+                load, acceptance = round_load(load, util)
+                plt.plot(load, util, linestyle=linestyle, marker=marker, color=color, label=label)
         
         fig, ax = plt.subplots()
 
         if(data_id == []):
             for itr in range(len(data)):
-                draw(data[itr], marker=self.markers[itr], color=self.colors[itr], label=label[itr], linestyle=ls[itr])
+                draw_each_line(data[itr], marker=None, color=self.colors[itr], label=label[itr], linestyle=ls[itr])
         else:
             for itr in data_id:
-                draw(data[itr], marker=self.markers[itr], color=self.colors[itr], label=label[itr], linestyle=ls[itr])
+                draw_each_line(data[itr], marker=None, color=self.colors[itr], label=label[itr], linestyle=ls[itr])
 
         plt.xlabel("Load (%)")
         plt.ylabel("Utilization (%)")
