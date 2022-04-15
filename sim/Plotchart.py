@@ -43,12 +43,22 @@ def average(value, time, period, lastValue):
     return avg
 
 class Chart():
-    def __init__(self, folder_name, dir, label):
+    def __init__(self, folder_name, dir, label, open_mode):
         self.folder_name = folder_name
         self.dir = dir
         self.label = label
-        self.markers = ["o","o","o","o","o","o","o","o","o","o"]
-        self.colors = ["black","black","red","red","green","green","orange","orange","cyan","cyan"]
+        self.open_mode = open_mode
+        self.colors = []
+        for color in ["black","red","green","orange","cyan"]:
+            for _ in range(self.open_mode):
+                self.colors.append(color)
+
+        self.markers = []
+        for marker in ["o","<",">","*","^"]:
+            for _ in range(self.open_mode):
+                self.markers.append(marker)
+
+        self.line_style = [None,'--','-','-.',':']
 
     def open_data(self):
         data = []
@@ -56,21 +66,18 @@ class Chart():
         linestyle = []
 
         def foo(dir, note): # i dont know how to name this function @@
-            f = open(self.folder_name + dir[0])
-            data.append(csv.reader(f))
-            label.append(note[0])
-            linestyle.append('--')
-            f = open(self.folder_name + dir[1])
-            data.append(csv.reader(f))
-            label.append(note[1])
-            linestyle.append(None)
+            for itr in range(self.open_mode):
+                f = open(self.folder_name + dir[itr])
+                data.append(csv.reader(f))
+                label.append(note[itr])
+                linestyle.append(self.line_style[itr])
 
         for itr in range(len(self.dir)):
             foo(self.dir[itr], self.label[itr])
 
         return data, label, linestyle
 
-    def Acceptance(self, data_id=[], round=False):
+    def Acceptance(self, data_id=[]):
         """
         Acceptance ratio: Load (%) - Acceptance Ratio (%)
         """
@@ -131,11 +138,8 @@ class Chart():
             acceptance = np.array(roundAcceptance)
             load = np.array(roundLoad)
 
-            if(round == False):
-                plt.plot(load[np.argsort(load)], acceptance[np.argsort(load)], linestyle=linestyle, marker=marker, color=color, label=label)
-            else:
-                load, acceptance = round_load(load,acceptance)
-                plt.plot(load, acceptance, linestyle=linestyle, marker=marker, color=color, label=label)
+            plt.plot(load[np.argsort(load)], acceptance[np.argsort(load)], linestyle=linestyle, marker=marker, color=color, label=label)
+            
 
         fig, ax = plt.subplots()
 
@@ -154,7 +158,7 @@ class Chart():
 
 
 
-    def Utilization(self, data_id=[], round=False):
+    def Utilization(self, data_id=[]):
         """
         System utilization: Load (%) - Utilization (%)
         """
@@ -212,20 +216,17 @@ class Chart():
             util = np.array(roundUtil)
             load = np.array(roundLoad)
 
-            if(round == False):
-                plt.plot(load[np.argsort(load)], util[np.argsort(load)], linestyle=linestyle, marker=marker, color=color, label=label)
-            else:
-                load, acceptance = round_load(load, util)
-                plt.plot(load, util, linestyle=linestyle, marker=marker, color=color, label=label)
+            plt.plot(load[np.argsort(load)], util[np.argsort(load)], linestyle=linestyle, marker=marker, color=color, label=label)
+
         
         fig, ax = plt.subplots()
 
         if(data_id == []):
             for itr in range(len(data)):
-                draw_each_line(data[itr], marker=None, color=self.colors[itr], label=label[itr], linestyle=ls[itr])
+                draw_each_line(data[itr], marker=self.markers[itr], color=self.colors[itr], label=label[itr], linestyle=ls[itr])
         else:
             for itr in data_id:
-                draw_each_line(data[itr], marker=None, color=self.colors[itr], label=label[itr], linestyle=ls[itr])
+                draw_each_line(data[itr], marker=self.markers[itr], color=self.colors[itr], label=label[itr], linestyle=ls[itr])
 
         plt.xlabel("Load (%)")
         plt.ylabel("Utilization (%)")
@@ -239,50 +240,57 @@ class Chart():
         """
         data, label, ls = self.open_data()
 
-        def draw(data, reso, marker, color, label, linestyle):
-            n_value = 100 // reso
-            power = [0] * n_value
-            util = [0] * n_value
-            count = [0] * n_value
+        def draw_each_line(data, marker, color, label, linestyle):
+            util = []
+            power = []
             for row in data:
-                if(row[COLUMN_ACTION] in ["deploy", "remove"]):
-                    i = int(float(row[COLUMN_UTIL]) / reso)
-                    power[i] += float(row[COLUMN_POWER])
-                    util[i] += float(row[COLUMN_UTIL])
-                    count[i] += 1
-
-            _length = len(count)
-            i = 0
-            while i < _length:
-                try:
-                    if count[i] == 0:
-                        power.pop(i)
-                        util.pop(i)
-                        count.pop(i)
-                        _length -= 1
+                if row[COLUMN_ACTION] in ["deploy", "remove"]:
+                    _util = float(row[COLUMN_UTIL])
+                    _power = float(row[COLUMN_POWER])
+                    if not _util in util:
+                        util.append(_util)
+                        power.append([_power])
                     else:
-                        i += 1
-                except:
-                    break
-                
-            power = np.array(power) / np.array(count)
-            util = np.array(util) / np.array(count)
-            plt.plot(util, power, marker=marker, color=color, label=label, linestyle=linestyle)
+                        idx = util.index(_util)
+                        power[idx].append(_power)
+            power = [sum(arr) / len(arr) for arr in power]
+
+            combine = []
+            for i in range(len(util)):
+                combine.append({
+                    "power": power[i],
+                    "util": util[i]
+                })
+
+            roundPower = []
+            roundUtil = [5 * i for i in range(1, 21)]
+            for rutil in roundUtil:
+                combine.sort(key=lambda e : abs(e["util"] - rutil))
+                # if abs(combine[0]["util"] - rutil) < 5:
+                roundPower.append((combine[0]["power"] + combine[1]["power"]) / 2)
+                # else:
+                    # roundPower.append(0)
+
+            util = np.array(util)
+            power = np.array(power)
+
+            plt.plot(util[np.argsort(util)], power[np.argsort(util)], marker=marker, color=color, label=label, linestyle=linestyle)
 
         fig, ax = plt.subplots()
 
         if(data_id == []):
             for itr in range(len(data)):
-                draw(data[itr], 2, marker=self.markers[itr], color=self.colors[itr], label=label[itr], linestyle=ls[itr])
+                draw_each_line(data[itr], marker=None, color=self.colors[itr], label=label[itr], linestyle=ls[itr])
         else:
             for itr in data_id:
-                draw(data[itr], 2, marker=self.markers[itr], color=self.colors[itr], label=label[itr], linestyle=ls[itr])
+                draw_each_line(data[itr], marker=None, color=self.colors[itr], label=label[itr], linestyle=ls[itr])
 
         plt.xlabel("Utilization (%)")
         plt.ylabel("Power Consumption (W)")
         ax.set_title("Power consumption of the substrate network")
         ax.legend()
         plt.show()
+
 
     def PowerPerSFC(self, data_id = None):
         """
@@ -297,7 +305,8 @@ class Chart():
             for row in data:
                 if(row[COLUMN_ACTION] in ["deploy", "remove"]):
                     i = int(float(row[COLUMN_UTIL]) / reso)
-                    pps[i] += float(row[COLUMN_POWER])
+                    if i >= n_value: i = n_value-1
+                    pps[i] += float(row[COLUMN_PPERSFC])
                     util[i] += float(row[COLUMN_UTIL])
                     count[i] += 1
             _length = len(count)
@@ -347,6 +356,7 @@ class Chart():
             for row in data:
                 if(row[COLUMN_ACTION] in ["deploy", "remove"]):
                     i = int(float(row[COLUMN_UTIL]) / reso)
+                    if i >= n_value: i = n_value-1
                     aserver[i] += int(row[COLUMN_ACTIVE_SERVER])
                     util[i] += float(row[COLUMN_UTIL])
                     count[i] += 1
