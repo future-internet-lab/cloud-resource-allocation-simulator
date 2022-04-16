@@ -225,13 +225,13 @@ class WaxmanSelector(Selector):
                 if np.sum(b) == 0:
                     array = np.argsort(np.sum(b,axis=1))[::-1]
                 else:
-                    array = np.argsort(np.sum(b2,axis=1))[::-1]
+                    array = np.argsort(np.sum(b2,axis=1))
                 for j in array:
                     # choose candidate groups with the least number of servers in ON State
-                    for i in np.argsort(b2[j])[::-1]:
+                    for i in np.argsort(b2[j]):
                         addr = (k//2)*j+i
                         temp = np.array(serverCap[addr*(k//2):(addr+1)*(k//2)])
-                        for l in np.argsort(temp)[::-1]:
+                        for l in np.argsort(temp):
                             while temp[l] >= package[vnf_c]:
                                 temp[l] -= package[vnf_c]
                                 result.append(addr*(k//2)+l)
