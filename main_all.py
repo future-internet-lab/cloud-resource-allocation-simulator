@@ -121,21 +121,21 @@ if __name__ == "__main__":
 
     threads = []
 
-    t1 = threading.Thread(target=main_centralized, args=(randomSeed, appArgs, runtime, [1],))
+    t1 = threading.Thread(target=main_centralized, daemon=True, args=(randomSeed, appArgs, runtime, [1],))
     threads.append(t1)
-    t2 = threading.Thread(target=main_distributed, args=(randomSeed, appArgs, runtime, [1],))
+    t2 = threading.Thread(target=main_distributed, daemon=True, args=(randomSeed, appArgs, runtime, [1],))
     threads.append(t2)
-    t3 = threading.Thread(target=main_centralized, args=(randomSeed, appArgs, runtime, [2, "d"],))
+    t3 = threading.Thread(target=main_centralized, daemon=True, args=(randomSeed, appArgs, runtime, [2, "d"],))
     threads.append(t3)
-    t4 = threading.Thread(target=main_distributed, args=(randomSeed, appArgs, runtime, [2, "d"],))
+    t4 = threading.Thread(target=main_distributed, daemon=True, args=(randomSeed, appArgs, runtime, [2, "d"],))
     threads.append(t4)
-    t5 = threading.Thread(target=main_centralized, args=(randomSeed, appArgs, runtime, [2, "n"],))
+    t5 = threading.Thread(target=main_centralized, daemon=True, args=(randomSeed, appArgs, runtime, [2, "n"],))
     threads.append(t5)
-    t6 = threading.Thread(target=main_distributed, args=(randomSeed, appArgs, runtime, [2, "n"],))
+    t6 = threading.Thread(target=main_distributed, daemon=True, args=(randomSeed, appArgs, runtime, [2, "n"],))
     threads.append(t6)
-    t7 = threading.Thread(target=main_centralized, args=(randomSeed, appArgs, runtime, [2, "i"],))
+    t7 = threading.Thread(target=main_centralized, daemon=True, args=(randomSeed, appArgs, runtime, [2, "i"],))
     threads.append(t7)
-    t8 = threading.Thread(target=main_distributed, args=(randomSeed, appArgs, runtime, [2, "i"],))
+    t8 = threading.Thread(target=main_distributed, daemon=True, args=(randomSeed, appArgs, runtime, [2, "i"],))
     threads.append(t8)
 
     for thread in threads:

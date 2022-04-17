@@ -22,7 +22,8 @@ def main_distributed(randomSeed, appArgs, runtime, argument):
 
     # selector = SimpleSelector()
     selector = WaxmanSelector()
-    # selector = VNFG_node_splitting()
+    # selector = VNFG()
+    # selector = ONP_SFO(k_sub = 15)
     app = WaxmanApp(dist, selector, *appArgs)
 
     apps = [app]
@@ -68,10 +69,10 @@ if __name__ == "__main__":
 
     dist = Poisson(lamda=2)
     avg_TTL = 120
-    n_VNFs = [11, 13]
-    demand_VNF = [24, 26]
-    bw = [10, 20]
-    runtime = 400
+    n_VNFs = [4, 20]
+    demand_VNF = [25, 25]
+    bw = [10, 50]
+    runtime = 311
     appArgs = [avg_TTL, n_VNFs, demand_VNF, bw, [0.5, 0.5]]
 
     main_distributed(randomSeed, appArgs, runtime, arg)

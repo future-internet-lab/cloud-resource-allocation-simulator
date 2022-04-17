@@ -1,3 +1,4 @@
+from sre_constants import JUMP
 import simpy
 import copy
 import json
@@ -40,9 +41,9 @@ class DataCentre():
     def deployer(self, sfc, sim, redeploy):
         self.topo = self.install(sfc)
         self.power = self.energy(self.topo)
-        route = sfc["outroute"]
-        for i in range(len(route) - 1):
-            sim.topology.edges[route[i], route[i+1]]["usage"] += sfc["outlink"]
+        outroute = sfc["outroute"]
+        for i in range(len(outroute) - 1):
+            sim.topology.edges[outroute[i], outroute[i+1]]["usage"] += sfc["outlink"]
 
         self.cal_active_server()
         
@@ -70,7 +71,7 @@ class DataCentre():
             sfc["remain"] = 0
 
             sfcTopo = sfc["struct"]
-            for vnf in list(sfcTopo.nodes.data()): # release RAM
+            for vnf in list(sfcTopo.nodes.data()): # release computing resource
                 onServer = vnf[1]["server"]
                 self.topo.nodes[onServer]["usage"] -= sfcTopo.nodes[vnf[0]]["demand"]
                 self.topo.nodes[onServer]['deployed'].remove([sfc["id"], vnf[0]])
@@ -98,9 +99,10 @@ class DataCentre():
 
             for e in sim.runningSFCs:
                 if(e["sfc"]["id"] == sfc["id"]):
-                    sim.justRemove = sim.runningSFCs.index(e)
+                    if(sim.runningSFCs.index(e) < sim.justRemove or sim.justRemove == -1):
+                        sim.justRemove = sim.runningSFCs.index(e)
                     # print("remove sfc has index: ", sim.justRemove)
-                    _run = [e["sfc"]["id"] for e in sim.runningSFCs]
+                    # _run = [e["sfc"]["id"] for e in sim.runningSFCs]
                     # print("runningSFCs before = ", _run)
                     sim.runningSFCs.remove(e)
                     break
@@ -121,8 +123,7 @@ class DataCentre():
             if(node[1]["model"] == "server"):
                 node[1]["deployed"] = []
                 node[1]["usage"] = 0
-            if(node[1]["model"] == "switch"):
-                node[1]["state"] = False
+            node[1]["state"] = False
         for link in list(self.topo.edges.data()):
             link[2]['usage'] = 0
         # self.topo = copy.deepcopy(self.freeTopo)
@@ -139,6 +140,10 @@ class DataCentre():
             topo.nodes[onServer]["usage"] += sfcTopo.nodes[vnf[0]]["demand"]
             if(topo.nodes[onServer]["usage"] > topo.nodes[onServer]["capacity"]):
                 print(f"ERROR: server {onServer} of DC-{self.id} is spilled")
+                print("sfc info:")
+                print(f"server: {sfc['DataCentre']}")
+                for vnf in sfc["struct"]:
+                    print(vnf["id"], vnf["server"], vnf["demand"])
                 exit()
             topo.nodes[onServer]['deployed'].append([sfc["id"], vnf[0]])
 

@@ -34,7 +34,8 @@ class Ingress():
                 "demand": sfcInit[2],
                 "TTL": sfcInit[3],
                 "remain": sfcInit[3],
-                "outroute": []
+                "outroute": [],
+                "dropReason": "",
             }
             sim.SFCs.append(sfc)
 
