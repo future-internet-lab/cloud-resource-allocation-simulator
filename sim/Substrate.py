@@ -89,7 +89,7 @@ class Abilene(Substrate):
         lastAggre = int(lastCore + k**2 / 2)
         lastEdge = int(lastAggre  + k**2 / 2)
         lastServer = int(lastEdge + k**3 / 4)
-        bwCapacity = 1000
+        bwCapacity = 500
 
         G = nx.Graph()
 

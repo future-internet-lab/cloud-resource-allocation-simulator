@@ -4,8 +4,8 @@ import numpy as np
 import networkx as nx
 import random
 
-import json
 import copy
+import logging
 
 
 
@@ -286,16 +286,16 @@ class WaxmanSelector(Selector):
                         topo.edges[route[i], route[i+1]]['usage'] += v_link["demand"]
                     sfc["struct"].edges[data[itr][0], data[itr][1]]["route"] = route
                 except:
-                    print(f"cannot routing from {s} to {d}, bw = {v_link['demand']} ---------")
+                    logging.debug(f"cannot routing from {s} to {d}, bw = {v_link['demand']} ---------")
                     sfc["struct"].edges[data[itr][0], data[itr][1]]["route"] = []
-                    return False
+                    return 1
 
             sfc["DataCentre"] = DC.id
             # return sfc
             return copy.deepcopy(sfc)
         else:
-            print("cannot alloc")
-            return False
+            logging.debug("cannot alloc")
+            return 2
 
 
 

@@ -1,3 +1,4 @@
+from distutils.log import Log
 from sim.Logger import *
 
 import copy
@@ -5,13 +6,16 @@ import time
 import simpy
 import networkx as nx
 import random
+import logging
 
 
 
 class Simulator():
-    def __init__(self, substrate, folder_log, *arg):
+    def __init__(self, substrate, folder_log, logLevel, *arg):
         self.env = simpy.Environment()
         self.logger = Logger(self, folder_log)
+
+        logging.basicConfig(level=logLevel, format="%(message)s")
         self.strategy = arg[0]
 
         if(len(arg) == 2): self.sortmode = arg[1]
@@ -36,7 +40,9 @@ class Simulator():
         self.runningSFCs = []
         self.stat = {
             "accepted": [], # list of id
-            "failed": [] # list of id
+            "failed": [], # list of id
+            "acceptedVNFs": 0,
+            "failedVNFs": 0
         }
 
         self.util = 0
@@ -72,6 +78,7 @@ class Simulator():
 
                     _runningSFCs = backupRunningSFCs
 
+                    ##### remap procedure
                     if(_runningSFCs != []):
                         lastSFC = _runningSFCs[-1]
                         if self.sortmode == "d":
@@ -83,9 +90,9 @@ class Simulator():
                             if(e["sfc"]["id"] == lastSFC["sfc"]["id"]):
                                 index = _runningSFCs.index(e)
                                 break
-                            
+
                         if(self.justRemove != -1):
-                            print(f"\n----------just remove {self.justRemove}----------\n")
+                            logging.info(f"\n----------just remove {self.justRemove}----------\n")
                             if index > self.justRemove:
                                 index = self.justRemove
                             self.justRemove = -1
@@ -94,10 +101,11 @@ class Simulator():
                         remapSFCs = _runningSFCs[index:]
                         self.runningSFCs = []
                         for e in sortedSFCs:
-                            print(f"deploy SFC-{e['sfc']['id']} using backup")
+                            logging.info(f"redeploy SFC-{e['sfc']['id']} using backup")
                             [DC for DC in self.DataCentres if DC.id == e['sfc']["DataCentre"]][0].deployer(e['sfc'], self, True)
                         for e in remapSFCs:
                             self.handler(e["sfc"], True)
+                    ####################
 
                     ##### old remap method
                     # if(self.sortmode == 'd'):
@@ -112,7 +120,7 @@ class Simulator():
                     self.logger.log_event(self, self.logger.REMAP_SUCCESS)
                     self.handler(sfc, False)
                 except:
-                    print(f"\n{self.time()}:-----remap failed, turn back previous status-----\n")
+                    logging.debug(f"\n{self.time()}:-----remap failed, turn back previous status-----\n")
 
                     for aliveSFC in self.runningSFCs:
                         aliveSFC["event"].interrupt()
@@ -127,7 +135,7 @@ class Simulator():
                     self.runningSFCs = []
 
                     for e in _runningSFCs:
-                        print(f"deploy SFC-{e['sfc']['id']} using backup")
+                        logging.info(f"deploy SFC-{e['sfc']['id']} using backup")
                         [DC for DC in self.DataCentres if DC.id == e['sfc']["DataCentre"]][0].deployer(e['sfc'], self, True)
                     self.logger.log_event(self, self.logger.REMAP_FAIL)
                     self.handler(sfc, False)
@@ -139,9 +147,10 @@ class Simulator():
         power = 0
         deploy = {"sfc": {}, "outroute": 0}
         step = 100
+        failDetail = []
         for DC in self.DataCentres:
             result = DC.consider(self, sfc)
-            if(result): # result["deploy"] is sfc after analysing
+            if(not result in [1, 2]): # result["deploy"] is sfc after analysing
                 topo = copy.deepcopy(self.topology)
                 _sfc = result["sfc"]
                 for out_link in list(topo.edges.data()):
@@ -150,7 +159,7 @@ class Simulator():
                 try:
                     route = nx.shortest_path(topo, _sfc["Ingress"], _sfc["DataCentre"])
                 except:
-                    print(f"Cannot routing from Ingress-{_sfc['Ingress']} to DC-{DC.id}")
+                    logging.info(f"Cannot routing from Ingress-{_sfc['Ingress']} to DC-{DC.id}")
                     failed += 1
                     continue
                 else: # exist route
@@ -166,25 +175,23 @@ class Simulator():
                         result["sfc"]["outroute"] = route
                         deploy = result["sfc"]
             else:
-                print(f"cannot deploy SFC-{sfc['id']} on DC-{DC.id}")
+                failDetail.append([DC.id, result])
+                logging.info(f"cannot deploy SFC-{sfc['id']} on DC-{DC.id}")
                 failed += 1
-            # elif(result == 1):
-            #     print(f"DC-{DC.id} doesn't have enough bandwidth for SFC-{sfc['id']}")
-            #     failed += 1
-            # elif(result == 2):
-            #     print(f"DC-{DC.id} doesn't have enough server for SFC-{sfc['id']}")
-            #     failed += 1
         if(failed == len(self.DataCentres)):
+            sfc["failDetail"] = failDetail
             if((sfc["id"] in self.stat["accepted"])):
-                print("ERROR: droped a accepted SFC")
+                logging.info("ERROR: droped a accepted SFC")
                 exit()
             if((not sfc["id"] in self.stat["failed"])):
                 self.stat["failed"].append(sfc["id"])
+                self.stat["failedVNFs"] += len(sfc["struct"].nodes)
             self.logger.log_event(self, self.logger.DROP, sfc)
             # print(f"{self.time()}: SFC-{sfc['id']} has been dropped")
         else:
             if(not sfc["id"] in self.stat["accepted"]):
                 self.stat["accepted"].append(sfc["id"])
+                self.stat["acceptedVNFs"] += len(sfc["struct"].nodes)
             [DC for DC in self.DataCentres if DC.id == deploy['DataCentre']][0].deployer(deploy, self, redeploy=rehandler)
         
 
@@ -221,14 +228,20 @@ class Simulator():
         endTime = int(time.time())
         self.logger.close()
 
-        print()
         total = len(self.SFCs)
         accepted = len(self.stat['accepted'])
         failed = len(self.stat['failed'])
         acceptance = round(accepted / total * 100, 1)
-        print(f"accepted: {accepted} / {total} SFCs ({acceptance}%)")
-        print(f"failed: {failed} SFCs")
-        print(f"migration: {self.migration} times")
-        print(f"Simulator time: {(endTime - startTime) // 60}m{(endTime - startTime) % 60}s")
-        print()
-        return acceptance
+
+        acceptedVNFs = self.stat["acceptedVNFs"]
+        failedVNFs = self.stat["failedVNFs"]
+        totalVNFs = acceptedVNFs + failedVNFs
+        acceptanceVNFs = round(acceptedVNFs / totalVNFs * 100, 1)
+
+        logging.info(f"accepted: {accepted} / {total} SFCs ({acceptance}%)")
+        logging.info(f"failed: {failed} SFCs")
+        logging.info(f"accepted VNFs: {acceptedVNFs} / {totalVNFs} VNFs ({acceptanceVNFs}%)")
+        logging.info(f"failed VNFs: {failedVNFs} VNFs")
+        logging.info(f"migration: {self.migration} times")
+        logging.info(f"Simulator time: {(endTime - startTime) // 60}m{(endTime - startTime) % 60}s")
+        return [accepted, total, acceptance, acceptedVNFs, totalVNFs, acceptanceVNFs, (endTime - startTime)]

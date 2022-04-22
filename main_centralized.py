@@ -20,7 +20,7 @@ def main_centralized(randomSeed, appArgs, runtime, argument):
     np.random.seed(randomSeed)
     random.seed(randomSeed)
     
-    dist = Poisson(lamda=2)
+    # dist = Poisson(lamda=2)
 
     # selector = SimpleSelector()
     selector = WaxmanSelector()
@@ -53,6 +53,7 @@ def main_centralized(randomSeed, appArgs, runtime, argument):
     print(f"L = {dist.lamda}, TTL = {avg_TTL}")
     print(f"nvnf = {n_VNFs}, bw = {bw}")
     print(f"runtime = {runtime}, strategy = {argument[0]}")
+    print("randomSeed =", randomSeed)
     if(len(argument) == 2):
         print(f"sortmode = {argument[1]}")
 

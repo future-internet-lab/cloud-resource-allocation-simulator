@@ -59,7 +59,8 @@ class WaxmanApp(Application):
 
 
     def create_SFC(self, id):
-        n_VNFs = np.random.randint(self.arg[1][0], self.arg[1][1] + 1)
+        # n_VNFs = np.random.randint(self.arg[1][0], self.arg[1][1] + 1)
+        n_VNFs = 20 - id // 50
         leng = 0
         while leng == 0:
             G = nx.waxman_graph(n_VNFs, self.arg[4][0], self.arg[4][1])

@@ -11,6 +11,7 @@ from pathlib import Path
 import sys
 import json
 import random
+import logging
 
 
 
@@ -18,7 +19,7 @@ def main_distributed(randomSeed, appArgs, runtime, argument):
     np.random.seed(randomSeed)
     random.seed(randomSeed)
     
-    dist = Poisson(lamda=2)
+    # dist = Poisson(lamda=2)
 
     # selector = SimpleSelector()
     selector = WaxmanSelector()
@@ -44,13 +45,14 @@ def main_distributed(randomSeed, appArgs, runtime, argument):
     if(len(argument) == 2):
         folder_log = str(folder_log) + f"{argument[0]}{argument[1]}"
 
-    sim = Simulator(substrate, folder_log, *argument)
+    sim = Simulator(substrate, folder_log, logging.DEBUG, *argument)
     sim.run(runtime)
 
     print("DISTRIBUTED")
     print(f"L = {dist.lamda}, TTL = {avg_TTL}")
     print(f"nvnf = {n_VNFs}, bw = {bw}")
     print(f"runtime = {runtime}, strategy = {argument[0]}")
+    print("randomSeed =", randomSeed)
     if(len(argument) == 2):
         print(f"sortmode = {argument[1]}")
 
@@ -72,7 +74,7 @@ if __name__ == "__main__":
     n_VNFs = [4, 20]
     demand_VNF = [25, 25]
     bw = [10, 50]
-    runtime = 311
+    runtime = 100
     appArgs = [avg_TTL, n_VNFs, demand_VNF, bw, [0.5, 0.5]]
 
     main_distributed(randomSeed, appArgs, runtime, arg)

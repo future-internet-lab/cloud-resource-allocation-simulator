@@ -24,7 +24,7 @@ class DataCentre():
 
     def consider(self, sim, sfc):
         anaRes = sfc["app"].selector.analyse(self, sfc) # analyse result
-        if(anaRes):
+        if(not anaRes in [1, 2]):
             topo = self.install(anaRes)
             power = self.energy(topo)
             considerRes = {
@@ -32,7 +32,7 @@ class DataCentre():
                 "deltaPower": round(power - self.power, 1)
             }
         else:
-            considerRes = False
+            considerRes = anaRes
             # print(f"DC-{self.id} drop SFC-{sfc['id']}")
         return considerRes
 
