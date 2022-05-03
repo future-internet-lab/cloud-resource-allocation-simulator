@@ -7,10 +7,11 @@ import matplotlib.pyplot as plt
 
 
 class Application(ABC):
-    def __init__(self, distribution, selector, *arg):
+    def __init__(self, distribution, selector, subSelector, *arg):
         self.name = self.__class__.__name__
         self.distribution = distribution
         self.selector = selector
+        self.subSelector = subSelector
         
         # custom argument for custom SFC
         self.arg = arg
@@ -37,30 +38,37 @@ class SimpleApp(Application):
     def create_SFC(self, id):
         n_VNFs = np.random.randint(self.arg[1][0], self.arg[1][1] + 1)
         G = nx.Graph()
+        demand = 0
         for i in range(n_VNFs - 1):
-            G.add_edge(i, i + 1, bw=np.random.randint(self.arg[2][0], self.arg[2][1] + 1))
+            G.add_edge(i, i + 1, demand=np.random.randint(self.arg[3][0], self.arg[3][1] + 1), route=[])
             G.nodes[i]["SFC"] = id
-            G.nodes[i]["RAM"] = 1
+            G.nodes[i]["demand"] = np.random.randint(self.arg[2][0], self.arg[2][1] + 1)
+            demand += G.nodes[i]["demand"]
+            G.nodes[i]["server"] = False
+            G.nodes[i].pop("pos", None)
         G.nodes[n_VNFs - 1]["SFC"] = id
-        G.nodes[n_VNFs - 1]["RAM"] = 1
+        G.nodes[n_VNFs - 1]["demand"] = np.random.randint(self.arg[2][0], self.arg[2][1] + 1)
+        demand += G.nodes[n_VNFs - 1]["demand"]
+        G.nodes[n_VNFs - 1]["server"] = False
+        G.nodes[n_VNFs - 1].pop("pos", None)
+
         out_link = np.random.randint(self.arg[2][0], self.arg[2][1] + 1)
         time_to_live = round(np.random.exponential(scale=self.arg[0]))
-        return [G, out_link, time_to_live]
+        if time_to_live == 0: time_to_live = 1
+
+        return [G, out_link, demand, time_to_live]
 
 
 
 
 class WaxmanApp(Application):
-    """
-    create SFC which waxman random topo
-    """
     def __init__(self, name, distribution, selector, *arg):
         super().__init__(name, distribution, selector, *arg)
 
 
     def create_SFC(self, id):
-        # n_VNFs = np.random.randint(self.arg[1][0], self.arg[1][1] + 1)
-        n_VNFs = 20 - id // 50
+        n_VNFs = np.random.randint(self.arg[1][0], self.arg[1][1] + 1)
+        # n_VNFs = 20 - id // 50
         leng = 0
         while leng == 0:
             G = nx.waxman_graph(n_VNFs, self.arg[4][0], self.arg[4][1])

@@ -40,7 +40,6 @@ class Logger():
     
 
     def log_event(self, sim, action, SFC="-", topo="-"):
-        # if(sim.quiet == False):
         self.countEvent += 1
         subtrateNode = "-"
         if SFC != "-" and SFC["failDetail"] != []:
@@ -82,8 +81,7 @@ class Logger():
         if(action == self.REMAP_START):
             logging.info(f"{sim.time()}: -----Start remapping-----")
         if(action == self.REMAP_FAIL):
-            pass
-            # print(f"{sim.time()}: -----Remap failled, restore previous status-----")
+            logging.info(f"{sim.time()}:-----Remap failed, turn back previous status-----")
         if(action == self.REMAP_SUCCESS):
             logging.info(f"{sim.time()}: -----Remap successfully-----")
 
@@ -92,7 +90,7 @@ class Logger():
         elif(action in [self.REMAP_FAIL, self.REMAP_SUCCESS]):
             self.wEvent.writerow([
                 self.countEvent, sim.time(), action, subtrateNode, "-", "-", "-", "-", "-",
-                util, power, power_per_sfc, active_server
+                util, power, power_per_sfc, active_server, failDetail
             ])
         else:
             self.wEvent.writerow([
@@ -101,9 +99,9 @@ class Logger():
                 util, power, power_per_sfc, active_server, failDetail
             ])
 
-        if(topo != "-"):
-            if(action == self.CREATE):
-                self.sfc.write(topo + ",")
+        # if(topo != "-"):
+        #     if(action == self.CREATE):
+        #         self.sfc.write(topo + ",")
             # else:
             #     topo = json.dumps({"event": self.countEvent, **(json.loads(topo))})
             #     self.DCstatus.write(topo + ",")

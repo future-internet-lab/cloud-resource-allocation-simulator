@@ -19,13 +19,14 @@ import random
 def main_centralized(randomSeed, appArgs, runtime, argument):
     np.random.seed(randomSeed)
     random.seed(randomSeed)
-    
-    # dist = Poisson(lamda=2)
 
-    # selector = SimpleSelector()
     selector = WaxmanSelector()
     # selector = VNFG()
     # selector = ONP_SFO(15)
+
+    subSelector = ShortestPath()
+
+    # app = SimpleApp(dist, selector, *appArgs)
     app = WaxmanApp(dist, selector, *appArgs)
 
     apps = [app]
@@ -46,7 +47,7 @@ def main_centralized(randomSeed, appArgs, runtime, argument):
     if(len(argument) == 2):
         folder_log = str(folder_log) + f"{argument[0]}{argument[1]}"
 
-    sim = Simulator(substrate, folder_log, *argument)
+    sim = Simulator(substrate, folder_log, logging.DEBUG, *argument)
     sim.run(runtime)
 
     print("CENTRALIZED")
@@ -71,9 +72,9 @@ if __name__ == "__main__":
 
     dist = Poisson(lamda=2)
     avg_TTL = 120
-    n_VNFs = [4, 20]
+    n_VNFs = [12, 12]
     demand_VNF = [25, 25]
-    bw = [10, 50]
+    bw = [50, 50]
     runtime = 800
     appArgs = [avg_TTL, n_VNFs, demand_VNF, bw, [0.5, 0.5]]
 

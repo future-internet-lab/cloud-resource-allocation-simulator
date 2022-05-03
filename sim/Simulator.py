@@ -1,5 +1,6 @@
 from distutils.log import Log
 from sim.Logger import *
+from sim.SubstrateSelector import *
 
 import copy
 import time
@@ -32,8 +33,6 @@ class Simulator():
 
         self.reqQueue = simpy.Store(self.env)
 
-        self.justRemove = -1
-
         self.SFCcounter = 0 # for numbering SFC in Ingress.py
 
         self.SFCs = []
@@ -42,7 +41,8 @@ class Simulator():
             "accepted": [], # list of id
             "failed": [], # list of id
             "acceptedVNFs": 0,
-            "failedVNFs": 0
+            "failedVNFs": 0,
+            "runtime": 0
         }
 
         self.util = 0
@@ -50,13 +50,14 @@ class Simulator():
         self.activeServer = 0
 
         self.migration = 0
+        self.justRemove = -1
 
 
 
     def prehandler(self):
         while True:
             sfc = yield self.reqQueue.get()
-            # print(f"get sfc-{sfc['id']}")
+            # logging.debug(f"get sfc-{sfc['id']}")
 
             if(self.strategy == 1):
                 self.handler(sfc, rehandler=False)
@@ -92,7 +93,7 @@ class Simulator():
                                 break
 
                         if(self.justRemove != -1):
-                            logging.info(f"\n----------just remove {self.justRemove}----------\n")
+                            logging.debug(f"\n----------just remove {self.justRemove}----------\n")
                             if index > self.justRemove:
                                 index = self.justRemove
                             self.justRemove = -1
@@ -101,7 +102,7 @@ class Simulator():
                         remapSFCs = _runningSFCs[index:]
                         self.runningSFCs = []
                         for e in sortedSFCs:
-                            logging.info(f"redeploy SFC-{e['sfc']['id']} using backup")
+                            logging.debug(f"redeploy SFC-{e['sfc']['id']} using backup")
                             [DC for DC in self.DataCentres if DC.id == e['sfc']["DataCentre"]][0].deployer(e['sfc'], self, True)
                         for e in remapSFCs:
                             self.handler(e["sfc"], True)
@@ -135,64 +136,69 @@ class Simulator():
                     self.runningSFCs = []
 
                     for e in _runningSFCs:
-                        logging.info(f"deploy SFC-{e['sfc']['id']} using backup")
-                        [DC for DC in self.DataCentres if DC.id == e['sfc']["DataCentre"]][0].deployer(e['sfc'], self, True)
+                        logging.debug(f"deploy SFC-{e['sfc']['id']} using backup")
+                        [DC for DC in self.DataCentres if DC.id == e['sfc']["DataCentre"]][0].deployer(e['sfc'], self, redeploy=True)
                     self.logger.log_event(self, self.logger.REMAP_FAIL)
                     self.handler(sfc, False)
 
                     
 
     def handler(self, sfc, rehandler):
-        failed = 0
-        power = 0
-        deploy = {"sfc": {}, "outroute": 0}
-        step = 100
-        failDetail = []
-        for DC in self.DataCentres:
-            result = DC.consider(self, sfc)
-            if(not result in [1, 2]): # result["deploy"] is sfc after analysing
-                topo = copy.deepcopy(self.topology)
-                _sfc = result["sfc"]
-                for out_link in list(topo.edges.data()):
-                    if(out_link[2]["capacity"] - out_link[2]["usage"] < _sfc["outlink"]):
-                        topo.remove_edge(out_link[0], out_link[1])
-                try:
-                    route = nx.shortest_path(topo, _sfc["Ingress"], _sfc["DataCentre"])
-                except:
-                    logging.info(f"Cannot routing from Ingress-{_sfc['Ingress']} to DC-{DC.id}")
-                    failed += 1
-                    continue
-                else: # exist route
-                    # if(power == 0
-                    #     or (result["deltaPower"] < power)
-                    #     or (result["deltaPower"] == power and len(route) < step)):
-                    #     power = result["deltaPower"]
-                    #     step = len(route)
-                    #     result["sfc"]["outroute"] = route
-                    #     deploy = result["sfc"]
-                    if(len(route) < step):
-                        step = len(route)
-                        result["sfc"]["outroute"] = route
-                        deploy = result["sfc"]
-            else:
-                failDetail.append([DC.id, result])
-                logging.info(f"cannot deploy SFC-{sfc['id']} on DC-{DC.id}")
-                failed += 1
+        # failed = 0
+        # failDetail = []
+        # decision = {"sfc": {}, "outroute": 0}
+
+        # power = 0
+        # step = 100
+        # for DC in self.DataCentres:
+        #     result = DC.consider(self, sfc)
+        #     if(not result in [1, 2]):
+        #         _topo = copy.deepcopy(self.topology)
+        #         _sfc = result["sfc"]
+        #         for out_link in list(_topo.edges.data()):
+        #             if(out_link[2]["capacity"] - out_link[2]["usage"] < _sfc["outlink"]):
+        #                 _topo.remove_edge(out_link[0], out_link[1])
+                
+        #         try:
+        #             route = nx.shortest_path(_topo, _sfc["Ingress"], _sfc["DataCentre"])
+        #         except:
+        #             logging.debug(f"Cannot routing from Ingress-{_sfc['Ingress']} to DC-{DC.id}")
+        #             failed += 1
+        #             continue
+        #         else: # exist route
+        #             # if(power == 0
+        #             #     or (result["deltaPower"] < power)
+        #             #     or (result["deltaPower"] == power and len(route) < step)):
+        #             #     power = result["deltaPower"]
+        #             #     step = len(route)
+        #             #     result["sfc"]["outroute"] = route
+        #             #     deploy = result["sfc"]
+        #             if(len(route) < step):
+        #                 step = len(route)
+        #                 result["sfc"]["outroute"] = route
+        #                 decision = result["sfc"]
+                        
+        #     else: # cannot deploy in current DC
+        #         failDetail.append([DC.id, result])
+        #         logging.debug(f"cannot deploy SFC-{sfc['id']} on DC-{DC.id}")
+        #         failed += 1
+
+        failed, failDetail, decision = sfc["app"].subSelector.analyse(self, sfc)
+
         if(failed == len(self.DataCentres)):
             sfc["failDetail"] = failDetail
             if((sfc["id"] in self.stat["accepted"])):
-                logging.info("ERROR: droped a accepted SFC")
+                logging.warning("ERROR: droped a accepted SFC")
                 exit()
             if((not sfc["id"] in self.stat["failed"])):
                 self.stat["failed"].append(sfc["id"])
                 self.stat["failedVNFs"] += len(sfc["struct"].nodes)
             self.logger.log_event(self, self.logger.DROP, sfc)
-            # print(f"{self.time()}: SFC-{sfc['id']} has been dropped")
         else:
             if(not sfc["id"] in self.stat["accepted"]):
                 self.stat["accepted"].append(sfc["id"])
                 self.stat["acceptedVNFs"] += len(sfc["struct"].nodes)
-            [DC for DC in self.DataCentres if DC.id == deploy['DataCentre']][0].deployer(deploy, self, redeploy=rehandler)
+            [DC for DC in self.DataCentres if DC.id == decision['DataCentre']][0].deployer(decision, self, redeploy=rehandler)
         
 
 
@@ -238,10 +244,14 @@ class Simulator():
         totalVNFs = acceptedVNFs + failedVNFs
         acceptanceVNFs = round(acceptedVNFs / totalVNFs * 100, 1)
 
+        self.stat["runtime"] = int(endTime - startTime)
+
         logging.info(f"accepted: {accepted} / {total} SFCs ({acceptance}%)")
         logging.info(f"failed: {failed} SFCs")
         logging.info(f"accepted VNFs: {acceptedVNFs} / {totalVNFs} VNFs ({acceptanceVNFs}%)")
         logging.info(f"failed VNFs: {failedVNFs} VNFs")
         logging.info(f"migration: {self.migration} times")
         logging.info(f"Simulator time: {(endTime - startTime) // 60}m{(endTime - startTime) % 60}s")
-        return [accepted, total, acceptance, acceptedVNFs, totalVNFs, acceptanceVNFs, (endTime - startTime)]
+
+        # return [accepted, total, acceptance, acceptedVNFs, totalVNFs, acceptanceVNFs, (endTime - startTime)]
+        return self.stat

@@ -54,10 +54,8 @@ class Ingress():
             for vlink in list(sfc["struct"].edges.data()):
                 sfc_log["vlink"].append({"s": vlink[0], "d": vlink[1], **vlink[2]})
             sfc_log = json.dumps(sfc_log)
-
             sim.logger.log_event(sim, sim.logger.CREATE, SFC=sfc, topo=sfc_log)
-            # sim.logger.log_event(sim, sim.logger.CREATE, SFC=sfc)
-            # print(f"{sim.time()}: Ingress-{self.id} create SFC-{sfc['id']} with {len(sfc['struct'].nodes)} VNFs TTL = {sfc['TTL']}")
+
             sim.reqQueue.put(sfc)
 
             

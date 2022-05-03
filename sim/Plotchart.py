@@ -7,40 +7,12 @@ COLUMN_ACTION = 2
 COLUMN_NVNFS = 5
 COLUMN_DEMAND = 6
 COLUMN_UTIL = 9
-COLUMN_MIGRATION = 10
-COLUMN_POWER = 12
-COLUMN_PPERSFC = 13
-COLUMN_ACTIVE_SERVER = 14
-
-def round_load(load, ydata):
-    new_data = [0]*10
-    count = [0]*10
-    for i in range(len(load)):
-        if load[i] > 100: itr = 9
-        else:
-            itr = round(load[i]/10)-1
-        count[itr] += 1
-        new_data[itr] += ydata[i]
-    result_load = []
-    result_y = []
-    for i in range(len(count)):
-        if count[i] > 0:
-            result_load.append((i+1)*10)
-            result_y.append(new_data[i]/count[i])
-    
-    return result_load, result_y
+COLUMN_POWER = 10
+COLUMN_PPERSFC = 11
+COLUMN_ACTIVE_SERVER = 12
+COLUMN_FAILDETAIL = 13
 
 
-def average(value, time, period, lastValue):
-    sum = lastValue * (time[0] % period)
-    for i in range(len(time)):
-        if(i == len(time) - 1):
-            time[i] = ((time[0] // period + 1) * period) - (time[i] % 60)
-        else:
-            time[i] = time[i+1] - time[i]
-        sum += value[i] * time[i]
-    avg = sum / period
-    return avg
 
 class Chart():
     def __init__(self, folder_name, dir, label, open_mode):
@@ -76,6 +48,8 @@ class Chart():
             foo(self.dir[itr], self.label[itr])
 
         return data, label, linestyle
+
+
 
     def Acceptance(self, data_id=[]):
         """

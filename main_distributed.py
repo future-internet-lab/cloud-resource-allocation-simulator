@@ -5,6 +5,7 @@ from sim.Selector import *
 from sim.DataCentre import *
 from sim.Ingress import *
 from sim.Substrate import *
+from sim.SubstrateSelector import *
 from library import *
 
 from pathlib import Path
@@ -18,14 +19,15 @@ import logging
 def main_distributed(randomSeed, appArgs, runtime, argument):
     np.random.seed(randomSeed)
     random.seed(randomSeed)
-    
-    # dist = Poisson(lamda=2)
 
-    # selector = SimpleSelector()
     selector = WaxmanSelector()
     # selector = VNFG()
-    # selector = ONP_SFO(k_sub = 15)
-    app = WaxmanApp(dist, selector, *appArgs)
+    # selector = ONP_SFO(15)
+
+    subSelector = ShortestPath()
+
+    # app = SimpleApp(dist, selector, *appArgs)
+    app = WaxmanApp(dist, selector, subSelector, *appArgs)
 
     apps = [app]
 
@@ -33,9 +35,10 @@ def main_distributed(randomSeed, appArgs, runtime, argument):
                         linkCap=100,
                         DCArgs=[4, 6, 6, 8], IngressArgs=[apps, apps, apps, apps])
 
-    # folder name
+    ######################################## folder name
     spec = f"{n_VNFs[0]}{n_VNFs[1]}_{demand_VNF[0]}{demand_VNF[1]}_{bw[0]}{bw[1]}_{runtime}"
     folder_result = f"{selector.name}/{spec}_seed{randomSeed}"
+    ########################################
 
     folder_log = Path(f"results/{folder_result}")
     folder_log.mkdir(parents=True, exist_ok=True)
@@ -74,7 +77,7 @@ if __name__ == "__main__":
     n_VNFs = [4, 20]
     demand_VNF = [25, 25]
     bw = [10, 50]
-    runtime = 100
+    runtime = 500
     appArgs = [avg_TTL, n_VNFs, demand_VNF, bw, [0.5, 0.5]]
 
     main_distributed(randomSeed, appArgs, runtime, arg)
