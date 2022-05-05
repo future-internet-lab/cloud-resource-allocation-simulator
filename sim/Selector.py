@@ -203,6 +203,8 @@ class WaxmanSelector(Selector):
         topo = copy.deepcopy(DC.topo)
         sfc = copy.deepcopy(sfcInput)
 
+        
+
         def Placement(serverCap, package):
             arg = round(5 / 4 * pow(4 * len(serverCap), 2/3) + 1)
             k = round((len(serverCap)*4)**(1/3))

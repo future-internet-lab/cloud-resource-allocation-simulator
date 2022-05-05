@@ -25,6 +25,8 @@ def main_distributed(randomSeed, appArgs, runtime, argument):
     # selector = ONP_SFO(15)
 
     subSelector = ShortestPath()
+    subSelector = AlphaSubsel()
+    subSelector = BetaSubsel()
 
     # app = SimpleApp(dist, selector, *appArgs)
     app = WaxmanApp(dist, selector, subSelector, *appArgs)
@@ -77,7 +79,7 @@ if __name__ == "__main__":
     n_VNFs = [4, 20]
     demand_VNF = [25, 25]
     bw = [10, 50]
-    runtime = 500
+    runtime = 200
     appArgs = [avg_TTL, n_VNFs, demand_VNF, bw, [0.5, 0.5]]
 
     main_distributed(randomSeed, appArgs, runtime, arg)

@@ -5,14 +5,14 @@ from sim.Selector import *
 from sim.DataCentre import *
 from sim.Ingress import *
 from sim.Substrate import *
+from sim.SubstrateSelector import *
 from library import *
 
 from pathlib import Path
-import numpy as np
-import matplotlib.pyplot as plt
 import sys
 import json
 import random
+import logging
 
 
 
@@ -25,9 +25,11 @@ def main_centralized(randomSeed, appArgs, runtime, argument):
     # selector = ONP_SFO(15)
 
     subSelector = ShortestPath()
+    subSelector = AlphaSubsel()
+    subSelector = BetaSubsel()
 
     # app = SimpleApp(dist, selector, *appArgs)
-    app = WaxmanApp(dist, selector, *appArgs)
+    app = WaxmanApp(dist, selector, subSelector, *appArgs)
 
     apps = [app]
 
@@ -35,9 +37,10 @@ def main_centralized(randomSeed, appArgs, runtime, argument):
                         linkCap=100,
                         DCArgs=[10], IngressArgs=[apps, apps, apps, apps])
 
-    # folder name
+    ######################################## folder name
     spec = f"{n_VNFs[0]}{n_VNFs[1]}_{demand_VNF[0]}{demand_VNF[1]}_{bw[0]}{bw[1]}_{runtime}"
     folder_result = f"{selector.name}/{spec}_seed{randomSeed}"
+    ########################################
 
     folder_log = Path(f"results/{folder_result}")
     folder_log.mkdir(parents=True, exist_ok=True)
@@ -57,6 +60,7 @@ def main_centralized(randomSeed, appArgs, runtime, argument):
     print("randomSeed =", randomSeed)
     if(len(argument) == 2):
         print(f"sortmode = {argument[1]}")
+
 
 
 if __name__ == "__main__":

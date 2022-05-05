@@ -1,6 +1,6 @@
-from distutils.log import Log
 from sim.Logger import *
 from sim.SubstrateSelector import *
+from sim.Simulator import *
 
 import copy
 import time
