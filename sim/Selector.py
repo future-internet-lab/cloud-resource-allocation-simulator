@@ -4,8 +4,8 @@ import numpy as np
 import networkx as nx
 import random
 
-import json
 import copy
+import logging
 
 
 
@@ -188,7 +188,7 @@ class WaxmanSelector_0(Selector):
             return False
 
 
-
+import matplotlib.pyplot as plt
 
 class WaxmanSelector(Selector):
     """
@@ -201,6 +201,8 @@ class WaxmanSelector(Selector):
 
     def analyse(self, DC, sfcInput):
         topo = copy.deepcopy(DC.topo)
+        # nx.draw(topo, with_labels = True)
+        # plt.show()
         sfc = copy.deepcopy(sfcInput)
 
         def Placement(serverCap, package):
@@ -286,16 +288,18 @@ class WaxmanSelector(Selector):
                         topo.edges[route[i], route[i+1]]['usage'] += v_link["demand"]
                     sfc["struct"].edges[data[itr][0], data[itr][1]]["route"] = route
                 except:
-                    print(f"cannot routing from {s} to {d}, bw = {v_link['demand']} ---------")
+                    logging.debug(f"cannot routing from {s} to {d}, bw = {v_link['demand']} ---------")
                     sfc["struct"].edges[data[itr][0], data[itr][1]]["route"] = []
-                    return False
+                    return 1
 
             sfc["DataCentre"] = DC.id
             # return sfc
             return copy.deepcopy(sfc)
         else:
-            print("cannot alloc")
-            return False
+            logging.debug("cannot alloc")
+            return 2
+
+
 
 
 class VNFG(Selector):
@@ -406,25 +410,24 @@ class VNFG(Selector):
 
 
 
-class ONP_SFO(Selector):
+
+class ONP_SFO_old(Selector):
     """
-    using Online Parallelized SFC Orchestration algorithm for the paper:
-    Online Parallelized Service Function Chain Orchestration in Data Center Networks
+    Using for waxman topo
     """
     def __init__(self, k_sub):
         super().__init__()
         self.k_sub = k_sub
-        self.name = self.__class__.__name__+'_'+str(k_sub)
 
     def analyse(self, DC, sfcInput):
         topo = copy.deepcopy(DC.topo)
-        # sfc = copy.deepcopy(sfcInput)
+        sfc = copy.deepcopy(sfcInput)
         
         avr_bw = 0
-        for bw in sfcInput['struct'].edges.data():
+        for bw in sfc['struct'].edges.data():
             avr_bw += bw[2]['demand']
         # if len(sfcInput['struct'].edges.data()) == 0: return False
-        avr_bw = avr_bw // len(sfcInput['struct'].edges.data())
+        avr_bw = avr_bw // len(sfc['struct'].edges.data())
 
         splited_bw = [self.k_sub]*(avr_bw//self.k_sub)
         if avr_bw % self.k_sub != 0:
@@ -483,9 +486,6 @@ class ONP_SFO(Selector):
             for vnf in list(sfc["struct"].nodes.data()):
                 vnfCap.append(vnf[1]["demand"])
 
-            # print('serverCap',serverCap)
-            # print('vnfCap',vnfCap)
-            # print('bwCap',bwCap)
             alloc = Placement(serverCap, vnfCap, bwCap)
 
             if(alloc):
@@ -513,13 +513,13 @@ class ONP_SFO(Selector):
                     except:
                         print(f"cannot routing from {s} to {d}, bw = {v_link['demand']} ---------")
                         sfc["struct"].edges[vlink[0], vlink[1]]["route"] = []
-                        return False
+                        return 1
                 sfc["DataCentre"] = DC.id
                 # return sfc
                 return copy.deepcopy(sfc)
             else:
                 print("cannot alloc")
-                return False
+                return 2
         
         result = copy.deepcopy(sfcInput)
 
@@ -544,7 +544,7 @@ class ONP_SFO(Selector):
                 mapping = dict(zip(sfc_i['struct'], range(leng*itr,leng*(itr+1))))
                 sfc_i['struct'] = nx.relabel_nodes(sfc_i['struct'], mapping)
 
-            if output == False: return False
+            if output == 1 or output == 2: return output
             else:
                 temp = nx.disjoint_union(temp, sfc_i['struct'])
 
@@ -553,3 +553,130 @@ class ONP_SFO(Selector):
         # print(result['struct'].edges.data())
         return copy.deepcopy(result)
 
+class ONP_SFO(Selector):
+    """
+    using Online Parallelized SFC Orchestration algorithm for the paper:
+    Online Parallelized Service Function Chain Orchestration in Data Center Networks
+    Use for chaining SFC (0 - 1 - 2 - 3 ...)
+
+    Lưu ý: Chỉ sử dụng cho chuỗi SFC!
+    """
+    def __init__(self, k_sub):
+        super().__init__()
+        self.k_sub = k_sub
+
+    def analyse(self, DC, sfcInput):
+        topo = copy.deepcopy(DC.topo)
+        sfc = copy.deepcopy(sfcInput)
+        
+        avr_bw = 0
+        for bw in sfc['struct'].edges.data():
+            avr_bw += bw[2]['demand']
+        avr_bw = avr_bw // len(sfc['struct'].edges.data())
+
+        splited_bw = [self.k_sub]*(avr_bw//self.k_sub)
+        if avr_bw % self.k_sub != 0:
+            splited_bw.append(avr_bw % self.k_sub)
+        
+        temp = nx.Graph()
+        result = copy.deepcopy(sfcInput)
+
+        print('number vnf:',len(sfc["struct"].nodes.data()))
+
+        def process():
+            nd, nd2 = 0, 0
+            count = 0
+            for i in np.argsort(agg_bw):
+                # choose less bw group
+                for j in np.argsort(np.array(edge_bw[i*(k//2):(i+1)*(k//2)])):
+                    addr = i*(k//2)+j
+                    # choose smallest bw
+                    for l in np.argsort(np.array(serverCap[addr*(k//2):(addr+1)*(k//2)])):
+                        # l from 0 to k/2 - 1
+                        nd = addr*(k//2)+l+arg  # node
+
+                        if nd2 != 0:
+                            v_link = sfc_i["struct"].edges[count-1, count]
+                            for p_link in list(topo.edges.data()):
+                                if(p_link[2]["capacity"] - p_link[2]['usage'] < v_link["demand"]):
+                                    topo.remove_edge(p_link[0], p_link[1])
+                            try:
+                                route = nx.shortest_path(topo, nd, nd2)
+                                for i in range(len(route) - 1):
+                                    topo.edges[route[i], route[i+1]]['usage'] += v_link["demand"]
+                                sfc_i["struct"].edges[count-1, count]["route"] = route
+                                # print('route',route)
+                            except:
+                                # print(f"cannot routing from {nd} to {nd2}, bw = {v_link['demand']} ---------")
+                                # sfc_i["struct"].edges[count-1, count]["route"] = []
+                                # return 1
+                                continue
+
+                        if sfc_i["struct"].nodes[count]['demand'] > (topo.nodes[nd]['capacity'] - topo.nodes[nd]['usage']):
+                            continue
+
+                        while sfc_i["struct"].nodes[count]['demand'] <= (topo.nodes[nd]['capacity'] - topo.nodes[nd]['usage']):
+                            topo.nodes[nd]['usage'] = topo.nodes[nd]['usage'] + sfc_i["struct"].nodes[count]['demand']
+                            sfc_i["struct"].nodes[count]['server'] = nd
+                            count += 1
+                            if count >= len(sfc["struct"].nodes.data()): return
+                        
+                        nd2 = nd
+
+            if count < len(sfc["struct"].nodes.data()):
+                return 2    # can not alloc
+
+        for (itr, sbw) in enumerate(splited_bw):
+            serverCap = []
+            agg_bw_temp = []
+            edge_bw = []
+            # print(topo.nodes.data())
+            for node in list(topo.nodes.data()):
+                if(node[1]["model"] == "server"):
+                    serverCap.append(node[1]["capacity"] - node[1]["usage"])
+                else:
+                    us = 0
+                    for near in topo.neighbors(node[0]):
+                        us += topo[node[0]][near]['usage']
+                    if(node[1]["tag"] == "aggregation"):
+                        agg_bw_temp.append(us)
+                    if(node[1]["tag"] == "edge"):
+                        edge_bw.append(us)
+
+            arg = round(5 / 4 * pow(4 * len(serverCap), 2/3) + 1)
+            k = round((len(serverCap)*4)**(1/3))
+
+            vnfCap = []
+            for vnf in list(sfc["struct"].nodes.data()):
+                vnfCap.append(vnf[1]["demand"])
+            agg_bw = []
+            for i in range((len(agg_bw_temp)*2)//k):
+                agg_bw.append(sum(agg_bw_temp[i*(k//2):(i+1)*(k//2)]))
+            agg_bw = np.array(agg_bw)
+
+            _topo = copy.deepcopy(topo)
+
+            """ Split an Original User Request"""
+            print('sub-user:',itr+1)
+            sfc_i = copy.deepcopy(sfcInput)
+            # split bandwidth for sub-user
+            for bw in sfc_i['struct'].edges.data():
+                bw[2]['demand'] = round((bw[2]['demand']*sbw)/avr_bw)
+            # split CPU demand
+            for dm in sfc_i['struct'].nodes.data():
+                dm[1]['demand'] = round((dm[1]['demand']*sbw)/avr_bw)
+
+            output = process()
+            if output == 1 or output == 2: return output
+            
+            # or else
+            leng = len(sfc_i['struct'].nodes.data())
+            mapping = dict(zip(sfc_i['struct'], range(leng*itr,leng*(itr+1))))
+            sfc_i['struct'] = nx.relabel_nodes(sfc_i['struct'], mapping)
+            temp = nx.disjoint_union(temp, sfc_i['struct'])
+
+        result["DataCentre"] = DC.id
+        result['struct'] = temp
+        # print(result['struct'].edges.data())
+        # print(result['struct'].nodes.data())
+        return copy.deepcopy(result)
