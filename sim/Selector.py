@@ -380,7 +380,8 @@ class VNFG(Selector):
 
         # print(sfc["struct"].edges.data())
         alloc = RandPlacement(serverCap, vnfCap)
-        # print(alloc)
+
+        result = copy.deepcopy(sfcInput)
 
         if(alloc):
             for vlink in list(sfc["struct"].edges.data()):
@@ -401,12 +402,13 @@ class VNFG(Selector):
                 except:
                     print(f"cannot routing from {s} to {d}, bw = {v_link['demand']} ---------")
                     sfc["struct"].edges[vlink[0], vlink[1]]["route"] = []
-                    return False
+                    return 1
+
             sfc["DataCentre"] = DC.id
             return copy.deepcopy(sfc)
         else:
             print("cannot alloc")
-            return False
+            return 2
 
 
 
