@@ -25,35 +25,20 @@ class DataCentre():
     def consider(self, sim, sfc):
         
         anaRes = sfc["app"].selector.analyse(self, sfc) # analyse result
-        # print("hello")
-        # print([node[1]["usage"] for node in list(self.topo.nodes.data()) if node[1]["model"] == "server"])
         if(not anaRes in [1, 2]):
-            # print("hello")
-            # print([node[1]["usage"] for node in list(topo.nodes.data()) if node[1]["model"] == "server"])
-            
             topo = self.install(anaRes)
             power = self.energy(topo)
 
-            
-
-            # print("hello")
-            # print([node[1]["usage"] for node in list(self.topo.nodes.data()) if node[1]["model"] == "server"])
-            # for node in list(self.topo.nodes.data()):
-            #     if node[1]["model"] == "server":
-            #         print(node[1]["deployed"], end=" ")
-            # print()
-
             _util = sum([node[1]["usage"] for node in list(self.topo.nodes.data()) if node[1]["model"] == "server"])
-            _bwUsage = sum([edge[2]["usage"] for edge in list(self.topo.edges.data())])
-            weight = _util * _bwUsage
-
-            # print(f"DC-{self.id}, weight = ", weight)
+            # _bwUsage = sum([edge[2]["usage"] for edge in list(self.topo.edges.data())])
+            _bwCap = sum([edge[2]["capacity"] - edge[2]["usage"] for edge in list(self.topo.edges.data())])
+            weight = _util * _bwCap
             
-            # weight = 0
             considerRes = {
                 "sfc": anaRes,
                 "deltaPower": round(power - self.power, 1),
-                "weight": weight
+                "weight": weight,
+                "util": _util
             }
         else:
             considerRes = anaRes

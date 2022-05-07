@@ -105,7 +105,7 @@ class Simulator():
                             logging.debug(f"redeploy SFC-{e['sfc']['id']} using backup")
                             [DC for DC in self.DataCentres if DC.id == e['sfc']["DataCentre"]][0].deployer(e['sfc'], self, True)
                         for e in remapSFCs:
-                            self.handler(e["sfc"], True)
+                            self.handler(e["sfc"], rehandler=True)
                     ####################
 
                     ##### old remap method
@@ -139,7 +139,7 @@ class Simulator():
                         logging.debug(f"deploy SFC-{e['sfc']['id']} using backup")
                         [DC for DC in self.DataCentres if DC.id == e['sfc']["DataCentre"]][0].deployer(e['sfc'], self, redeploy=True)
                     self.logger.log_event(self, self.logger.REMAP_FAIL)
-                    self.handler(sfc, False)
+                    self.handler(sfc, rehandler=False)
 
                     
 

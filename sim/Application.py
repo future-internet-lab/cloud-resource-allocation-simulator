@@ -27,7 +27,7 @@ class Application(ABC):
 
 
 
-class SimpleApp(Application):
+class SequenceApp(Application):
     """
     this app create SFC which has linear-topo
     """

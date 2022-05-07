@@ -77,7 +77,7 @@ class Logger():
             power = "-"
             power_per_sfc = "-"
             active_server = "-"
-            logging.info(f"{sim.time()}: interrupt SFC-{SFC['id']}, remain {SFC['remain']} ----->{SFC['id']}")
+            logging.info(f"{sim.time()}: interrupt SFC-{SFC['id']} on DC-{SFC['DataCentre']}, remain {SFC['remain']} ----->{SFC['id']}")
         if(action == self.REMAP_START):
             logging.info(f"{sim.time()}: -----Start remapping-----")
         if(action == self.REMAP_FAIL):
