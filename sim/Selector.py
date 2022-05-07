@@ -581,8 +581,6 @@ class ONP_SFO(Selector):
         temp = nx.Graph()
         result = copy.deepcopy(sfcInput)
 
-        print('number vnf:',len(sfc["struct"].nodes.data()))
-
         def process():
             nd, nd2 = 0, 0
             count = 0
@@ -596,12 +594,15 @@ class ONP_SFO(Selector):
                         nd = addr*(k//2)+l+arg  # node
 
                         if nd2 != 0:
+                            _topo = copy.deepcopy(topo)
                             v_link = sfc_i["struct"].edges[count-1, count]
-                            for p_link in list(topo.edges.data()):
+                            for p_link in list(_topo.edges.data()):
                                 if(p_link[2]["capacity"] - p_link[2]['usage'] < v_link["demand"]):
-                                    topo.remove_edge(p_link[0], p_link[1])
+                                    _topo.remove_edge(p_link[0], p_link[1])
                             try:
-                                route = nx.shortest_path(topo, nd, nd2)
+                                route = nx.shortest_path(_topo, nd, nd2)
+                                print('nd',nd,'nd2',nd2)
+                                
                                 for i in range(len(route) - 1):
                                     topo.edges[route[i], route[i+1]]['usage'] += v_link["demand"]
                                 sfc_i["struct"].edges[count-1, count]["route"] = route
@@ -653,8 +654,6 @@ class ONP_SFO(Selector):
             for i in range((len(agg_bw_temp)*2)//k):
                 agg_bw.append(sum(agg_bw_temp[i*(k//2):(i+1)*(k//2)]))
             agg_bw = np.array(agg_bw)
-
-            _topo = copy.deepcopy(topo)
 
             """ Split an Original User Request"""
             print('sub-user:',itr+1)
