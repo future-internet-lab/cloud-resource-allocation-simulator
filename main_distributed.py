@@ -33,9 +33,10 @@ def main_distributed(randomSeed, appArgs, runtime, argument):
 
     apps = [app]
 
-    substrate = Abilene(DCPos=[1, 4, 6, 11], IngressPos=[5, 7, 9, 10], 
-                        linkCap=100,
-                        DCArgs=[4, 6, 6, 8], IngressArgs=[apps, apps, apps, apps])
+    substrate = Abilene(DCPos=[1, 4, 6, 11], IngressPos=[5, 7, 9, 10], linkCap=100,
+                        DCArgs=[4, 6, 6, 8], IngressArgs=[apps, apps, apps, apps], n_clusters=0)
+    # substrate = Abilene(DCPos=[], IngressPos=[5, 7, 9, 10], linkCap=100,
+    #                     DCArgs=[], IngressArgs=[apps, apps, apps, apps], n_clusters=6)
 
     ######################################## folder name
     spec = f"{n_VNFs[0]}{n_VNFs[1]}_{demand_VNF[0]}{demand_VNF[1]}_{bw[0]}{bw[1]}_{runtime}"

@@ -1,50 +1,162 @@
-from abc import abstractmethod
 from sim.DataCentre import *
 from sim.Ingress import *
+from sklearn.cluster import KMeans
+from pandas import DataFrame
 
 import networkx as nx
+import numpy as np
 import copy
+import itertools
 
 
 
 
 class Substrate():
-    def __init__(self, DCPos, IngressPos, linkCap, DCArgs, IngressArgs):
+    def __init__(self, DCPos, IngressPos, linkCap, DCArgs, IngressArgs, n_clusters):
         self.name = self.__class__.__name__
         self.linkCap = linkCap
-        self.topology = self.substrate_topo(DCPos, IngressPos)
+
+        self.topology = self.substrate_topo()
+
+        self.n_clusters = n_clusters
+        if(n_clusters != 0):
+            self.DCPos, self.DCArgs = self.find_DC()
+        else:
+            self.DCPos = DCPos
+            self.DCArgs = DCArgs
+        print(self.DCPos, self.DCArgs)
+        self.IngressPos = IngressPos
+        self.IngressArgs = IngressArgs
+
+        
 
         self.DCs = []
-        self.init_DCs(DCPos, DCArgs)
+        self.init_DCs()
 
         self.Ingresses = []
-        self.init_Ingresses(IngressPos, IngressArgs)
+        self.init_Ingresses()
+
+    def find_DC(self):
+        INF = 999
+        def floydWarshall():
+            """
+            shortest distance from a node to each others
+            """
+            G = self.topology
+            n_node = len(G.nodes.data())
+            graph = [[INF for col in range(n_node)] for row in range(n_node)]
+            edges = [(edge[0], edge[1]) for edge in list(G.edges.data())]
+
+            for edge in edges:
+                i = edge[0] - 1
+                j = edge[1] - 1
+                graph[i][j] = 1
+                graph[j][i] = 1
+            for i in range(n_node):
+                graph[i][i] = 0
+
+            dist = list(map(lambda i: list(map(lambda j: j, i)), graph))
+            for k in range(n_node):
+                # pick all vertices as source one by one
+                for i in range(n_node):
+                    # Pick all vertices as destination for the
+                    # above picked source
+                    for j in range(n_node):
+                        # If vertex k is on the shortest path from
+                        # i to j, then update the value of dist[i][j]
+                        dist[i][j] = min(dist[i][j], dist[i][k] + dist[k][j])
+
+            graphInfo = []
+            for i in range(0, n_node):
+                row_data = [i] * (n_node + 1)
+                for j in range(1, n_node+1):
+                    row_data[j] = dist[i][j-1]
+                row_data.pop(0)
+                graphInfo.append(row_data)
+
+            return dist, graphInfo
+
+        def find(kmeans, shortestMatrix):
+            def find_center(cluster, shortestMatrix, center_coordinates):
+                np_center_coordinates = np.array(center_coordinates)
+                find_min_arr = []
+                for i in cluster:
+                    node_i_features = np.array(shortestMatrix[i])
+                    euclid_dist = np.linalg.norm(np_center_coordinates - node_i_features)
+                    find_min_arr.append(euclid_dist)
+                temp = find_min_arr.index(min(find_min_arr))
+                return cluster[temp]
+
+            nodeLabels = kmeans.labels_
+            centers = kmeans.cluster_centers_
+            G = self.topology
+            n_node = len(G.nodes.data())
+
+            result = [[] for col in range(self.n_clusters)]
+            for i in range(n_node):
+                result[nodeLabels[i]].append(i)
+            i = 0
+            clusters = []
+            DCs = []
+            for cluster in result:
+                center_of_cluster = find_center(cluster, shortestMatrix, centers[i])
+                print(f"{cluster} -> {center_of_cluster}")
+                i += 1
+                clusters.append(cluster)
+                DCs.append(center_of_cluster + 1)
+            return clusters, DCs
+
+        shortestMatrix, graphInfo = floydWarshall()
+        kmeans = KMeans(n_clusters=self.n_clusters, n_init=20).fit(DataFrame(graphInfo))
+        clusters, DCPos = find(kmeans, shortestMatrix)
+
+        i = 1
+        for cluster in clusters:
+            for node in cluster:
+                print(self.topology)
+                # self.topology.nodes[node][1]["clusterID"] = i
+            i += 1
+
+        k_list = [8, 6, 4]
+        delta = 10 # percent, 0 ~ 100
+        CENT_N_SERVER = 250
+        solution = []
+        best = CENT_N_SERVER
+        for combine in itertools.combinations_with_replacement(k_list, self.n_clusters):
+            n_server = [k**3//4 for k in combine]
+            distance = abs(CENT_N_SERVER - sum(n_server))
+            if(distance < CENT_N_SERVER * delta / 100 and distance < best):
+                solution = combine
+                best = distance
+        DCArgs = list(solution)
+        return DCPos, DCArgs
 
 
-    def init_DCs(self, DCPos, DCArgs):
-        for i in range(len(DCPos)):
-            self.DCs.append(DataCentre(DCPos[i], self.DC_topo(DCArgs[i])))
+    def init_DCs(self):
+        for i in range(len(self.DCPos)):
+            self.DCs.append(DataCentre(self.DCPos[i], self.DC_topo(self.DCArgs[i])))
 
-    def init_Ingresses(self, IngressPos, IngressArgs):
-        for i in range(len(IngressPos)):
-            self.Ingresses.append(Ingress(IngressPos[i], IngressArgs[i]))
 
-    @abstractmethod
+    def init_Ingresses(self):
+        for i in range(len(self.IngressPos)):
+            self.Ingresses.append(Ingress(self.IngressPos[i], self.IngressArgs[i]))
+
+
     def substrate_topo(self): pass
 
-    @abstractmethod
+
     def DC_topo(self, args): pass
 
 
 
 
 class Abilene(Substrate):
-    def __init__(self, DCPos, IngressPos, linkCap, DCArgs, IngressArgs):
-        super().__init__(DCPos, IngressPos, linkCap, DCArgs, IngressArgs)
+    def __init__(self, DCPos, IngressPos, linkCap, DCArgs, IngressArgs, n_clusters):
+        super().__init__(DCPos, IngressPos, linkCap, DCArgs, IngressArgs, n_clusters)
         
 
 
-    def substrate_topo(self, DCPos, IngressPos):
+    def substrate_topo(self):
         G = nx.Graph()
 
         G.add_edge(1, 2, capacity=self.linkCap, usage=0)
@@ -63,13 +175,13 @@ class Abilene(Substrate):
         G.add_edge(10, 11, capacity=self.linkCap, usage=0)
         G.add_edge(11, 12, capacity=self.linkCap, usage=0)
 
-        for i in range(1, 13):
-            if(i in DCPos):
-                G.nodes[i]["role"] = "DataCentre"
-            elif(i in IngressPos):
-                G.nodes[i]["role"] = "Ingress"
-            else:
-                G.nodes[i]["role"] = "Switch"
+        # for i in range(1, 13):
+        #     if(i in self.DCPos):
+        #         G.nodes[i]["role"] = "DataCentre"
+        #     elif(i in self.IngressPos):
+        #         G.nodes[i]["role"] = "Ingress"
+        #     else:
+        #         G.nodes[i]["role"] = "Switch"
 
         return copy.deepcopy(G)
 
