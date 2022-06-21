@@ -15,12 +15,13 @@ class Logger():
     REMAP_FAIL = "remap_failed"
     REMAP_SUCCESS = "remap_successfully"
 
-    def __init__(self, sim, folder_log=None):
+    def __init__(self, sim, folder_log=None, logCSV=True):
         self.sim = sim
         path = folder_log
+        self.logCSV = logCSV
 
         eventFields = ["id", "time", "action", "Ingress/DC", "SFC", "n_VNFs",
-            "demand", "TTL", "remain", "util", "power", "P_per_sfc", "active_server", "failDetail"
+            "demand", "TTL", "remain", "util", "power", "P_per_sfc", "active_server", "failDetail", "selectorLog"
         ]
 
         self.fEvent = open(f"{path}_event.csv", mode="w", newline="")
@@ -84,20 +85,26 @@ class Logger():
             logging.info(f"{sim.time()}:-----Remap failed, turn back previous status-----")
         if(action == self.REMAP_SUCCESS):
             logging.info(f"{sim.time()}: -----Remap successfully-----")
-
-        if(action == self.REMAP_START):
-            self.wEvent.writerow([self.countEvent, sim.time(), action, "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-"])
-        elif(action in [self.REMAP_FAIL, self.REMAP_SUCCESS]):
-            self.wEvent.writerow([
-                self.countEvent, sim.time(), action, subtrateNode, "-", "-", "-", "-", "-",
-                util, power, power_per_sfc, active_server, failDetail
-            ])
-        else:
-            self.wEvent.writerow([
-                self.countEvent, sim.time(), action, subtrateNode, SFC["id"],
-                len(SFC['struct'].nodes), SFC["demand"], SFC["TTL"], SFC["remain"],
-                util, power, power_per_sfc, active_server, failDetail
-            ])
+        if self.logCSV:
+            if(action == self.REMAP_START):
+                self.wEvent.writerow([self.countEvent, sim.time(), action, "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-"])
+            elif(action in [self.REMAP_FAIL, self.REMAP_SUCCESS]):
+                self.wEvent.writerow([
+                    self.countEvent, sim.time(), action, subtrateNode, "-", "-", "-", "-", "-",
+                    util, power, power_per_sfc, active_server, failDetail
+                ])
+            elif(action == self.DEPLOY and "itr" in SFC.keys()):
+                self.wEvent.writerow([
+                    self.countEvent, sim.time(), action, subtrateNode, SFC["id"],
+                    len(SFC['struct'].nodes), SFC["demand"], SFC["TTL"], SFC["remain"],
+                    util, power, power_per_sfc, active_server, failDetail, SFC["itr"]
+                ])
+            else:
+                self.wEvent.writerow([
+                    self.countEvent, sim.time(), action, subtrateNode, SFC["id"],
+                    len(SFC['struct'].nodes), SFC["demand"], SFC["TTL"], SFC["remain"],
+                    util, power, power_per_sfc, active_server, failDetail
+                ])
 
         # if(topo != "-"):
         #     if(action == self.CREATE):

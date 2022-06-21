@@ -52,7 +52,7 @@ class SequenceApp(Application):
         G.nodes[n_VNFs - 1]["server"] = False
         G.nodes[n_VNFs - 1].pop("pos", None)
 
-        out_link = np.random.randint(self.arg[2][0], self.arg[2][1] + 1)
+        out_link = np.random.randint(self.arg[3][0], self.arg[3][1] + 1)
         time_to_live = round(np.random.exponential(scale=self.arg[0]))
         if time_to_live == 0: time_to_live = 1
 
@@ -84,7 +84,7 @@ class WaxmanApp(Application):
             demand += G.nodes[i]["demand"]
             G.nodes[i]["server"] = False
             G.nodes[i].pop("pos", None)
-        out_link = np.random.randint(self.arg[2][0], self.arg[2][1] + 1)
+        out_link = np.random.randint(self.arg[3][0], self.arg[3][1] + 1)
         time_to_live = round(np.random.exponential(scale=self.arg[0]))
         if time_to_live == 0: time_to_live = 1
 

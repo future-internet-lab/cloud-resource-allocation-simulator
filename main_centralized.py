@@ -16,30 +16,58 @@ import logging
 
 
 
-def main_centralized(randomSeed, appArgs, runtime, argument):
+def main_centralized(randomSeed, appArgs, runtime, argument, DCPos, IngressPos):
     np.random.seed(randomSeed)
     random.seed(randomSeed)
 
-    selector = WaxmanSelector()
+    # selector = WaxmanSelector()
     # selector = VNFG()
     # selector = ONP_SFO(15)
+    selector = MIX_ver2(30)
+    selector = HRE_ver2()
 
     subSelector = ShortestPath()
-    subSelector = AlphaSubsel()
+    # subSelector = AlphaSubsel()
     # subSelector = BetaSubsel()
 
-    app = SequenceApp(dist, selector, subSelector, *appArgs)
-    # app = WaxmanApp(dist, selector, subSelector, *appArgs)
+    # app = SequenceApp(dist, selector, subSelector, *appArgs)
+    app = WaxmanApp(dist, selector, subSelector, *appArgs)
 
     apps = [app]
 
-    substrate = Abilene(DCPos=[2], IngressPos=[5, 7, 9, 10], 
-                        linkCap=100,
-                        DCArgs=[10], IngressArgs=[apps, apps, apps, apps])
+    # substrate = Abilene(DCPos=[2], IngressPos=[5, 7, 9, 10], linkCap=100,
+    #                     DCArgs=[2], IngressArgs=[apps, apps, apps, apps], n_clusters=0)
+    # substrate = Abilene(DCPos=[], IngressPos=[5, 7, 9, 10], linkCap=100,
+    #                     DCArgs=[], IngressArgs=[apps, apps, apps, apps], n_clusters=1)
+    # substrate = Abilene(DCPos=[10], IngressPos=IngressPos, linkCap=100,
+    #                     DCArgs=[10], IngressArgs=[apps, apps, apps, apps], n_clusters=0)
+    # substrate = Europe(DCPos=[], IngressPos=[5, 7, 9, 10], linkCap=100,
+    #                     DCArgs=[], IngressArgs=[apps, apps, apps, apps], n_clusters=1)
+    # substrate = Atlanta(DCPos=[], IngressPos=[5, 7, 9, 10], linkCap=100,
+    #                     DCArgs=[10], IngressArgs=[apps, apps, apps, apps], n_clusters=1)
+    # substrate = France(DCPos=[], IngressPos=[5, 7, 9, 10], linkCap=100,
+    #                     DCArgs=[10], IngressArgs=[apps, apps, apps, apps], n_clusters=1)
+
+    substrate = Abilene(DCPos=DCPos, IngressPos=IngressPos, linkCap=100,
+                        DCArgs=[10], IngressArgs=[apps, apps, apps, apps], n_clusters=0)
+    # substrate = BigAbilene(DCPos=DCPos, IngressPos=IngressPos, linkCap=100,
+    #                     DCArgs=[10], IngressArgs=[apps, apps, apps, apps], n_clusters=0)
+    # substrate = Europe(DCPos=DCPos, IngressPos=IngressPos, linkCap=100,
+    #                     DCArgs=[10], IngressArgs=[apps, apps, apps, apps], n_clusters=0)
+    # substrate = France(DCPos=DCPos, IngressPos=IngressPos, linkCap=100,
+    #                     DCArgs=[10], IngressArgs=[apps, apps, apps, apps], n_clusters=0)
+    # substrate = Atlanta(DCPos=DCPos, IngressPos=IngressPos, linkCap=100,
+    #                     DCArgs=[10], IngressArgs=[apps, apps, apps, apps], n_clusters=0)
+
+    
+    
+    
+    
 
     ######################################## folder name
-    spec = f"{n_VNFs[0]}{n_VNFs[1]}_{demand_VNF[0]}{demand_VNF[1]}_{bw[0]}{bw[1]}_{runtime}"
-    folder_result = f"{selector.name}/{spec}_seed{randomSeed}"
+    # spec = f"{n_VNFs[0]}{n_VNFs[1]}_{demand_VNF[0]}{demand_VNF[1]}_{bw[0]}{bw[1]}_{runtime}"
+    spec = f"{DCPos[0]}/{IngressPos[0]}{IngressPos[1]}{IngressPos[2]}{IngressPos[3]}"
+    folder_result = f"{selector.name}/cent/{spec}"
     ########################################
 
     folder_log = Path(f"results/{folder_result}")
@@ -50,16 +78,16 @@ def main_centralized(randomSeed, appArgs, runtime, argument):
     if(len(argument) == 2):
         folder_log = str(folder_log) + f"{argument[0]}{argument[1]}"
 
-    sim = Simulator(substrate, folder_log, logging.INFO, *argument)
+    sim = Simulator(substrate, folder_log, logging.DEBUG, True, *argument)
     sim.run(runtime)
 
-    print("CENTRALIZED")
-    print(f"L = {dist.lamda}, TTL = {avg_TTL}")
-    print(f"nvnf = {n_VNFs}, bw = {bw}")
-    print(f"runtime = {runtime}, strategy = {argument[0]}")
-    print("randomSeed =", randomSeed)
+    logging.warning("CENTRALIZED")
+    logging.warning(f"L = {dist.lamda}, TTL = {avg_TTL}")
+    logging.warning(f"nvnf = {n_VNFs}, bw = {bw}")
+    logging.warning(f"runtime = {runtime}, strategy = {argument[0]}")
+    logging.warning(f"randomSeed = {randomSeed}")
     if(len(argument) == 2):
-        print(f"sortmode = {argument[1]}")
+        logging.warning(f"sortmode = {argument[1]}")
 
 
 
@@ -72,14 +100,41 @@ if __name__ == "__main__":
     else:
         arg = [strategy]
 
-    randomSeed = 2405
+    randomSeed = 1111
 
     dist = Poisson(lamda=2)
     avg_TTL = 120
     n_VNFs = [4, 10]
     demand_VNF = [15, 30]
-    bw = [10, 20]
-    runtime = 500
+    bw = [10, 90]
+    runtime = 200
     appArgs = [avg_TTL, n_VNFs, demand_VNF, bw, [0.5, 0.5]]
 
-    main_centralized(randomSeed, appArgs, runtime, arg)
+    # brute force
+    # # N_NODES = 12 # Abilene
+    # # N_NODES = 39 # BigAbilene
+    # # N_NODES = 37 # Europe
+    # N_NODES = 25 # France
+    # # N_NODES = 15 # Atlanta
+    # BUFFER = 5
+    # IGR_PER_DC_CASE = 10
+    # nodes = list(range(1, N_NODES + 1))
+    # shell = int(sys.argv[2])
+    # DCPos = list(itertools.combinations(nodes, 1))
+    # dcCount = BUFFER * (shell-1)
+    # for _dcpos in DCPos[BUFFER*(shell-1) : BUFFER*shell]:
+    #     dcCount += 1
+    #     ingressSpace = [node for node in nodes if not node in _dcpos]
+    #     ingressPos = list(itertools.combinations(ingressSpace, 4))
+    #     ingCount = 0
+    #     # for i in range(1, IGR_PER_DC_CASE + 1):
+    #     #     ingCount += 1
+    #     #     print(f"DC: {dcCount}/{len(DCPos)} ({round(dcCount % BUFFER / BUFFER * 100, )}%), Ingress: {ingCount}/{IGR_PER_DC_CASE}")
+    #     #     main_centralized(randomSeed, appArgs, runtime, arg, list(_dcpos), list(ingressPos[random.randint(0, len(ingressPos) + 1)]))
+    #     for _ingpos in ingressPos:
+    #         ingCount += 1
+    #         print(f"DC: {dcCount}/{len(DCPos)} ({round(dcCount % BUFFER / BUFFER * 100, )}%), Ingress: {ingCount}/{len(ingressPos)}")
+    #         main_centralized(randomSeed, appArgs, runtime, arg, list(_dcpos), list(_ingpos))
+
+    # chay 1 truong hop
+    main_centralized(randomSeed, appArgs, runtime, arg, [10], [5, 7, 9, 10])

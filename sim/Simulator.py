@@ -12,9 +12,9 @@ import logging
 
 
 class Simulator():
-    def __init__(self, substrate, folder_log, logLevel, *arg):
+    def __init__(self, substrate, folder_log, logLevel, logCSV, *arg):
         self.env = simpy.Environment()
-        self.logger = Logger(self, folder_log)
+        self.logger = Logger(self, folder_log, logCSV)
 
         logging.basicConfig(level=logLevel, format="%(message)s")
         self.strategy = arg[0]
@@ -24,6 +24,8 @@ class Simulator():
         self.topology = copy.deepcopy(substrate.topology)
         self.DataCentres = copy.deepcopy(substrate.DCs)
         self.Ingresses = copy.deepcopy(substrate.Ingresses)
+
+        self.selectorLog = []
 
         self.capacity = 0
         for DC in self.DataCentres:
