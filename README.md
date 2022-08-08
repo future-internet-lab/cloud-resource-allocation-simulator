@@ -1,32 +1,16 @@
-﻿không chạy bằng code runner
-chạy bằng command line:
+﻿Hướng dẫn chạy công cụ mô phỏng:
 
-python3 [file] [strategy] [sortmode]
+tạo file có cấu trúc giống như file main.py, cấu hình tuỳ ý:
+    + selector: bộ chọn server, triển khai thuật toán VNF mapping tại đây, mỗi thuật toán tương ứng với một class trong file sim/Selector.py
+    + subSelector: bộ chọn DC, mỗi phương pháp chọn DC tương ứng với một class trong file sim/SubstrateSelector.py
+    + app: Tập hợp thông số định nghĩa về một SFC, bao gồm: phân phối xuất hiện dist, bộ chọn selector, subSelector, các tham số phụ khác. Mỗi kiểu app tương ứng với một class trong sim/Application.py. Hiện tại công cụ có sẵn kiểu Sequence (các VNF nối đuôi nhau, topo có dạng đường thẳng) và Waxman (SFC được tạo ra là topo random theo thuật toán Waxman)
+    + substrate: đại diện cho một substrate topo,
 
-file:
-	main_distributed.py
-	main_centralized.py
-
-strategy:
-	1
-	2
-
-sortmode: (chỉ áp dụng với strategy 2 mới có option này)
-	d : (giảm dần kích thước vnf)
-	n : no sort 
-	i : (tăng dần kích thước vnf)
-	
-ví dụ:
-	python3 main_distributed.py 1
-	python3 main_distributed.py 2 d
-	
-
-file log:
-	_event.csv: các sự kiện, gồm có: create, drop, deploy, remove, remap, remap_failed, remap_successfully
-	
-	các sự kiện deploy nằm ở giữa sự kiện remap và remap_failed hoặc remap và remap_successfully được bỏ qua trong quá trình vẽ biểu đồ
-	
-	_sfc.json: cấu trúc các sfc
-	_stat.json: danh sách các sfc được accept và fail
-	
-	
+trong hàm main, cấu hình các thông số:
+    + dist: Phân phối thời gian giữa hai lần tạo SFC, mỗi phân phối ứng với một class trong sim/Distribution.py
+    + avg_TTL thời gian tồn tại trung bình của mỗi SFC
+    + n_VNFs: khoảng random số VNF mỗi SFC
+    + demand_VNF: tài nguyên CPU yêu cầu của mỗi VNF
+    + bw: khoảng băng thông yêu cầu của mỗi SFC
+    + runtime: thời gian chạy mô phỏng, tinh bằng phút
+    + appArgs: các thông số phụ của app
