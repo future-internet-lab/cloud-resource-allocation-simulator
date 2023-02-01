@@ -18,8 +18,8 @@ import fil.resource.substrate.SubstrateSwitch;
  */
 public class FatTree {
 	private int k;
-	final private double BANDWIDTH = 1024; // default bandwidth = 1000;
-	final private double BANDWIDTH_GW = 1024; // default bandwidth = 1000;
+	final private double BANDWIDTH = 1*1024; // default bandwidth = 1000;
+	final private double BANDWIDTH_GW = 7*1024; // default bandwidth = 1000;
 	final private double BANDWIDTH_EDGE = 100;
 	
 	private int totalGW = 0;

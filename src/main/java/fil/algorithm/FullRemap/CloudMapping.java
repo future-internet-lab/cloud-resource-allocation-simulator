@@ -507,6 +507,33 @@ public class CloudMapping {
 		return power;
 	}
 	
+	public double getPowerWasted(Topology topo){ // = power warm + power idle device 
+		double power = 0;
+		LinkedList<PhysicalServer> listServer = topo.getListPhyServers(); 
+		for(PhysicalServer phy : listServer) {
+			if(phy.getState() == 1) {
+				boolean check = false;
+				for(Service ser : phy.getListService()) {
+					if(ser.getStatus() != "unassigned") {
+						check = true;
+						break;
+					}
+				}
+				if(check == true) {
+					power += phy.warmPowerCal();
+				}else {
+					phy.setPowerServer();
+					power += phy.getPowerServer();
+				}
+				
+			}
+			else
+				continue;
+		}
+		return power;
+	}
+
+	
 	public int getUsedServer(Topology topo) {
 		int usedServer = 0;
 		LinkedList<PhysicalServer> listServer = topo.getListPhyServers(); 

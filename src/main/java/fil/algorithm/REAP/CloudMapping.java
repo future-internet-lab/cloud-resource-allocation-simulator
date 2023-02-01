@@ -62,16 +62,17 @@ public class CloudMapping {
 		return notOverLoad;
 	}
 
-	public LinkedList<SFC> redirect(LinkedList<SFC> listSFC, Topology topo, LinkedList<SFC> listTotalSFC){
+	public LinkedList<SFC> redirect(LinkedList<SFC> listSFC, Topology topo, LinkedList<SFC> listTotalSFC, LinkedList<SFC> listSFCOnRpi){
 		// block for checking VNF's status
 		for(SFC sfc : listSFC) {
 			for(Service service : sfc.getListService()) {
 				 LinkedList<Service> poolService = this.getPoolService();
 				if(service.isBelongToEdge()) {
-					// incase VNF from Cloud is pushed to Edge
+					// incase VNF from Cloud is pushed back to Edge
 					// then this VNF must deleted
 					if(poolService.contains(service)) {
 						this.deleteVNF(service);
+						this.setVNFmigration(1); 
 					}
 				}else {
 //					// in case some VNFs was changed status after remapping
@@ -105,6 +106,8 @@ public class CloudMapping {
 							ser.setStatus("assigned");
 							ser.setSfcID(sfc.getSfcID());
 							sfc.setService(ser);
+							if(listSFCOnRpi.contains(sfc)) // old service but now is being pushed to Cloud 
+								this.setVNFmigration(1); 
 							break;
 						}
 					}
@@ -425,86 +428,86 @@ public class CloudMapping {
 //		return s;
 //	}
 	
-	public boolean remappingAggrFarGroup(VirtualLink vLink, Topology topo) {
-		
-		boolean isSuccess = false;
-		//===remapping if 2 service connect through aggr/core switch=========//
-		Service sService = vLink.getsService();
-		Service dService = vLink.getdService();
-		
-		PhysicalServer phyA = sService.getBelongToServer();
-		PhysicalServer phyB = dService.getBelongToServer();
-				
-		LinkedList<SFC> listSFCA = phyA.getListSFCInServer();
-		LinkedList<SFC> listSFCB = phyB.getListSFCInServer();
-						
-		SFC sfcA = null; // sfc contains source service
-		SFC sfcB = null; // sfc contains destination service
-		
-		for(SFC sfc: listSFCA) {
-			if(sfc.getSfcID() == sService.getSfcID()) {
-				sfcA = sfc;
-			}
-		}
-		for(SFC sfc: listSFCB) {
-			if(sfc.getSfcID() == sService.getSfcID()) {
-				sfcB = sfc;
-			}
-		}
-		
-		
-		//===get all the independent receive in server A & B ===================//
-		int numReceiveA = 0;		
-		numReceiveA = phyA.getListIndependRev().size();	
-
-		//=======================================================================//
-		
-		//===get CPU demand for migrating dService to sService===================//
-		
-		double cpuDemand = dService.getCpu_server();
-		double cpuReceive = 5.0;
-		
-		if((numReceiveA)*cpuReceive >= cpuDemand) { //neu demand nho hon so receive doc lap thi tien hanh chuyen
-			double numReceiveEvacuate = Math.ceil(cpuDemand/cpuReceive);
-
-			LinkedList<SFC> sfcEvacuate = new LinkedList<>();
-			int sizeOfSFCEva = sfcEvacuate.size();
-			
-			for(int index = 0; index < numReceiveEvacuate; index++) {
-				SFC sfc = phyA.getListIndependRev().getFirst();
-				sfc.getService(4).setBelongToServer(null);
-				sfcEvacuate.add(sfc);
-				listSFCA.remove(sfc);
-				phyA.getListIndependRev().remove(sfc);
-			}
-			
-			LinkedList<SFC> listSFCMap = firstfit(sfcEvacuate, topo);
-			// link wrong here
-			if(listSFCMap.size() < sizeOfSFCEva) { // return everything
-				isSuccess = false;
-				returnSFC(listSFCMap);
-			}
-			else {
-				this.setVNFmigration((int)numReceiveEvacuate + 1);
-				phyA.setUsedCPU(-(numReceiveEvacuate)*cpuReceive + cpuDemand);
-				phyB.setUsedCPU(-cpuDemand);
-				dService.setBelongToServer(sService.getBelongToServer());
-				if(sfcA.allServiceInSameServer()) {
-					sfcA.setSeparateService(false);
-					
-				}
-				if(!sfcB.existServiceInServer(phyB))
-					listSFCB.remove(sfcB);
-				
-				isSuccess = true;
-			}
-			
-		}
-		else {
-			isSuccess = false;
-		}
-		return isSuccess;
-	}
+//	public boolean remappingAggrFarGroup(VirtualLink vLink, Topology topo) {
+//		
+//		boolean isSuccess = false;
+//		//===remapping if 2 service connect through aggr/core switch=========//
+//		Service sService = vLink.getsService();
+//		Service dService = vLink.getdService();
+//		
+//		PhysicalServer phyA = sService.getBelongToServer();
+//		PhysicalServer phyB = dService.getBelongToServer();
+//				
+//		LinkedList<SFC> listSFCA = phyA.getListSFCInServer();
+//		LinkedList<SFC> listSFCB = phyB.getListSFCInServer();
+//						
+//		SFC sfcA = null; // sfc contains source service
+//		SFC sfcB = null; // sfc contains destination service
+//		
+//		for(SFC sfc: listSFCA) {
+//			if(sfc.getSfcID() == sService.getSfcID()) {
+//				sfcA = sfc;
+//			}
+//		}
+//		for(SFC sfc: listSFCB) {
+//			if(sfc.getSfcID() == sService.getSfcID()) {
+//				sfcB = sfc;
+//			}
+//		}
+//		
+//		
+//		//===get all the independent receive in server A & B ===================//
+//		int numReceiveA = 0;		
+//		numReceiveA = phyA.getListIndependRev().size();	
+//
+//		//=======================================================================//
+//		
+//		//===get CPU demand for migrating dService to sService===================//
+//		
+//		double cpuDemand = dService.getCpu_server();
+//		double cpuReceive = 5.0;
+//		
+//		if((numReceiveA)*cpuReceive >= cpuDemand) { //neu demand nho hon so receive doc lap thi tien hanh chuyen
+//			double numReceiveEvacuate = Math.ceil(cpuDemand/cpuReceive);
+//
+//			LinkedList<SFC> sfcEvacuate = new LinkedList<>();
+//			int sizeOfSFCEva = sfcEvacuate.size();
+//			
+//			for(int index = 0; index < numReceiveEvacuate; index++) {
+//				SFC sfc = phyA.getListIndependRev().getFirst();
+//				sfc.getService(4).setBelongToServer(null);
+//				sfcEvacuate.add(sfc);
+//				listSFCA.remove(sfc);
+//				phyA.getListIndependRev().remove(sfc);
+//			}
+//			
+//			LinkedList<SFC> listSFCMap = firstfit(sfcEvacuate, topo);
+//			// link wrong here
+//			if(listSFCMap.size() < sizeOfSFCEva) { // return everything
+//				isSuccess = false;
+//				returnSFC(listSFCMap);
+//			}
+//			else {
+//				this.setVNFmigration((int)numReceiveEvacuate + 1);
+//				phyA.setUsedCPU(-(numReceiveEvacuate)*cpuReceive + cpuDemand);
+//				phyB.setUsedCPU(-cpuDemand);
+//				dService.setBelongToServer(sService.getBelongToServer());
+//				if(sfcA.allServiceInSameServer()) {
+//					sfcA.setSeparateService(false);
+//					
+//				}
+//				if(!sfcB.existServiceInServer(phyB))
+//					listSFCB.remove(sfcB);
+//				
+//				isSuccess = true;
+//			}
+//			
+//		}
+//		else {
+//			isSuccess = false;
+//		}
+//		return isSuccess;
+//	}
 
 	public void returnSFC(LinkedList<SFC> listSFC) {
 		for(SFC sfc : listSFC) {
@@ -687,6 +690,33 @@ public class CloudMapping {
 		}
 		return power;
 	}
+	
+	public double getPowerWasted(Topology topo){ // = power warm + power idle device 
+		double power = 0;
+		LinkedList<PhysicalServer> listServer = topo.getListPhyServers(); 
+		for(PhysicalServer phy : listServer) {
+			if(phy.getState() == 1) {
+				boolean check = false;
+				for(Service ser : phy.getListService()) {
+					if(ser.getStatus() != "unassigned") {
+						check = true;
+						break;
+					}
+				}
+				if(check == true) { // the base power is useful
+					power += phy.warmPowerCal();
+				}else { // base power is useless, hence consider it as wasted power
+					phy.setPowerServer(); 
+					power += phy.getPowerServer();
+				}
+				
+			}
+			else
+				continue;
+		}
+		return power;
+	}
+
 
 	public int getVNFmigration() {
 		return VNFmigration;

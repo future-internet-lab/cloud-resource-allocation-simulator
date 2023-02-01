@@ -1,0 +1,2875 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<PMML xmlns="http://www.dmg.org/PMML-4_4" xmlns:data="http://jpmml.org/jpmml-model/InlineTable" version="4.4">
+	<Header>
+		<Application name="JPMML-SkLearn library" version="1.7.6"/>
+		<Timestamp>2022-05-18T08:27:48Z</Timestamp>
+	</Header>
+	<DataDictionary>
+		<DataField name="# VNF Density future" optype="continuous" dataType="double"/>
+		<DataField name="Time " optype="continuous" dataType="float"/>
+		<DataField name="CPU edge average (1)" optype="continuous" dataType="float"/>
+		<DataField name="CPU edge average (2)" optype="continuous" dataType="float"/>
+		<DataField name="CPU server average" optype="continuous" dataType="float"/>
+		<DataField name="BW edge (1)" optype="continuous" dataType="float"/>
+		<DataField name="BW edge (1).1" optype="continuous" dataType="float"/>
+		<DataField name="BW server (1)" optype="continuous" dataType="float"/>
+		<DataField name="BW server (2)" optype="continuous" dataType="float"/>
+		<DataField name="# edge device" optype="continuous" dataType="float"/>
+		<DataField name="# links (1)" optype="continuous" dataType="float"/>
+		<DataField name="# links (2)" optype="continuous" dataType="float"/>
+		<DataField name="# VNF Density current" optype="continuous" dataType="float"/>
+	</DataDictionary>
+	<MiningModel functionName="regression" algorithmName="sklearn.ensemble._gb.GradientBoostingRegressor">
+		<MiningSchema>
+			<MiningField name="# VNF Density future" usageType="target"/>
+			<MiningField name="CPU edge average (2)"/>
+			<MiningField name="# VNF Density current"/>
+			<MiningField name="Time "/>
+			<MiningField name="BW edge (1)"/>
+			<MiningField name="# links (2)"/>
+			<MiningField name="CPU server average"/>
+			<MiningField name="CPU edge average (1)"/>
+			<MiningField name="BW server (1)"/>
+			<MiningField name="# edge device"/>
+			<MiningField name="BW server (2)"/>
+			<MiningField name="BW edge (1).1"/>
+			<MiningField name="# links (1)"/>
+		</MiningSchema>
+		<Targets>
+			<Target field="# VNF Density future" rescaleConstant="358.5" rescaleFactor="0.1"/>
+		</Targets>
+		<LocalTransformations>
+			<DerivedField name="double(CPU edge average (2))" optype="continuous" dataType="double">
+				<FieldRef field="CPU edge average (2)"/>
+			</DerivedField>
+			<DerivedField name="double(# VNF Density current)" optype="continuous" dataType="double">
+				<FieldRef field="# VNF Density current"/>
+			</DerivedField>
+			<DerivedField name="double(Time )" optype="continuous" dataType="double">
+				<FieldRef field="Time "/>
+			</DerivedField>
+			<DerivedField name="double(BW edge (1))" optype="continuous" dataType="double">
+				<FieldRef field="BW edge (1)"/>
+			</DerivedField>
+			<DerivedField name="double(# links (2))" optype="continuous" dataType="double">
+				<FieldRef field="# links (2)"/>
+			</DerivedField>
+			<DerivedField name="double(CPU server average)" optype="continuous" dataType="double">
+				<FieldRef field="CPU server average"/>
+			</DerivedField>
+			<DerivedField name="double(CPU edge average (1))" optype="continuous" dataType="double">
+				<FieldRef field="CPU edge average (1)"/>
+			</DerivedField>
+			<DerivedField name="double(BW server (1))" optype="continuous" dataType="double">
+				<FieldRef field="BW server (1)"/>
+			</DerivedField>
+			<DerivedField name="double(# edge device)" optype="continuous" dataType="double">
+				<FieldRef field="# edge device"/>
+			</DerivedField>
+			<DerivedField name="double(BW server (2))" optype="continuous" dataType="double">
+				<FieldRef field="BW server (2)"/>
+			</DerivedField>
+			<DerivedField name="double(BW edge (1).1)" optype="continuous" dataType="double">
+				<FieldRef field="BW edge (1).1"/>
+			</DerivedField>
+			<DerivedField name="double(# links (1))" optype="continuous" dataType="double">
+				<FieldRef field="# links (1)"/>
+			</DerivedField>
+		</LocalTransformations>
+		<Segmentation multipleModelMethod="sum">
+			<Segment id="1">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(CPU edge average (2))"/>
+						<MiningField name="double(# VNF Density current)"/>
+						<MiningField name="double(Time )"/>
+						<MiningField name="double(BW edge (1))"/>
+						<MiningField name="double(# links (2))"/>
+						<MiningField name="double(CPU server average)"/>
+						<MiningField name="double(CPU edge average (1))"/>
+						<MiningField name="double(BW server (1))"/>
+						<MiningField name="double(# edge device)"/>
+					</MiningSchema>
+					<Node score="780.7983870967741">
+						<True/>
+						<Node score="166.24074074074073">
+							<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="65.62846755981445"/>
+							<Node score="-227.1315789473684">
+								<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="40.06659507751465"/>
+								<Node score="-283.5">
+									<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="31.804977416992188"/>
+									<Node score="-336.241935483871">
+										<SimplePredicate field="double(# VNF Density current)" operator="lessOrEqual" value="50.0"/>
+										<Node score="-357.66438356164383">
+											<SimplePredicate field="double(Time )" operator="lessOrEqual" value="6.5"/>
+										</Node>
+									</Node>
+									<Node score="-310.3">
+										<SimplePredicate field="double(BW edge (1))" operator="lessOrEqual" value="6.365283250808716"/>
+									</Node>
+								</Node>
+								<Node score="-127.24358974358974">
+									<SimplePredicate field="double(Time )" operator="lessOrEqual" value="7.5"/>
+									<Node score="-248.9375">
+										<SimplePredicate field="double(# links (2))" operator="lessOrEqual" value="6.5"/>
+									</Node>
+								</Node>
+								<Node score="-295.36725663716817">
+									<SimplePredicate field="double(# VNF Density current)" operator="lessOrEqual" value="155.5"/>
+								</Node>
+							</Node>
+							<Node score="-57.32421875">
+								<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="56.989864349365234"/>
+								<Node score="264.7692307692308">
+									<SimplePredicate field="double(Time )" operator="lessOrEqual" value="7.5"/>
+									<Node score="33.61666666666667">
+										<SimplePredicate field="double(CPU server average)" operator="lessOrEqual" value="8.622000217437744"/>
+									</Node>
+								</Node>
+								<Node score="-184.6679389312977">
+									<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="49.097604751586914"/>
+								</Node>
+							</Node>
+							<Node score="458.8333333333333">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="8.5"/>
+								<Node score="280.15">
+									<SimplePredicate field="double(# VNF Density current)" operator="lessOrEqual" value="146.0"/>
+								</Node>
+							</Node>
+							<Node score="47.317567567567565">
+								<SimplePredicate field="double(CPU edge average (1))" operator="lessOrEqual" value="59.538665771484375"/>
+							</Node>
+						</Node>
+						<Node score="508.7857142857143">
+							<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="74.95495986938477"/>
+							<Node score="374.85744680851064">
+								<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="71.22032928466797"/>
+								<Node score="536.35">
+									<SimplePredicate field="double(Time )" operator="lessOrEqual" value="8.5"/>
+									<Node score="658.7666666666667">
+										<SimplePredicate field="double(BW server (1))" operator="lessOrEqual" value="388.0911560058594"/>
+									</Node>
+								</Node>
+								<Node score="233.41358024691357">
+									<SimplePredicate field="double(# links (2))" operator="lessOrEqual" value="30.5"/>
+								</Node>
+							</Node>
+							<Node score="644.5941176470589">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="15.5"/>
+								<Node score="514.3947368421053">
+									<SimplePredicate field="double(CPU server average)" operator="lessOrEqual" value="48.53999900817871"/>
+								</Node>
+							</Node>
+							<Node score="347.94117647058823">
+								<SimplePredicate field="double(# VNF Density current)" operator="lessOrEqual" value="996.0"/>
+							</Node>
+						</Node>
+						<Node score="692.3735294117647">
+							<SimplePredicate field="double(CPU server average)" operator="lessOrEqual" value="63.374000549316406"/>
+							<Node score="950.8589743589744">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="8.5"/>
+								<Node score="791.2692307692307">
+									<SimplePredicate field="double(# edge device)" operator="lessOrEqual" value="294.5"/>
+								</Node>
+							</Node>
+							<Node score="424.4259259259259">
+								<SimplePredicate field="double(# VNF Density current)" operator="lessOrEqual" value="825.5"/>
+							</Node>
+						</Node>
+						<Node score="764.25">
+							<SimplePredicate field="double(Time )" operator="lessOrEqual" value="9.5"/>
+							<Node score="669.2241379310345">
+								<SimplePredicate field="double(# VNF Density current)" operator="lessOrEqual" value="1287.0"/>
+							</Node>
+						</Node>
+						<Node score="1062.2297297297298">
+							<SimplePredicate field="double(Time )" operator="lessOrEqual" value="17.5"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="2">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(CPU edge average (2))"/>
+						<MiningField name="double(# VNF Density current)"/>
+						<MiningField name="double(Time )"/>
+						<MiningField name="double(BW edge (1))"/>
+						<MiningField name="double(# links (2))"/>
+						<MiningField name="double(CPU server average)"/>
+						<MiningField name="double(CPU edge average (1))"/>
+						<MiningField name="double(# edge device)"/>
+						<MiningField name="double(BW server (2))"/>
+						<MiningField name="double(BW edge (1).1)"/>
+					</MiningSchema>
+					<Node score="785.6824563722897">
+						<True/>
+						<Node score="149.61666666666665">
+							<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="65.62846755981445"/>
+							<Node score="-198.58049289891392">
+								<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="40.06659507751465"/>
+								<Node score="-260.9440143565577">
+									<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="32.31639099121094"/>
+									<Node score="-316.9087028867735">
+										<SimplePredicate field="double(Time )" operator="lessOrEqual" value="6.5"/>
+										<Node score="-322.7483321660798">
+											<SimplePredicate field="double(Time )" operator="lessOrEqual" value="5.5"/>
+										</Node>
+									</Node>
+									<Node score="-295.9306572640118">
+										<SimplePredicate field="double(BW edge (1))" operator="lessOrEqual" value="5.009183168411255"/>
+									</Node>
+								</Node>
+								<Node score="-147.82605633802817">
+									<SimplePredicate field="double(Time )" operator="lessOrEqual" value="7.5"/>
+									<Node score="-301.90625">
+										<SimplePredicate field="double(CPU edge average (1))" operator="lessOrEqual" value="16.76900005340576"/>
+									</Node>
+								</Node>
+								<Node score="-262.44090521857174">
+									<SimplePredicate field="double(# VNF Density current)" operator="lessOrEqual" value="170.5"/>
+								</Node>
+							</Node>
+							<Node score="-50.801080530809365">
+								<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="56.4573974609375"/>
+								<Node score="189.4565909090909">
+									<SimplePredicate field="double(Time )" operator="lessOrEqual" value="7.5"/>
+									<Node score="-7.74261904761906">
+										<SimplePredicate field="double(CPU server average)" operator="lessOrEqual" value="7.93999981880188"/>
+									</Node>
+								</Node>
+								<Node score="-169.49219701094668">
+									<SimplePredicate field="double(CPU server average)" operator="lessOrEqual" value="22.57800006866455"/>
+								</Node>
+							</Node>
+							<Node score="412.95">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="8.5"/>
+								<Node score="264.234765625">
+									<SimplePredicate field="double(# VNF Density current)" operator="lessOrEqual" value="146.0"/>
+								</Node>
+							</Node>
+							<Node score="36.18604574548195">
+								<SimplePredicate field="double(CPU edge average (1))" operator="lessOrEqual" value="59.538665771484375"/>
+							</Node>
+						</Node>
+						<Node score="352.8773434098295">
+							<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="74.95495986938477"/>
+							<Node score="632.605980861244">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="8.5"/>
+								<Node score="498.7404900181488">
+									<SimplePredicate field="double(BW server (2))" operator="lessOrEqual" value="408.046142578125"/>
+									<Node score="620.7039661654136">
+										<SimplePredicate field="double(# edge device)" operator="lessOrEqual" value="286.5"/>
+									</Node>
+								</Node>
+								<Node score="761.4063875598086">
+									<SimplePredicate field="double(BW edge (1).1)" operator="lessOrEqual" value="26.061243057250977"/>
+								</Node>
+							</Node>
+							<Node score="318.38721052249457">
+								<SimplePredicate field="double(CPU server average)" operator="lessOrEqual" value="47.93899917602539"/>
+								<Node score="72.21371432222985">
+									<SimplePredicate field="double(# links (2))" operator="lessOrEqual" value="23.5"/>
+								</Node>
+							</Node>
+							<Node score="516.7794174561029">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="17.5"/>
+							</Node>
+						</Node>
+						<Node score="648.8651422728485">
+							<SimplePredicate field="double(BW edge (1))" operator="lessOrEqual" value="69.3447494506836"/>
+							<Node score="855.7730769230769">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="8.5"/>
+								<Node score="712.1423076923077">
+									<SimplePredicate field="double(# edge device)" operator="lessOrEqual" value="294.5"/>
+								</Node>
+							</Node>
+							<Node score="426.44779265269324">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="9.5"/>
+							</Node>
+						</Node>
+						<Node score="638.9618279569892">
+							<SimplePredicate field="double(# VNF Density current)" operator="lessOrEqual" value="1374.5"/>
+							<Node score="819.3686256235952">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="17.5"/>
+							</Node>
+						</Node>
+						<Node score="1003.8373978629793">
+							<SimplePredicate field="double(Time )" operator="lessOrEqual" value="17.5"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="3">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(CPU edge average (2))"/>
+						<MiningField name="double(# VNF Density current)"/>
+						<MiningField name="double(Time )"/>
+						<MiningField name="double(BW edge (1))"/>
+						<MiningField name="double(# links (2))"/>
+						<MiningField name="double(CPU server average)"/>
+						<MiningField name="double(CPU edge average (1))"/>
+						<MiningField name="double(BW edge (1).1)"/>
+					</MiningSchema>
+					<Node score="692.4623015398911">
+						<True/>
+						<Node score="134.655">
+							<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="65.62846755981445"/>
+							<Node score="-189.6055190257525">
+								<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="40.06659507751465"/>
+								<Node score="-211.5632650757555">
+									<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="32.31639099121094"/>
+									<Node score="-268.61073617965735">
+										<SimplePredicate field="double(# VNF Density current)" operator="lessOrEqual" value="58.5"/>
+										<Node score="-289.7251055913114">
+											<SimplePredicate field="double(Time )" operator="lessOrEqual" value="6.5"/>
+										</Node>
+									</Node>
+									<Node score="-247.80726882884196">
+										<SimplePredicate field="double(CPU server average)" operator="lessOrEqual" value="9.678999900817871"/>
+									</Node>
+								</Node>
+								<Node score="-99.73662513542799">
+									<SimplePredicate field="double(Time )" operator="lessOrEqual" value="7.5"/>
+									<Node score="-196.98840165995975">
+										<SimplePredicate field="double(# links (2))" operator="lessOrEqual" value="6.5"/>
+									</Node>
+								</Node>
+								<Node score="-246.33823143347362">
+									<SimplePredicate field="double(# VNF Density current)" operator="lessOrEqual" value="137.5"/>
+								</Node>
+							</Node>
+							<Node score="-27.355977254833757">
+								<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="56.4573974609375"/>
+								<Node score="153.35271841430173">
+									<SimplePredicate field="double(Time )" operator="lessOrEqual" value="7.5"/>
+									<Node score="-33.476149824134225">
+										<SimplePredicate field="double(BW edge (1))" operator="lessOrEqual" value="1.11080002784729"/>
+									</Node>
+								</Node>
+								<Node score="-141.79974438728934">
+									<SimplePredicate field="double(CPU server average)" operator="lessOrEqual" value="25.01300048828125"/>
+								</Node>
+							</Node>
+							<Node score="371.655">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="8.5"/>
+								<Node score="237.8112890625">
+									<SimplePredicate field="double(# VNF Density current)" operator="lessOrEqual" value="146.0"/>
+								</Node>
+							</Node>
+							<Node score="32.56744117093373">
+								<SimplePredicate field="double(CPU edge average (1))" operator="lessOrEqual" value="59.538665771484375"/>
+							</Node>
+						</Node>
+						<Node score="483.106839444226">
+							<SimplePredicate field="double(BW edge (1).1)" operator="lessOrEqual" value="62.06745719909668"/>
+							<Node score="312.68696093120354">
+								<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="73.32234573364258"/>
+								<Node score="341.0182970183307">
+									<SimplePredicate field="double(Time )" operator="lessOrEqual" value="15.5"/>
+									<Node score="504.8741107141497">
+										<SimplePredicate field="double(Time )" operator="lessOrEqual" value="8.5"/>
+									</Node>
+								</Node>
+								<Node score="179.13324398086678">
+									<SimplePredicate field="double(# VNF Density current)" operator="lessOrEqual" value="910.5"/>
+								</Node>
+							</Node>
+							<Node score="758.6609487179487">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="8.5"/>
+								<Node score="656.3411001869032">
+									<SimplePredicate field="double(CPU edge average (1))" operator="lessOrEqual" value="74.61499786376953"/>
+								</Node>
+							</Node>
+							<Node score="208.8886175340419">
+								<SimplePredicate field="double(# links (2))" operator="lessOrEqual" value="28.5"/>
+							</Node>
+						</Node>
+						<Node score="535.3329942619473">
+							<SimplePredicate field="double(# VNF Density current)" operator="lessOrEqual" value="1296.5"/>
+							<Node score="772.6771911907031">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="16.5"/>
+								<Node score="573.9822670474922">
+									<SimplePredicate field="double(Time )" operator="lessOrEqual" value="10.5"/>
+								</Node>
+							</Node>
+							<Node score="419.51372360914627">
+								<SimplePredicate field="double(CPU server average)" operator="lessOrEqual" value="61.34200096130371"/>
+							</Node>
+						</Node>
+						<Node score="576.8134082098412">
+							<SimplePredicate field="double(Time )" operator="lessOrEqual" value="10.5"/>
+							<Node score="667.509370100961">
+								<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="83.66809463500977"/>
+							</Node>
+						</Node>
+						<Node score="892.4613023826778">
+							<SimplePredicate field="double(Time )" operator="lessOrEqual" value="17.5"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="4">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(CPU edge average (2))"/>
+						<MiningField name="double(# VNF Density current)"/>
+						<MiningField name="double(Time )"/>
+						<MiningField name="double(BW edge (1))"/>
+						<MiningField name="double(# links (2))"/>
+						<MiningField name="double(CPU server average)"/>
+						<MiningField name="double(CPU edge average (1))"/>
+						<MiningField name="double(# links (1))"/>
+					</MiningSchema>
+					<Node score="623.216071385902">
+						<True/>
+						<Node score="87.14532621921809">
+							<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="64.31574249267578"/>
+							<Node score="-174.8066649553155">
+								<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="39.3817081451416"/>
+								<Node score="-249.43388698932853">
+									<SimplePredicate field="double(CPU edge average (1))" operator="lessOrEqual" value="16.154000282287598"/>
+									<Node score="-256.33224036927425">
+										<SimplePredicate field="double(Time )" operator="lessOrEqual" value="6.5"/>
+										<Node score="-261.5407183462277">
+											<SimplePredicate field="double(Time )" operator="lessOrEqual" value="5.5"/>
+										</Node>
+									</Node>
+									<Node score="-224.05176946456606">
+										<SimplePredicate field="double(CPU server average)" operator="lessOrEqual" value="3.7130000591278076"/>
+									</Node>
+								</Node>
+								<Node score="-116.012566381567">
+									<SimplePredicate field="double(Time )" operator="lessOrEqual" value="7.5"/>
+									<Node score="-180.55697618562422">
+										<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="35.69618797302246"/>
+									</Node>
+								</Node>
+								<Node score="-226.67628232752742">
+									<SimplePredicate field="double(BW edge (1))" operator="lessOrEqual" value="8.051583290100098"/>
+								</Node>
+							</Node>
+							<Node score="-46.83095522746451">
+								<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="55.60881996154785"/>
+								<Node score="204.0113767599684">
+									<SimplePredicate field="double(Time )" operator="lessOrEqual" value="7.5"/>
+									<Node score="13.077664468639991">
+										<SimplePredicate field="double(CPU server average)" operator="lessOrEqual" value="8.622000217437744"/>
+									</Node>
+								</Node>
+								<Node score="-144.86152133365553">
+									<SimplePredicate field="double(CPU server average)" operator="lessOrEqual" value="22.57800006866455"/>
+								</Node>
+							</Node>
+							<Node score="375.47406770833334">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="8.5"/>
+								<Node score="211.44139860834835">
+									<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="60.52120018005371"/>
+								</Node>
+							</Node>
+							<Node score="-21.338715091373942">
+								<SimplePredicate field="double(# links (2))" operator="lessOrEqual" value="27.5"/>
+							</Node>
+						</Node>
+						<Node score="404.3538422770255">
+							<SimplePredicate field="double(CPU server average)" operator="lessOrEqual" value="57.59200096130371"/>
+							<Node score="201.80089683247053">
+								<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="71.22032928466797"/>
+								<Node score="150.71360697785175">
+									<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="67.45845031738281"/>
+									<Node score="370.06557826508384">
+										<SimplePredicate field="double(BW edge (1))" operator="lessOrEqual" value="14.972766876220703"/>
+									</Node>
+								</Node>
+								<Node score="331.754135846091">
+									<SimplePredicate field="double(Time )" operator="lessOrEqual" value="15.5"/>
+								</Node>
+							</Node>
+							<Node score="661.5957529811112">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="8.5"/>
+								<Node score="535.3556150575594">
+									<SimplePredicate field="double(# links (1))" operator="lessOrEqual" value="19.5"/>
+								</Node>
+							</Node>
+							<Node score="163.94792685626635">
+								<SimplePredicate field="double(# links (2))" operator="lessOrEqual" value="28.5"/>
+							</Node>
+						</Node>
+						<Node score="478.30049276524085">
+							<SimplePredicate field="double(# VNF Density current)" operator="lessOrEqual" value="1296.5"/>
+							<Node score="660.8752560959477">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="17.5"/>
+								<Node score="510.73029617129754">
+									<SimplePredicate field="double(Time )" operator="lessOrEqual" value="10.5"/>
+								</Node>
+							</Node>
+							<Node score="354.42583668051424">
+								<SimplePredicate field="double(# VNF Density current)" operator="lessOrEqual" value="1162.5"/>
+							</Node>
+						</Node>
+						<Node score="519.1320673888571">
+							<SimplePredicate field="double(Time )" operator="lessOrEqual" value="10.5"/>
+							<Node score="600.7584330908649">
+								<SimplePredicate field="double(CPU edge average (1))" operator="lessOrEqual" value="83.6326675415039"/>
+							</Node>
+						</Node>
+						<Node score="803.21517214441">
+							<SimplePredicate field="double(Time )" operator="lessOrEqual" value="17.5"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="5">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(CPU edge average (2))"/>
+						<MiningField name="double(# VNF Density current)"/>
+						<MiningField name="double(Time )"/>
+						<MiningField name="double(BW edge (1))"/>
+						<MiningField name="double(# links (2))"/>
+						<MiningField name="double(CPU server average)"/>
+						<MiningField name="double(CPU edge average (1))"/>
+						<MiningField name="double(# edge device)"/>
+						<MiningField name="double(BW edge (1).1)"/>
+					</MiningSchema>
+					<Node score="741.6279534801284">
+						<True/>
+						<Node score="72.33497336200058">
+							<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="63.39059829711914"/>
+							<Node score="-164.1595960923601">
+								<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="38.545188903808594"/>
+								<Node score="-224.49049829039566">
+									<SimplePredicate field="double(CPU edge average (1))" operator="lessOrEqual" value="16.154000282287598"/>
+									<Node score="-230.6990163323468">
+										<SimplePredicate field="double(Time )" operator="lessOrEqual" value="6.5"/>
+										<Node score="-235.38664651160494">
+											<SimplePredicate field="double(Time )" operator="lessOrEqual" value="5.5"/>
+										</Node>
+									</Node>
+									<Node score="-201.64659251810946">
+										<SimplePredicate field="double(CPU server average)" operator="lessOrEqual" value="3.7130000591278076"/>
+									</Node>
+								</Node>
+								<Node score="-110.49714274456495">
+									<SimplePredicate field="double(Time )" operator="lessOrEqual" value="7.5"/>
+									<Node score="-162.5012785670618">
+										<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="35.69618797302246"/>
+									</Node>
+								</Node>
+								<Node score="-208.82012088072054">
+									<SimplePredicate field="double(BW edge (1))" operator="lessOrEqual" value="7.089716672897339"/>
+								</Node>
+							</Node>
+							<Node score="-49.14644688114733">
+								<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="55.43233871459961"/>
+								<Node score="121.67782186934002">
+									<SimplePredicate field="double(Time )" operator="lessOrEqual" value="7.5"/>
+									<Node score="-51.374324155460826">
+										<SimplePredicate field="double(CPU server average)" operator="lessOrEqual" value="7.351999998092651"/>
+									</Node>
+								</Node>
+								<Node score="-136.17021823901072">
+									<SimplePredicate field="double(BW edge (1))" operator="lessOrEqual" value="18.4111328125"/>
+								</Node>
+							</Node>
+							<Node score="298.06394999658306">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="8.5"/>
+								<Node score="185.67740218709898">
+									<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="60.27822494506836"/>
+								</Node>
+							</Node>
+							<Node score="-19.025981360851983">
+								<SimplePredicate field="double(# links (2))" operator="lessOrEqual" value="30.5"/>
+							</Node>
+						</Node>
+						<Node score="333.8378276205352">
+							<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="74.95495986938477"/>
+							<Node score="151.71156650598954">
+								<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="67.45845031738281"/>
+								<Node score="422.55834019809254">
+									<SimplePredicate field="double(# VNF Density current)" operator="lessOrEqual" value="210.5"/>
+									<Node score="261.8246225162358">
+										<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="65.59651184082031"/>
+									</Node>
+								</Node>
+								<Node score="52.84173747623906">
+									<SimplePredicate field="double(# links (2))" operator="lessOrEqual" value="27.5"/>
+								</Node>
+							</Node>
+							<Node score="439.84052479313607">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="15.5"/>
+								<Node score="321.029392118804">
+									<SimplePredicate field="double(CPU server average)" operator="lessOrEqual" value="51.38599967956543"/>
+								</Node>
+							</Node>
+							<Node score="183.21015113264662">
+								<SimplePredicate field="double(# VNF Density current)" operator="lessOrEqual" value="996.0"/>
+							</Node>
+						</Node>
+						<Node score="472.56818945017346">
+							<SimplePredicate field="double(BW edge (1).1)" operator="lessOrEqual" value="68.93622970581055"/>
+							<Node score="629.4684852420984">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="8.5"/>
+								<Node score="508.7153203005368">
+									<SimplePredicate field="double(# edge device)" operator="lessOrEqual" value="294.5"/>
+								</Node>
+							</Node>
+							<Node score="290.69619845739714">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="9.5"/>
+							</Node>
+						</Node>
+						<Node score="485.8740687864057">
+							<SimplePredicate field="double(BW edge (1))" operator="lessOrEqual" value="79.5258674621582"/>
+							<Node score="623.5966339038142">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="16.5"/>
+							</Node>
+						</Node>
+						<Node score="478.57348937790096">
+							<SimplePredicate field="double(Time )" operator="lessOrEqual" value="10.0"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="6">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(CPU edge average (2))"/>
+						<MiningField name="double(# VNF Density current)"/>
+						<MiningField name="double(Time )"/>
+						<MiningField name="double(BW edge (1))"/>
+						<MiningField name="double(# links (2))"/>
+						<MiningField name="double(CPU server average)"/>
+						<MiningField name="double(CPU edge average (1))"/>
+						<MiningField name="double(BW server (2))"/>
+						<MiningField name="double(BW edge (1).1)"/>
+						<MiningField name="double(# links (1))"/>
+					</MiningSchema>
+					<Node score="511.4460260168446">
+						<True/>
+						<Node score="77.18322834256685">
+							<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="62.09023666381836"/>
+							<Node score="-146.31687098962092">
+								<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="38.545188903808594"/>
+								<Node score="-202.04144846135608">
+									<SimplePredicate field="double(CPU edge average (1))" operator="lessOrEqual" value="16.154000282287598"/>
+									<Node score="-207.6291146991121">
+										<SimplePredicate field="double(Time )" operator="lessOrEqual" value="6.5"/>
+										<Node score="-211.84798186044443">
+											<SimplePredicate field="double(Time )" operator="lessOrEqual" value="5.5"/>
+										</Node>
+									</Node>
+									<Node score="-181.4819332662985">
+										<SimplePredicate field="double(CPU server average)" operator="lessOrEqual" value="3.7130000591278076"/>
+									</Node>
+								</Node>
+								<Node score="-99.44742847010845">
+									<SimplePredicate field="double(Time )" operator="lessOrEqual" value="7.5"/>
+									<Node score="-146.25115071035563">
+										<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="35.69618797302246"/>
+									</Node>
+								</Node>
+								<Node score="-186.70866085480887">
+									<SimplePredicate field="double(BW edge (1))" operator="lessOrEqual" value="7.379849910736084"/>
+								</Node>
+							</Node>
+							<Node score="-70.30084582354783">
+								<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="52.44011688232422"/>
+								<Node score="131.26688683591348">
+									<SimplePredicate field="double(Time )" operator="lessOrEqual" value="7.5"/>
+									<Node score="-26.821720864388354">
+										<SimplePredicate field="double(CPU server average)" operator="lessOrEqual" value="7.93999981880188"/>
+									</Node>
+								</Node>
+								<Node score="-138.38450319746326">
+									<SimplePredicate field="double(CPU server average)" operator="lessOrEqual" value="19.986000061035156"/>
+								</Node>
+							</Node>
+							<Node score="213.43234282768302">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="8.5"/>
+								<Node score="67.49590731597476">
+									<SimplePredicate field="double(# links (1))" operator="lessOrEqual" value="5.5"/>
+								</Node>
+							</Node>
+							<Node score="-13.531852986025205">
+								<SimplePredicate field="double(CPU server average)" operator="lessOrEqual" value="34.731000900268555"/>
+							</Node>
+						</Node>
+						<Node score="295.16521779652106">
+							<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="73.32234573364258"/>
+							<Node score="189.15910994317355">
+								<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="67.45845031738281"/>
+								<Node score="365.82639390562645">
+									<SimplePredicate field="double(# VNF Density current)" operator="lessOrEqual" value="210.5"/>
+									<Node score="174.00179290723577">
+										<SimplePredicate field="double(BW server (2))" operator="lessOrEqual" value="295.4251403808594"/>
+									</Node>
+								</Node>
+								<Node score="99.22751001194706">
+									<SimplePredicate field="double(BW edge (1))" operator="lessOrEqual" value="46.13491630554199"/>
+								</Node>
+							</Node>
+							<Node score="349.85716284300236">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="15.5"/>
+								<Node score="250.84762255810796">
+									<SimplePredicate field="double(# links (2))" operator="lessOrEqual" value="35.5"/>
+								</Node>
+							</Node>
+							<Node score="155.31756464533157">
+								<SimplePredicate field="double(CPU server average)" operator="lessOrEqual" value="54.34000015258789"/>
+							</Node>
+						</Node>
+						<Node score="297.68300525636056">
+							<SimplePredicate field="double(BW edge (1))" operator="lessOrEqual" value="66.12060165405273"/>
+							<Node score="455.76327481335375">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="16.5"/>
+								<Node score="353.76893226038214">
+									<SimplePredicate field="double(Time )" operator="lessOrEqual" value="10.5"/>
+								</Node>
+							</Node>
+							<Node score="164.31257336567302">
+								<SimplePredicate field="double(BW edge (1).1)" operator="lessOrEqual" value="55.772865295410156"/>
+							</Node>
+						</Node>
+						<Node score="401.1680104448785">
+							<SimplePredicate field="double(# VNF Density current)" operator="lessOrEqual" value="1376.5"/>
+							<Node score="542.693307420184">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="16.5"/>
+							</Node>
+						</Node>
+						<Node score="668.2269571628776">
+							<SimplePredicate field="double(Time )" operator="lessOrEqual" value="17.5"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="7">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(CPU edge average (2))"/>
+						<MiningField name="double(# VNF Density current)"/>
+						<MiningField name="double(Time )"/>
+						<MiningField name="double(BW edge (1))"/>
+						<MiningField name="double(# links (2))"/>
+						<MiningField name="double(CPU server average)"/>
+						<MiningField name="double(CPU edge average (1))"/>
+						<MiningField name="double(# edge device)"/>
+						<MiningField name="double(BW edge (1).1)"/>
+						<MiningField name="double(# links (1))"/>
+					</MiningSchema>
+					<Node score="463.1070768000594">
+						<True/>
+						<Node score="53.21301785461103">
+							<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="61.70787239074707"/>
+							<Node score="-105.20551847135457">
+								<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="38.5175895690918"/>
+								<Node score="-165.8106824531597">
+									<SimplePredicate field="double(CPU edge average (1))" operator="lessOrEqual" value="16.154000282287598"/>
+									<Node score="-186.8662032292009">
+										<SimplePredicate field="double(Time )" operator="lessOrEqual" value="6.5"/>
+										<Node score="-190.6631836744">
+											<SimplePredicate field="double(Time )" operator="lessOrEqual" value="5.5"/>
+										</Node>
+									</Node>
+									<Node score="-185.02792681250642">
+										<SimplePredicate field="double(CPU edge average (1))" operator="lessOrEqual" value="13.421667098999023"/>
+									</Node>
+								</Node>
+								<Node score="-74.17484762074346">
+									<SimplePredicate field="double(Time )" operator="lessOrEqual" value="7.5"/>
+									<Node score="-118.97259941054892">
+										<SimplePredicate field="double(# edge device)" operator="lessOrEqual" value="184.0"/>
+									</Node>
+								</Node>
+								<Node score="-158.30710519578133">
+									<SimplePredicate field="double(BW edge (1))" operator="lessOrEqual" value="11.65476655960083"/>
+								</Node>
+							</Node>
+							<Node score="-70.91914854819849">
+								<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="52.44011688232422"/>
+								<Node score="100.19928290882196">
+									<SimplePredicate field="double(Time )" operator="lessOrEqual" value="7.5"/>
+									<Node score="-43.55471965347594">
+										<SimplePredicate field="double(CPU server average)" operator="lessOrEqual" value="7.351999998092651"/>
+									</Node>
+								</Node>
+								<Node score="-135.6852576731588">
+									<SimplePredicate field="double(CPU server average)" operator="lessOrEqual" value="17.640000343322754"/>
+								</Node>
+							</Node>
+							<Node score="172.0455765368568">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="8.5"/>
+								<Node score="60.74631658437727">
+									<SimplePredicate field="double(# links (1))" operator="lessOrEqual" value="5.5"/>
+								</Node>
+							</Node>
+							<Node score="-24.83854553895203">
+								<SimplePredicate field="double(CPU server average)" operator="lessOrEqual" value="32.62899971008301"/>
+							</Node>
+						</Node>
+						<Node score="145.9025375135783">
+							<SimplePredicate field="double(BW edge (1).1)" operator="lessOrEqual" value="58.10077476501465"/>
+							<Node score="556.3247184376538">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="8.5"/>
+								<Node score="359.7132142739053">
+									<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="73.00613021850586"/>
+									<Node score="208.79497834091092">
+										<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="66.0452880859375"/>
+									</Node>
+								</Node>
+								<Node score="467.9516361341098">
+									<SimplePredicate field="double(CPU edge average (1))" operator="lessOrEqual" value="78.29233169555664"/>
+								</Node>
+							</Node>
+							<Node score="145.43623838895272">
+								<SimplePredicate field="double(CPU server average)" operator="lessOrEqual" value="45.35799980163574"/>
+								<Node score="-20.289200943777068">
+									<SimplePredicate field="double(# links (2))" operator="lessOrEqual" value="23.5"/>
+								</Node>
+							</Node>
+							<Node score="283.1403424956741">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="17.5"/>
+							</Node>
+						</Node>
+						<Node score="364.91826332076727">
+							<SimplePredicate field="double(# VNF Density current)" operator="lessOrEqual" value="1364.5"/>
+							<Node score="515.7019734712237">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="16.5"/>
+								<Node score="350.934395886563">
+									<SimplePredicate field="double(Time )" operator="lessOrEqual" value="10.5"/>
+								</Node>
+							</Node>
+							<Node score="267.8626305843694">
+								<SimplePredicate field="double(# VNF Density current)" operator="lessOrEqual" value="1168.5"/>
+							</Node>
+						</Node>
+						<Node score="370.4397227349542">
+							<SimplePredicate field="double(Time )" operator="lessOrEqual" value="10.0"/>
+						</Node>
+						<Node score="606.9046949958828">
+							<SimplePredicate field="double(Time )" operator="lessOrEqual" value="17.5"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="8">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(CPU edge average (2))"/>
+						<MiningField name="double(# VNF Density current)"/>
+						<MiningField name="double(Time )"/>
+						<MiningField name="double(# links (2))"/>
+						<MiningField name="double(CPU server average)"/>
+						<MiningField name="double(CPU edge average (1))"/>
+						<MiningField name="double(# edge device)"/>
+						<MiningField name="double(BW edge (1).1)"/>
+						<MiningField name="double(# links (1))"/>
+					</MiningSchema>
+					<Node score="513.165972730811">
+						<True/>
+						<Node score="77.66712406495148">
+							<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="65.68365097045898"/>
+							<Node score="-105.90205225139779">
+								<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="44.50594902038574"/>
+								<Node score="-131.22853987489844">
+									<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="35.28508186340332"/>
+									<Node score="-168.0915803118646">
+										<SimplePredicate field="double(CPU edge average (1))" operator="lessOrEqual" value="13.48900032043457"/>
+										<Node score="-171.55575200377316">
+											<SimplePredicate field="double(Time )" operator="lessOrEqual" value="5.5"/>
+										</Node>
+									</Node>
+									<Node score="-150.00857859764818">
+										<SimplePredicate field="double(# VNF Density current)" operator="lessOrEqual" value="96.0"/>
+									</Node>
+								</Node>
+								<Node score="40.465906690384664">
+									<SimplePredicate field="double(Time )" operator="lessOrEqual" value="7.5"/>
+									<Node score="-67.40337954182772">
+										<SimplePredicate field="double(# edge device)" operator="lessOrEqual" value="207.5"/>
+									</Node>
+								</Node>
+								<Node score="-185.24584725558498">
+									<SimplePredicate field="double(# links (2))" operator="lessOrEqual" value="17.5"/>
+								</Node>
+							</Node>
+							<Node score="16.585002532832302">
+								<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="57.90981864929199"/>
+								<Node score="52.92968893492692">
+									<SimplePredicate field="double(Time )" operator="lessOrEqual" value="8.5"/>
+									<Node score="122.93844078297036">
+										<SimplePredicate field="double(Time )" operator="lessOrEqual" value="7.5"/>
+									</Node>
+								</Node>
+								<Node score="-67.1137888062124">
+									<SimplePredicate field="double(CPU server average)" operator="lessOrEqual" value="29.792999267578125"/>
+								</Node>
+							</Node>
+							<Node score="126.41962791972279">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="8.5"/>
+								<Node score="225.98164712324748">
+									<SimplePredicate field="double(CPU edge average (1))" operator="lessOrEqual" value="58.624332427978516"/>
+								</Node>
+							</Node>
+							<Node score="-32.2275605720754">
+								<SimplePredicate field="double(# links (1))" operator="lessOrEqual" value="19.5"/>
+							</Node>
+						</Node>
+						<Node score="182.28823099012095">
+							<SimplePredicate field="double(CPU server average)" operator="lessOrEqual" value="59.96199989318848"/>
+							<Node score="519.9464957550081">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="8.5"/>
+								<Node score="281.2268783447291">
+									<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="73.00613021850586"/>
+									<Node score="373.99140817552194">
+										<SimplePredicate field="double(# edge device)" operator="lessOrEqual" value="286.5"/>
+									</Node>
+								</Node>
+								<Node score="421.1564725206988">
+									<SimplePredicate field="double(CPU edge average (1))" operator="lessOrEqual" value="78.29233169555664"/>
+								</Node>
+							</Node>
+							<Node score="188.00912538840498">
+								<SimplePredicate field="double(CPU server average)" operator="lessOrEqual" value="50.11300086975098"/>
+								<Node score="37.54321514242407">
+									<SimplePredicate field="double(Time )" operator="lessOrEqual" value="10.5"/>
+								</Node>
+							</Node>
+							<Node score="308.00174418783723">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="17.5"/>
+							</Node>
+						</Node>
+						<Node score="373.5674065128021">
+							<SimplePredicate field="double(# VNF Density current)" operator="lessOrEqual" value="1387.5"/>
+							<Node score="491.46264183846756">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="16.5"/>
+								<Node score="324.9229564124095">
+									<SimplePredicate field="double(Time )" operator="lessOrEqual" value="10.5"/>
+								</Node>
+							</Node>
+							<Node score="278.11353561211496">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="18.5"/>
+							</Node>
+						</Node>
+						<Node score="555.5170198182869">
+							<SimplePredicate field="double(Time )" operator="lessOrEqual" value="17.5"/>
+							<Node score="326.84947245032765">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="10.0"/>
+							</Node>
+						</Node>
+						<Node score="394.55908485813313">
+							<SimplePredicate field="double(BW edge (1).1)" operator="lessOrEqual" value="82.81405258178711"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="9">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(CPU edge average (2))"/>
+						<MiningField name="double(# VNF Density current)"/>
+						<MiningField name="double(Time )"/>
+						<MiningField name="double(BW edge (1))"/>
+						<MiningField name="double(CPU server average)"/>
+						<MiningField name="double(BW edge (1).1)"/>
+						<MiningField name="double(# links (1))"/>
+					</MiningSchema>
+					<Node score="383.9565213100028">
+						<True/>
+						<Node score="102.13078965637561">
+							<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="63.65228080749512"/>
+							<Node score="-108.29815816901134">
+								<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="39.3817081451416"/>
+								<Node score="-122.39885714848135">
+									<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="31.662562370300293"/>
+									<Node score="-150.90716602489337">
+										<SimplePredicate field="double(BW edge (1))" operator="lessOrEqual" value="4.060600161552429"/>
+										<Node score="-154.38217492111548">
+											<SimplePredicate field="double(BW edge (1))" operator="lessOrEqual" value="0.13899999856948853"/>
+										</Node>
+									</Node>
+									<Node score="-133.81417027728656">
+										<SimplePredicate field="double(BW edge (1))" operator="lessOrEqual" value="5.7300333976745605"/>
+									</Node>
+								</Node>
+								<Node score="-99.47704741669418">
+									<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="35.67977333068848"/>
+									<Node score="-125.9532132223937">
+										<SimplePredicate field="double(# VNF Density current)" operator="lessOrEqual" value="170.5"/>
+									</Node>
+								</Node>
+								<Node score="-65.39358504869995">
+									<SimplePredicate field="double(BW edge (1).1)" operator="lessOrEqual" value="1.2565901279449463"/>
+								</Node>
+							</Node>
+							<Node score="1.0675935286203702">
+								<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="55.60881996154785"/>
+								<Node score="136.95360200687375">
+									<SimplePredicate field="double(Time )" operator="lessOrEqual" value="7.5"/>
+									<Node score="3.8347883283698048">
+										<SimplePredicate field="double(CPU server average)" operator="lessOrEqual" value="8.622000217437744"/>
+									</Node>
+								</Node>
+								<Node score="-80.40275635994162">
+									<SimplePredicate field="double(BW edge (1).1)" operator="lessOrEqual" value="26.597187995910645"/>
+								</Node>
+							</Node>
+							<Node score="209.55708816675565">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="8.5"/>
+								<Node score="118.89241128762806">
+									<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="60.27822494506836"/>
+								</Node>
+							</Node>
+							<Node score="14.629367234884839">
+								<SimplePredicate field="double(BW edge (1))" operator="lessOrEqual" value="39.95859909057617"/>
+							</Node>
+						</Node>
+						<Node score="231.33250275731797">
+							<SimplePredicate field="double(BW edge (1).1)" operator="lessOrEqual" value="61.55654335021973"/>
+							<Node score="144.79106709182776">
+								<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="71.22032928466797"/>
+								<Node score="193.69123586260852">
+									<SimplePredicate field="double(Time )" operator="lessOrEqual" value="15.5"/>
+									<Node score="122.3460730711679">
+										<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="67.45101165771484"/>
+									</Node>
+								</Node>
+								<Node score="29.606219678675714">
+									<SimplePredicate field="double(# VNF Density current)" operator="lessOrEqual" value="794.5"/>
+								</Node>
+							</Node>
+							<Node score="414.40592814423655">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="8.5"/>
+								<Node score="341.4911337804887">
+									<SimplePredicate field="double(# links (1))" operator="lessOrEqual" value="19.5"/>
+								</Node>
+							</Node>
+							<Node score="-92.43430633989664">
+								<SimplePredicate field="double(BW edge (1).1)" operator="lessOrEqual" value="35.59774208068848"/>
+							</Node>
+						</Node>
+						<Node score="292.57644776794666">
+							<SimplePredicate field="double(BW edge (1))" operator="lessOrEqual" value="78.27322006225586"/>
+							<Node score="430.67303746571775">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="16.5"/>
+								<Node score="300.40558847703545">
+									<SimplePredicate field="double(Time )" operator="lessOrEqual" value="10.5"/>
+								</Node>
+							</Node>
+							<Node score="173.50054483911376">
+								<SimplePredicate field="double(# links (1))" operator="lessOrEqual" value="33.5"/>
+							</Node>
+						</Node>
+						<Node score="292.0334721263342">
+							<SimplePredicate field="double(Time )" operator="lessOrEqual" value="10.0"/>
+						</Node>
+						<Node score="506.2118917621763">
+							<SimplePredicate field="double(Time )" operator="lessOrEqual" value="17.5"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="10">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(CPU edge average (2))"/>
+						<MiningField name="double(# VNF Density current)"/>
+						<MiningField name="double(Time )"/>
+						<MiningField name="double(BW edge (1))"/>
+						<MiningField name="double(# links (2))"/>
+						<MiningField name="double(CPU server average)"/>
+						<MiningField name="double(CPU edge average (1))"/>
+						<MiningField name="double(BW server (1))"/>
+						<MiningField name="double(BW server (2))"/>
+						<MiningField name="double(BW edge (1).1)"/>
+						<MiningField name="double(# links (1))"/>
+					</MiningSchema>
+					<Node score="415.0658511792406">
+						<True/>
+						<Node score="66.89139435914325">
+							<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="62.09023666381836"/>
+							<Node score="-68.19722806945995">
+								<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="38.5175895690918"/>
+								<Node score="-140.13846191462497">
+									<SimplePredicate field="double(CPU edge average (1))" operator="lessOrEqual" value="16.361000061035156"/>
+									<Node score="-150.61124761219764">
+										<SimplePredicate field="double(Time )" operator="lessOrEqual" value="6.5"/>
+										<Node score="-138.54397587686788">
+											<SimplePredicate field="double(BW edge (1).1)" operator="lessOrEqual" value="0.7772423326969147"/>
+										</Node>
+									</Node>
+									<Node score="-117.86613776866764">
+										<SimplePredicate field="double(CPU edge average (1))" operator="lessOrEqual" value="15.268666744232178"/>
+									</Node>
+								</Node>
+								<Node score="-34.16719213718235">
+									<SimplePredicate field="double(BW edge (1))" operator="lessOrEqual" value="0.6385999917984009"/>
+									<Node score="-98.14173470291071">
+										<SimplePredicate field="double(BW server (2))" operator="lessOrEqual" value="26.902856826782227"/>
+									</Node>
+								</Node>
+								<Node score="-114.32738844026493">
+									<SimplePredicate field="double(# VNF Density current)" operator="lessOrEqual" value="203.0"/>
+								</Node>
+							</Node>
+							<Node score="-42.12383016008678">
+								<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="52.44011688232422"/>
+								<Node score="126.12789564374945">
+									<SimplePredicate field="double(Time )" operator="lessOrEqual" value="7.5"/>
+									<Node score="-6.066819747899407">
+										<SimplePredicate field="double(CPU edge average (1))" operator="lessOrEqual" value="33.54133415222168"/>
+									</Node>
+								</Node>
+								<Node score="-95.0546593923526">
+									<SimplePredicate field="double(CPU server average)" operator="lessOrEqual" value="20.366999626159668"/>
+								</Node>
+							</Node>
+							<Node score="147.67836422348518">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="8.5"/>
+								<Node score="46.24857789336429">
+									<SimplePredicate field="double(# links (1))" operator="lessOrEqual" value="5.5"/>
+								</Node>
+							</Node>
+							<Node score="-8.379362099311072">
+								<SimplePredicate field="double(BW edge (1).1)" operator="lessOrEqual" value="36.61882400512695"/>
+							</Node>
+						</Node>
+						<Node score="67.67948722776393">
+							<SimplePredicate field="double(BW edge (1).1)" operator="lessOrEqual" value="58.10077476501465"/>
+							<Node score="276.49891508294786">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="8.5"/>
+								<Node score="269.859811814804">
+									<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="73.00613021850586"/>
+									<Node score="138.45986672922993">
+										<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="66.0452880859375"/>
+									</Node>
+								</Node>
+								<Node score="372.71125153986435">
+									<SimplePredicate field="double(BW server (1))" operator="lessOrEqual" value="535.2936096191406"/>
+								</Node>
+							</Node>
+							<Node score="23.51915367050277">
+								<SimplePredicate field="double(# links (2))" operator="lessOrEqual" value="24.5"/>
+								<Node score="-95.4511021002256">
+									<SimplePredicate field="double(Time )" operator="lessOrEqual" value="11.5"/>
+								</Node>
+							</Node>
+							<Node score="175.34042085430033">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="17.5"/>
+							</Node>
+						</Node>
+						<Node score="238.8673950825391">
+							<SimplePredicate field="double(# VNF Density current)" operator="lessOrEqual" value="1287.5"/>
+							<Node score="355.841620021848">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="17.5"/>
+								<Node score="249.25627747102988">
+									<SimplePredicate field="double(Time )" operator="lessOrEqual" value="10.5"/>
+								</Node>
+							</Node>
+							<Node score="131.23111974093192">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="18.5"/>
+							</Node>
+						</Node>
+						<Node score="375.42848532693125">
+							<SimplePredicate field="double(# VNF Density current)" operator="lessOrEqual" value="1497.5"/>
+							<Node score="274.66388616174464">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="10.5"/>
+							</Node>
+						</Node>
+						<Node score="506.47687265722396">
+							<SimplePredicate field="double(Time )" operator="lessOrEqual" value="16.5"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="11">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(CPU edge average (2))"/>
+						<MiningField name="double(# VNF Density current)"/>
+						<MiningField name="double(Time )"/>
+						<MiningField name="double(BW edge (1))"/>
+						<MiningField name="double(CPU server average)"/>
+						<MiningField name="double(CPU edge average (1))"/>
+						<MiningField name="double(# edge device)"/>
+						<MiningField name="double(BW server (2))"/>
+						<MiningField name="double(BW edge (1).1)"/>
+						<MiningField name="double(# links (1))"/>
+					</MiningSchema>
+					<Node score="381.94713820880554">
+						<True/>
+						<Node score="50.472759887452256">
+							<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="66.96319580078125"/>
+							<Node score="-60.779738184882795">
+								<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="44.50594902038574"/>
+								<Node score="-92.76798571910446">
+									<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="33.94930839538574"/>
+									<Node score="-121.7764884288293">
+										<SimplePredicate field="double(BW edge (1).1)" operator="lessOrEqual" value="6.421781063079834"/>
+										<Node score="-125.15296312008297">
+											<SimplePredicate field="double(Time )" operator="lessOrEqual" value="5.5"/>
+										</Node>
+									</Node>
+									<Node score="-105.54876269367976">
+										<SimplePredicate field="double(BW edge (1))" operator="lessOrEqual" value="6.798199892044067"/>
+									</Node>
+								</Node>
+								<Node score="32.84978744602855">
+									<SimplePredicate field="double(Time )" operator="lessOrEqual" value="7.5"/>
+									<Node score="-55.39548761626236">
+										<SimplePredicate field="double(# edge device)" operator="lessOrEqual" value="207.5"/>
+									</Node>
+								</Node>
+								<Node score="-110.39806292692388">
+									<SimplePredicate field="double(BW edge (1).1)" operator="lessOrEqual" value="14.75135850906372"/>
+								</Node>
+							</Node>
+							<Node score="5.915607443491304">
+								<SimplePredicate field="double(CPU edge average (1))" operator="lessOrEqual" value="57.64666557312012"/>
+								<Node score="124.36322706118452">
+									<SimplePredicate field="double(Time )" operator="lessOrEqual" value="8.5"/>
+									<Node score="60.04315759295506">
+										<SimplePredicate field="double(BW edge (1))" operator="lessOrEqual" value="5.371033191680908"/>
+									</Node>
+								</Node>
+								<Node score="-51.51255798000902">
+									<SimplePredicate field="double(CPU server average)" operator="lessOrEqual" value="27.861000061035156"/>
+								</Node>
+							</Node>
+							<Node score="73.92678646076237">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="16.5"/>
+								<Node score="187.38160462928798">
+									<SimplePredicate field="double(# edge device)" operator="lessOrEqual" value="285.5"/>
+								</Node>
+							</Node>
+							<Node score="-51.7213962225838">
+								<SimplePredicate field="double(# VNF Density current)" operator="lessOrEqual" value="626.5"/>
+							</Node>
+						</Node>
+						<Node score="178.15514051173815">
+							<SimplePredicate field="double(BW edge (1).1)" operator="lessOrEqual" value="65.036865234375"/>
+							<Node score="270.21193774539324">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="16.5"/>
+								<Node score="90.76193614793237">
+									<SimplePredicate field="double(CPU edge average (1))" operator="lessOrEqual" value="71.16133499145508"/>
+									<Node score="191.81192700037857">
+										<SimplePredicate field="double(BW server (2))" operator="lessOrEqual" value="447.75453186035156"/>
+									</Node>
+								</Node>
+								<Node score="188.81429003865827">
+									<SimplePredicate field="double(Time )" operator="lessOrEqual" value="10.5"/>
+								</Node>
+							</Node>
+							<Node score="26.251291763386998">
+								<SimplePredicate field="double(# VNF Density current)" operator="lessOrEqual" value="891.5"/>
+								<Node score="97.97928853564794">
+									<SimplePredicate field="double(Time )" operator="lessOrEqual" value="17.5"/>
+								</Node>
+							</Node>
+							<Node score="124.33206225896937">
+								<SimplePredicate field="double(# links (1))" operator="lessOrEqual" value="35.5"/>
+							</Node>
+						</Node>
+						<Node score="248.78938955491344">
+							<SimplePredicate field="double(BW edge (1))" operator="lessOrEqual" value="80.95785140991211"/>
+							<Node score="185.67628137014816">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="9.5"/>
+								<Node score="318.750758349848">
+									<SimplePredicate field="double(CPU edge average (1))" operator="lessOrEqual" value="82.857666015625"/>
+								</Node>
+							</Node>
+							<Node score="361.1351707922404">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="16.5"/>
+							</Node>
+						</Node>
+						<Node score="423.33662907033477">
+							<SimplePredicate field="double(Time )" operator="lessOrEqual" value="17.5"/>
+							<Node score="311.0256326120758">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="12.5"/>
+							</Node>
+						</Node>
+						<Node score="247.91452056580772">
+							<SimplePredicate field="double(BW edge (1).1)" operator="lessOrEqual" value="82.81405258178711"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="12">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(CPU edge average (2))"/>
+						<MiningField name="double(# VNF Density current)"/>
+						<MiningField name="double(Time )"/>
+						<MiningField name="double(# links (2))"/>
+						<MiningField name="double(CPU server average)"/>
+						<MiningField name="double(BW server (1))"/>
+						<MiningField name="double(# edge device)"/>
+						<MiningField name="double(BW server (2))"/>
+						<MiningField name="double(BW edge (1).1)"/>
+						<MiningField name="double(# links (1))"/>
+					</MiningSchema>
+					<Node score="332.76654516764205">
+						<True/>
+						<Node score="51.095127996464356">
+							<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="66.96319580078125"/>
+							<Node score="-71.23723381429114">
+								<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="44.50594902038574"/>
+								<Node score="-79.04044974309767">
+									<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="33.94930839538574"/>
+									<Node score="-106.18116759840879">
+										<SimplePredicate field="double(BW edge (1).1)" operator="lessOrEqual" value="6.421781063079834"/>
+										<Node score="-112.34594608342657">
+											<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="30.355185508728027"/>
+										</Node>
+									</Node>
+									<Node score="-92.82405200184365">
+										<SimplePredicate field="double(BW edge (1).1)" operator="lessOrEqual" value="11.413599491119385"/>
+									</Node>
+								</Node>
+								<Node score="28.775564299048618">
+									<SimplePredicate field="double(Time )" operator="lessOrEqual" value="7.5"/>
+									<Node score="-49.85593885463612">
+										<SimplePredicate field="double(# edge device)" operator="lessOrEqual" value="207.5"/>
+									</Node>
+								</Node>
+								<Node score="-132.45717316093626">
+									<SimplePredicate field="double(# links (2))" operator="lessOrEqual" value="17.5"/>
+								</Node>
+							</Node>
+							<Node score="13.383379897311121">
+								<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="57.94463539123535"/>
+								<Node score="-10.608797170702964">
+									<SimplePredicate field="double(Time )" operator="lessOrEqual" value="8.5"/>
+									<Node score="77.95196771707481">
+										<SimplePredicate field="double(BW server (1))" operator="lessOrEqual" value="340.8146667480469"/>
+									</Node>
+								</Node>
+								<Node score="-46.60890646526468">
+									<SimplePredicate field="double(CPU server average)" operator="lessOrEqual" value="29.792999267578125"/>
+								</Node>
+							</Node>
+							<Node score="168.90746161158103">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="8.5"/>
+								<Node score="88.9004332087501">
+									<SimplePredicate field="double(# VNF Density current)" operator="lessOrEqual" value="146.0"/>
+								</Node>
+							</Node>
+							<Node score="-32.777854920327">
+								<SimplePredicate field="double(# links (1))" operator="lessOrEqual" value="19.5"/>
+							</Node>
+						</Node>
+						<Node score="213.69812074465332">
+							<SimplePredicate field="double(BW edge (1).1)" operator="lessOrEqual" value="66.12060165405273"/>
+							<Node score="117.82276430936874">
+								<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="73.32234573364258"/>
+								<Node score="57.19184622974949">
+									<SimplePredicate field="double(# links (2))" operator="lessOrEqual" value="35.5"/>
+									<Node score="182.22268318744835">
+										<SimplePredicate field="double(BW server (2))" operator="lessOrEqual" value="421.76084899902344"/>
+									</Node>
+								</Node>
+								<Node score="193.8216830962411">
+									<SimplePredicate field="double(Time )" operator="lessOrEqual" value="15.5"/>
+								</Node>
+							</Node>
+							<Node score="328.43548177140343">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="8.5"/>
+								<Node score="258.5647630906401">
+									<SimplePredicate field="double(# edge device)" operator="lessOrEqual" value="294.5"/>
+								</Node>
+							</Node>
+							<Node score="104.48409681852635">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="10.5"/>
+							</Node>
+						</Node>
+						<Node score="284.3878310566973">
+							<SimplePredicate field="double(# VNF Density current)" operator="lessOrEqual" value="1449.5"/>
+							<Node score="363.80007481900094">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="16.5"/>
+								<Node score="233.775739085593">
+									<SimplePredicate field="double(Time )" operator="lessOrEqual" value="12.5"/>
+								</Node>
+							</Node>
+							<Node score="190.7052649201814">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="18.5"/>
+							</Node>
+						</Node>
+						<Node score="406.39717051573945">
+							<SimplePredicate field="double(Time )" operator="lessOrEqual" value="16.5"/>
+							<Node score="279.9230693508683">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="12.5"/>
+							</Node>
+						</Node>
+						<Node score="272.9009475618443">
+							<SimplePredicate field="double(# VNF Density current)" operator="lessOrEqual" value="1497.5"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="13">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(CPU edge average (2))"/>
+						<MiningField name="double(# VNF Density current)"/>
+						<MiningField name="double(Time )"/>
+						<MiningField name="double(BW edge (1))"/>
+						<MiningField name="double(# links (2))"/>
+						<MiningField name="double(CPU edge average (1))"/>
+						<MiningField name="double(BW edge (1).1)"/>
+						<MiningField name="double(# links (1))"/>
+					</MiningSchema>
+					<Node score="299.48989065087784">
+						<True/>
+						<Node score="53.4456457254432">
+							<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="67.45845031738281"/>
+							<Node score="-61.246500877375894">
+								<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="44.50594902038574"/>
+								<Node score="-60.6252652759277">
+									<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="35.67977333068848"/>
+									<Node score="-82.78184689501063">
+										<SimplePredicate field="double(# VNF Density current)" operator="lessOrEqual" value="84.5"/>
+										<Node score="-100.77360528569595">
+											<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="33.94453048706055"/>
+										</Node>
+									</Node>
+									<Node score="-79.28090803433199">
+										<SimplePredicate field="double(# VNF Density current)" operator="lessOrEqual" value="185.0"/>
+									</Node>
+								</Node>
+								<Node score="37.74009996402457">
+									<SimplePredicate field="double(Time )" operator="lessOrEqual" value="7.5"/>
+									<Node score="-35.77924833850498">
+										<SimplePredicate field="double(BW edge (1))" operator="lessOrEqual" value="1.1222000122070312"/>
+									</Node>
+								</Node>
+								<Node score="-123.65869369461832">
+									<SimplePredicate field="double(# links (2))" operator="lessOrEqual" value="17.5"/>
+								</Node>
+							</Node>
+							<Node score="-16.055199890817043">
+								<SimplePredicate field="double(CPU edge average (1))" operator="lessOrEqual" value="57.64666557312012"/>
+								<Node score="108.59365219773693">
+									<SimplePredicate field="double(Time )" operator="lessOrEqual" value="8.5"/>
+									<Node score="45.66827977929966">
+										<SimplePredicate field="double(BW edge (1))" operator="lessOrEqual" value="5.371033191680908"/>
+									</Node>
+								</Node>
+								<Node score="-110.19589995993334">
+									<SimplePredicate field="double(# links (1))" operator="lessOrEqual" value="8.5"/>
+								</Node>
+							</Node>
+							<Node score="205.83468461133955">
+								<SimplePredicate field="double(# VNF Density current)" operator="lessOrEqual" value="223.5"/>
+								<Node score="89.62857637054447">
+									<SimplePredicate field="double(CPU edge average (1))" operator="lessOrEqual" value="61.04233360290527"/>
+								</Node>
+							</Node>
+							<Node score="-11.723720960917248">
+								<SimplePredicate field="double(# links (2))" operator="lessOrEqual" value="27.5"/>
+							</Node>
+						</Node>
+						<Node score="149.11727193085954">
+							<SimplePredicate field="double(BW edge (1).1)" operator="lessOrEqual" value="66.12060165405273"/>
+							<Node score="246.27660296398167">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="16.5"/>
+								<Node score="93.78786903373891">
+									<SimplePredicate field="double(Time )" operator="lessOrEqual" value="11.5"/>
+									<Node score="254.02115596220145">
+										<SimplePredicate field="double(Time )" operator="lessOrEqual" value="8.5"/>
+									</Node>
+								</Node>
+								<Node score="125.24898305890228">
+									<SimplePredicate field="double(# links (2))" operator="lessOrEqual" value="32.5"/>
+								</Node>
+							</Node>
+							<Node score="59.28866295911965">
+								<SimplePredicate field="double(# VNF Density current)" operator="lessOrEqual" value="891.5"/>
+								<Node score="-2.628492976964086">
+									<SimplePredicate field="double(BW edge (1))" operator="lessOrEqual" value="46.85281562805176"/>
+								</Node>
+							</Node>
+							<Node score="90.2859582194452">
+								<SimplePredicate field="double(# links (1))" operator="lessOrEqual" value="34.5"/>
+							</Node>
+						</Node>
+						<Node score="203.66550942199672">
+							<SimplePredicate field="double(# VNF Density current)" operator="lessOrEqual" value="1449.5"/>
+							<Node score="152.468067471101">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="9.5"/>
+								<Node score="252.9165251312725">
+									<SimplePredicate field="double(CPU edge average (1))" operator="lessOrEqual" value="82.857666015625"/>
+								</Node>
+							</Node>
+							<Node score="318.8335483720765">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="15.5"/>
+							</Node>
+						</Node>
+						<Node score="365.7574534641654">
+							<SimplePredicate field="double(Time )" operator="lessOrEqual" value="16.5"/>
+							<Node score="251.9307624157814">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="12.5"/>
+							</Node>
+						</Node>
+						<Node score="245.61085280565985">
+							<SimplePredicate field="double(# VNF Density current)" operator="lessOrEqual" value="1497.5"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="14">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(CPU edge average (2))"/>
+						<MiningField name="double(# VNF Density current)"/>
+						<MiningField name="double(Time )"/>
+						<MiningField name="double(BW edge (1))"/>
+						<MiningField name="double(# links (2))"/>
+						<MiningField name="double(CPU edge average (1))"/>
+						<MiningField name="double(BW server (1))"/>
+						<MiningField name="double(# edge device)"/>
+						<MiningField name="double(BW edge (1).1)"/>
+					</MiningSchema>
+					<Node score="354.7534987526418">
+						<True/>
+						<Node score="51.11472230042275">
+							<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="63.65228080749512"/>
+							<Node score="-47.574411156863704">
+								<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="41.40689659118652"/>
+								<Node score="-65.41471764513555">
+									<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="33.94930839538574"/>
+									<Node score="-98.96951469880452">
+										<SimplePredicate field="double(BW edge (1).1)" operator="lessOrEqual" value="6.421781063079834"/>
+										<Node score="-90.64466344796325">
+											<SimplePredicate field="double(BW server (1))" operator="lessOrEqual" value="63.92388916015625"/>
+										</Node>
+									</Node>
+									<Node score="-75.9190136870236">
+										<SimplePredicate field="double(# VNF Density current)" operator="lessOrEqual" value="120.0"/>
+									</Node>
+								</Node>
+								<Node score="30.365830574223253">
+									<SimplePredicate field="double(Time )" operator="lessOrEqual" value="7.5"/>
+									<Node score="-43.74186398165207">
+										<SimplePredicate field="double(# edge device)" operator="lessOrEqual" value="207.5"/>
+									</Node>
+								</Node>
+								<Node score="-84.91301621204427">
+									<SimplePredicate field="double(BW edge (1).1)" operator="lessOrEqual" value="13.329575538635254"/>
+								</Node>
+							</Node>
+							<Node score="-1.2223498695588018">
+								<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="55.43233871459961"/>
+								<Node score="107.54212723840492">
+									<SimplePredicate field="double(Time )" operator="lessOrEqual" value="7.5"/>
+									<Node score="12.282552947106314">
+										<SimplePredicate field="double(CPU edge average (1))" operator="lessOrEqual" value="34.28666687011719"/>
+									</Node>
+								</Node>
+								<Node score="-50.82007557183005">
+									<SimplePredicate field="double(# VNF Density current)" operator="lessOrEqual" value="382.5"/>
+								</Node>
+							</Node>
+							<Node score="-24.766834162179972">
+								<SimplePredicate field="double(BW edge (1))" operator="lessOrEqual" value="39.95859909057617"/>
+								<Node score="33.40378842685908">
+									<SimplePredicate field="double(Time )" operator="lessOrEqual" value="16.5"/>
+								</Node>
+							</Node>
+							<Node score="127.320046189309">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="15.5"/>
+							</Node>
+						</Node>
+						<Node score="91.99438897912863">
+							<SimplePredicate field="double(# VNF Density current)" operator="lessOrEqual" value="1076.5"/>
+							<Node score="76.22882119002116">
+								<SimplePredicate field="double(CPU edge average (1))" operator="lessOrEqual" value="71.20933151245117"/>
+								<Node score="197.4810894564098">
+									<SimplePredicate field="double(Time )" operator="lessOrEqual" value="8.5"/>
+									<Node score="78.58722140235884">
+										<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="66.0452880859375"/>
+									</Node>
+								</Node>
+								<Node score="-32.31498506055194">
+									<SimplePredicate field="double(# links (2))" operator="lessOrEqual" value="24.5"/>
+								</Node>
+							</Node>
+							<Node score="186.89969335499072">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="17.5"/>
+								<Node score="127.16791340240022">
+									<SimplePredicate field="double(Time )" operator="lessOrEqual" value="10.5"/>
+								</Node>
+							</Node>
+							<Node score="-4.836465308436393">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="18.5"/>
+							</Node>
+						</Node>
+						<Node score="196.69623470134675">
+							<SimplePredicate field="double(BW edge (1))" operator="lessOrEqual" value="78.2855339050293"/>
+							<Node score="286.44658574708905">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="16.5"/>
+								<Node score="186.0147441077879">
+									<SimplePredicate field="double(Time )" operator="lessOrEqual" value="12.5"/>
+								</Node>
+							</Node>
+							<Node score="133.05386787667203">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="18.5"/>
+							</Node>
+						</Node>
+						<Node score="228.69024473197692">
+							<SimplePredicate field="double(BW edge (1).1)" operator="lessOrEqual" value="85.91153335571289"/>
+							<Node score="288.7033201962755">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="16.5"/>
+							</Node>
+						</Node>
+						<Node score="317.45325155787316">
+							<SimplePredicate field="double(BW edge (1).1)" operator="lessOrEqual" value="87.40421676635742"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="15">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(CPU edge average (2))"/>
+						<MiningField name="double(# VNF Density current)"/>
+						<MiningField name="double(Time )"/>
+						<MiningField name="double(BW edge (1))"/>
+						<MiningField name="double(# links (2))"/>
+						<MiningField name="double(CPU server average)"/>
+						<MiningField name="double(CPU edge average (1))"/>
+						<MiningField name="double(BW server (1))"/>
+						<MiningField name="double(BW edge (1).1)"/>
+					</MiningSchema>
+					<Node score="319.2781488773777">
+						<True/>
+						<Node score="58.465005111916845">
+							<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="67.40301132202148"/>
+							<Node score="-33.0359021669112">
+								<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="44.50594902038574"/>
+								<Node score="-56.359874738218">
+									<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="35.67977333068848"/>
+									<Node score="-73.92569444363463">
+										<SimplePredicate field="double(BW edge (1))" operator="lessOrEqual" value="5.655033349990845"/>
+										<Node score="-81.9328543390545">
+											<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="29.9012393951416"/>
+										</Node>
+									</Node>
+									<Node score="-65.97279880723141">
+										<SimplePredicate field="double(CPU server average)" operator="lessOrEqual" value="10.95300006866455"/>
+									</Node>
+								</Node>
+								<Node score="26.410756666445533">
+									<SimplePredicate field="double(Time )" operator="lessOrEqual" value="7.5"/>
+									<Node score="-32.44613748324582">
+										<SimplePredicate field="double(BW edge (1))" operator="lessOrEqual" value="1.051800012588501"/>
+									</Node>
+								</Node>
+								<Node score="-75.77604600510817">
+									<SimplePredicate field="double(# VNF Density current)" operator="lessOrEqual" value="216.5"/>
+								</Node>
+							</Node>
+							<Node score="4.245813559013104">
+								<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="57.17113494873047"/>
+								<Node score="106.48500227199347">
+									<SimplePredicate field="double(Time )" operator="lessOrEqual" value="8.5"/>
+									<Node score="27.664022682793444">
+										<SimplePredicate field="double(BW server (1))" operator="lessOrEqual" value="258.4995880126953"/>
+									</Node>
+								</Node>
+								<Node score="-42.738326548504176">
+									<SimplePredicate field="double(BW edge (1).1)" operator="lessOrEqual" value="26.650559425354004"/>
+								</Node>
+							</Node>
+							<Node score="89.7697468702511">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="16.5"/>
+								<Node score="40.96574139260014">
+									<SimplePredicate field="double(BW edge (1))" operator="lessOrEqual" value="40.114200592041016"/>
+								</Node>
+							</Node>
+							<Node score="-20.557315818183366">
+								<SimplePredicate field="double(# VNF Density current)" operator="lessOrEqual" value="747.5"/>
+							</Node>
+						</Node>
+						<Node score="73.2304664577766">
+							<SimplePredicate field="double(BW edge (1).1)" operator="lessOrEqual" value="66.12060165405273"/>
+							<Node score="233.69811322062782">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="17.5"/>
+								<Node score="83.50346153067339">
+									<SimplePredicate field="double(# links (2))" operator="lessOrEqual" value="35.5"/>
+									<Node score="214.76608906624386">
+										<SimplePredicate field="double(Time )" operator="lessOrEqual" value="8.5"/>
+									</Node>
+								</Node>
+								<Node score="131.21819477421334">
+									<SimplePredicate field="double(Time )" operator="lessOrEqual" value="12.5"/>
+								</Node>
+							</Node>
+							<Node score="23.942197414221656">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="18.5"/>
+								<Node score="-46.305019084496685">
+									<SimplePredicate field="double(# VNF Density current)" operator="lessOrEqual" value="843.5"/>
+								</Node>
+							</Node>
+							<Node score="138.24394470708228">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="19.5"/>
+							</Node>
+						</Node>
+						<Node score="164.1312324698713">
+							<SimplePredicate field="double(# VNF Density current)" operator="lessOrEqual" value="1449.5"/>
+							<Node score="116.3245971029815">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="9.5"/>
+								<Node score="209.02339820736645">
+									<SimplePredicate field="double(CPU edge average (1))" operator="lessOrEqual" value="82.857666015625"/>
+								</Node>
+							</Node>
+							<Node score="262.69049907342844">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="15.5"/>
+							</Node>
+						</Node>
+						<Node score="213.96283179178388">
+							<SimplePredicate field="double(BW edge (1))" operator="lessOrEqual" value="85.91153335571289"/>
+							<Node score="265.1107689610083">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="16.5"/>
+							</Node>
+						</Node>
+						<Node score="285.70792640208595">
+							<SimplePredicate field="double(BW edge (1).1)" operator="lessOrEqual" value="87.40421676635742"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="16">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(CPU edge average (2))"/>
+						<MiningField name="double(# VNF Density current)"/>
+						<MiningField name="double(Time )"/>
+						<MiningField name="double(# links (2))"/>
+						<MiningField name="double(CPU server average)"/>
+						<MiningField name="double(CPU edge average (1))"/>
+						<MiningField name="double(# edge device)"/>
+						<MiningField name="double(BW server (2))"/>
+						<MiningField name="double(BW edge (1).1)"/>
+						<MiningField name="double(# links (1))"/>
+					</MiningSchema>
+					<Node score="298.95794085610487">
+						<True/>
+						<Node score="37.65759362714042">
+							<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="67.45845031738281"/>
+							<Node score="-43.88387703327929">
+								<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="44.50594902038574"/>
+								<Node score="-64.22533388909427">
+									<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="35.67977333068848"/>
+									<Node score="-71.7126212440579">
+										<SimplePredicate field="double(# edge device)" operator="lessOrEqual" value="134.0"/>
+										<Node score="-74.06604717757686">
+											<SimplePredicate field="double(Time )" operator="lessOrEqual" value="5.5"/>
+										</Node>
+									</Node>
+									<Node score="-41.49126563910024">
+										<SimplePredicate field="double(BW edge (1).1)" operator="lessOrEqual" value="1.045459806919098"/>
+									</Node>
+								</Node>
+								<Node score="7.500060835956482">
+									<SimplePredicate field="double(Time )" operator="lessOrEqual" value="7.5"/>
+									<Node score="-41.50340649762306">
+										<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="39.3817081451416"/>
+									</Node>
+								</Node>
+								<Node score="-96.79743844068192">
+									<SimplePredicate field="double(# links (2))" operator="lessOrEqual" value="17.5"/>
+								</Node>
+							</Node>
+							<Node score="-8.039676648928609">
+								<SimplePredicate field="double(CPU edge average (1))" operator="lessOrEqual" value="57.64666557312012"/>
+								<Node score="29.91640570986617">
+									<SimplePredicate field="double(Time )" operator="lessOrEqual" value="8.5"/>
+									<Node score="74.75690761971921">
+										<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="45.432289123535156"/>
+									</Node>
+								</Node>
+								<Node score="-70.321188028053">
+									<SimplePredicate field="double(# links (1))" operator="lessOrEqual" value="15.5"/>
+								</Node>
+							</Node>
+							<Node score="190.7688941819651">
+								<SimplePredicate field="double(BW edge (1).1)" operator="lessOrEqual" value="16.686007499694824"/>
+								<Node score="84.09460413951746">
+									<SimplePredicate field="double(BW server (2))" operator="lessOrEqual" value="321.92201232910156"/>
+								</Node>
+							</Node>
+							<Node score="-16.676214074380034">
+								<SimplePredicate field="double(# links (2))" operator="lessOrEqual" value="27.5"/>
+							</Node>
+						</Node>
+						<Node score="111.16271481424636">
+							<SimplePredicate field="double(# VNF Density current)" operator="lessOrEqual" value="1189.5"/>
+							<Node score="82.67678302471941">
+								<SimplePredicate field="double(BW edge (1).1)" operator="lessOrEqual" value="54.973880767822266"/>
+								<Node score="220.3282089976736">
+									<SimplePredicate field="double(Time )" operator="lessOrEqual" value="8.5"/>
+									<Node score="103.05151325301311">
+										<SimplePredicate field="double(BW server (2))" operator="lessOrEqual" value="396.4042053222656"/>
+									</Node>
+								</Node>
+								<Node score="-88.26475277240856">
+									<SimplePredicate field="double(# links (2))" operator="lessOrEqual" value="24.5"/>
+								</Node>
+							</Node>
+							<Node score="179.15579063438932">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="17.5"/>
+								<Node score="115.74135158874358">
+									<SimplePredicate field="double(Time )" operator="lessOrEqual" value="10.5"/>
+								</Node>
+							</Node>
+							<Node score="28.354932365501018">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="18.5"/>
+							</Node>
+						</Node>
+						<Node score="154.40836295241778">
+							<SimplePredicate field="double(# VNF Density current)" operator="lessOrEqual" value="1497.5"/>
+							<Node score="142.7071247075193">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="9.5"/>
+								<Node score="91.83401423665451">
+									<SimplePredicate field="double(CPU server average)" operator="lessOrEqual" value="68.56100082397461"/>
+								</Node>
+							</Node>
+							<Node score="231.1004233097044">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="16.5"/>
+							</Node>
+						</Node>
+						<Node score="210.17620455046594">
+							<SimplePredicate field="double(BW edge (1).1)" operator="lessOrEqual" value="87.40421676635742"/>
+							<Node score="264.99596777429593">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="16.5"/>
+							</Node>
+						</Node>
+						<Node score="276.24740568258665">
+							<SimplePredicate field="double(# VNF Density current)" operator="lessOrEqual" value="1619.0"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="17">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(CPU edge average (2))"/>
+						<MiningField name="double(# VNF Density current)"/>
+						<MiningField name="double(Time )"/>
+						<MiningField name="double(BW edge (1))"/>
+						<MiningField name="double(# links (2))"/>
+						<MiningField name="double(CPU server average)"/>
+						<MiningField name="double(BW server (2))"/>
+						<MiningField name="double(BW edge (1).1)"/>
+						<MiningField name="double(# links (1))"/>
+					</MiningSchema>
+					<Node score="243.1426654984068">
+						<True/>
+						<Node score="84.44223049101228">
+							<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="67.45845031738281"/>
+							<Node score="-19.726138280480633">
+								<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="49.38493537902832"/>
+								<Node score="-37.211567575269186">
+									<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="35.67977333068848"/>
+									<Node score="-60.22240381420752">
+										<SimplePredicate field="double(BW edge (1))" operator="lessOrEqual" value="5.7300333976745605"/>
+										<Node score="-66.3761922259379">
+											<SimplePredicate field="double(Time )" operator="lessOrEqual" value="6.5"/>
+										</Node>
+									</Node>
+									<Node score="-50.85701370782597">
+										<SimplePredicate field="double(# VNF Density current)" operator="lessOrEqual" value="185.0"/>
+									</Node>
+								</Node>
+								<Node score="38.85804570099655">
+									<SimplePredicate field="double(Time )" operator="lessOrEqual" value="7.5"/>
+									<Node score="-25.025787483440507">
+										<SimplePredicate field="double(BW edge (1))" operator="lessOrEqual" value="1.1238000392913818"/>
+									</Node>
+								</Node>
+								<Node score="-56.11671849345104">
+									<SimplePredicate field="double(BW edge (1).1)" operator="lessOrEqual" value="18.643573760986328"/>
+								</Node>
+							</Node>
+							<Node score="88.21763625662021">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="16.5"/>
+								<Node score="8.454904396218597">
+									<SimplePredicate field="double(# links (2))" operator="lessOrEqual" value="33.5"/>
+									<Node score="91.15298374515828">
+										<SimplePredicate field="double(Time )" operator="lessOrEqual" value="8.5"/>
+									</Node>
+								</Node>
+								<Node score="52.302898849518854">
+									<SimplePredicate field="double(BW edge (1))" operator="lessOrEqual" value="40.15348434448242"/>
+								</Node>
+							</Node>
+							<Node score="-24.01453893615444">
+								<SimplePredicate field="double(# VNF Density current)" operator="lessOrEqual" value="533.0"/>
+								<Node score="-67.98265902419422">
+									<SimplePredicate field="double(# links (1))" operator="lessOrEqual" value="23.5"/>
+								</Node>
+							</Node>
+							<Node score="8.887879348287763">
+								<SimplePredicate field="double(# VNF Density current)" operator="lessOrEqual" value="809.5"/>
+							</Node>
+						</Node>
+						<Node score="87.38508388768007">
+							<SimplePredicate field="double(BW edge (1))" operator="lessOrEqual" value="69.55181503295898"/>
+							<Node score="67.46486806221453">
+								<SimplePredicate field="double(# links (2))" operator="lessOrEqual" value="35.5"/>
+								<Node score="206.46073320938055">
+									<SimplePredicate field="double(Time )" operator="lessOrEqual" value="8.5"/>
+									<Node score="136.48664731534814">
+										<SimplePredicate field="double(CPU server average)" operator="lessOrEqual" value="33.31800079345703"/>
+									</Node>
+								</Node>
+								<Node score="-79.43827749516768">
+									<SimplePredicate field="double(# links (2))" operator="lessOrEqual" value="24.5"/>
+								</Node>
+							</Node>
+							<Node score="194.44778942231477">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="17.5"/>
+								<Node score="111.3691211876749">
+									<SimplePredicate field="double(Time )" operator="lessOrEqual" value="12.5"/>
+								</Node>
+							</Node>
+							<Node score="21.137637839136254">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="18.5"/>
+							</Node>
+						</Node>
+						<Node score="148.4088587103606">
+							<SimplePredicate field="double(# VNF Density current)" operator="lessOrEqual" value="1497.5"/>
+							<Node score="133.7812016652478">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="10.5"/>
+								<Node score="82.40774988491674">
+									<SimplePredicate field="double(CPU server average)" operator="lessOrEqual" value="68.56100082397461"/>
+								</Node>
+							</Node>
+							<Node score="233.31604875079816">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="15.5"/>
+							</Node>
+						</Node>
+						<Node score="195.92693269258916">
+							<SimplePredicate field="double(BW edge (1).1)" operator="lessOrEqual" value="87.40421676635742"/>
+							<Node score="262.7568584187859">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="15.5"/>
+							</Node>
+						</Node>
+						<Node score="268.00940046812514">
+							<SimplePredicate field="double(BW server (2))" operator="lessOrEqual" value="649.7442016601562"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="18">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(CPU edge average (2))"/>
+						<MiningField name="double(# VNF Density current)"/>
+						<MiningField name="double(Time )"/>
+						<MiningField name="double(BW edge (1))"/>
+						<MiningField name="double(# links (2))"/>
+						<MiningField name="double(BW server (1))"/>
+						<MiningField name="double(# edge device)"/>
+						<MiningField name="double(BW server (2))"/>
+						<MiningField name="double(BW edge (1).1)"/>
+						<MiningField name="double(# links (1))"/>
+					</MiningSchema>
+					<Node score="187.04756785956204">
+						<True/>
+						<Node score="24.93588814529876">
+							<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="63.65228080749512"/>
+							<Node score="-42.00107072766835">
+								<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="41.430715560913086"/>
+								<Node score="-42.780880049494705">
+									<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="33.94930839538574"/>
+									<Node score="-71.18290419286393">
+										<SimplePredicate field="double(# VNF Density current)" operator="lessOrEqual" value="47.5"/>
+										<Node score="-59.4294707495334">
+											<SimplePredicate field="double(BW edge (1).1)" operator="lessOrEqual" value="1.0217830538749695"/>
+										</Node>
+									</Node>
+									<Node score="-50.81815114872746">
+										<SimplePredicate field="double(BW edge (1))" operator="lessOrEqual" value="6.798199892044067"/>
+									</Node>
+								</Node>
+								<Node score="49.048871531988134">
+									<SimplePredicate field="double(# edge device)" operator="lessOrEqual" value="196.5"/>
+									<Node score="-35.1711115350664">
+										<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="39.124624252319336"/>
+									</Node>
+								</Node>
+								<Node score="-116.02308110282836">
+									<SimplePredicate field="double(# edge device)" operator="lessOrEqual" value="199.5"/>
+								</Node>
+							</Node>
+							<Node score="-15.979480377108766">
+								<SimplePredicate field="double(# VNF Density current)" operator="lessOrEqual" value="543.5"/>
+								<Node score="94.59681068435818">
+									<SimplePredicate field="double(Time )" operator="lessOrEqual" value="8.5"/>
+									<Node score="14.384636993831498">
+										<SimplePredicate field="double(BW edge (1))" operator="lessOrEqual" value="5.371033191680908"/>
+									</Node>
+								</Node>
+								<Node score="-79.99249693668871">
+									<SimplePredicate field="double(# links (2))" operator="lessOrEqual" value="15.5"/>
+								</Node>
+							</Node>
+							<Node score="54.61376677467072">
+								<SimplePredicate field="double(# links (1))" operator="lessOrEqual" value="33.5"/>
+								<Node score="12.373532544539497">
+									<SimplePredicate field="double(BW edge (1).1)" operator="lessOrEqual" value="43.915687561035156"/>
+								</Node>
+							</Node>
+							<Node score="89.83929581892981">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="19.5"/>
+							</Node>
+						</Node>
+						<Node score="31.049354268927225">
+							<SimplePredicate field="double(# VNF Density current)" operator="lessOrEqual" value="1079.5"/>
+							<Node score="130.40714400751142">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="16.5"/>
+								<Node score="-0.002533181180744748">
+									<SimplePredicate field="double(Time )" operator="lessOrEqual" value="10.5"/>
+									<Node score="153.67455440266428">
+										<SimplePredicate field="double(Time )" operator="lessOrEqual" value="8.5"/>
+									</Node>
+								</Node>
+								<Node score="51.257912804397634">
+									<SimplePredicate field="double(BW edge (1))" operator="lessOrEqual" value="38.47873306274414"/>
+								</Node>
+							</Node>
+							<Node score="-48.8880308391605">
+								<SimplePredicate field="double(BW edge (1))" operator="lessOrEqual" value="46.13491630554199"/>
+								<Node score="-2.4825255167902043">
+									<SimplePredicate field="double(BW server (1))" operator="lessOrEqual" value="494.16615295410156"/>
+								</Node>
+							</Node>
+							<Node score="62.540154008333516">
+								<SimplePredicate field="double(BW server (2))" operator="lessOrEqual" value="458.7460479736328"/>
+							</Node>
+						</Node>
+						<Node score="139.77948477223865">
+							<SimplePredicate field="double(BW edge (1))" operator="lessOrEqual" value="78.2855339050293"/>
+							<Node score="194.79278085450338">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="16.5"/>
+								<Node score="117.84822279926804">
+									<SimplePredicate field="double(Time )" operator="lessOrEqual" value="12.5"/>
+								</Node>
+							</Node>
+							<Node score="77.96703170105195">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="18.5"/>
+							</Node>
+						</Node>
+						<Node score="179.1224555987026">
+							<SimplePredicate field="double(BW edge (1))" operator="lessOrEqual" value="85.91153335571289"/>
+							<Node score="85.00718000284597">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="10.0"/>
+							</Node>
+						</Node>
+						<Node score="237.27661114488643">
+							<SimplePredicate field="double(Time )" operator="lessOrEqual" value="16.5"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="19">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(CPU edge average (2))"/>
+						<MiningField name="double(# VNF Density current)"/>
+						<MiningField name="double(Time )"/>
+						<MiningField name="double(BW edge (1))"/>
+						<MiningField name="double(# links (2))"/>
+						<MiningField name="double(CPU server average)"/>
+						<MiningField name="double(CPU edge average (1))"/>
+						<MiningField name="double(# edge device)"/>
+						<MiningField name="double(BW server (2))"/>
+						<MiningField name="double(BW edge (1).1)"/>
+						<MiningField name="double(# links (1))"/>
+					</MiningSchema>
+					<Node score="205.30286279446634">
+						<True/>
+						<Node score="68.66270164797906">
+							<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="67.45845031738281"/>
+							<Node score="-29.02886922003232">
+								<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="49.38493537902832"/>
+								<Node score="-29.486727755961404">
+									<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="35.67977333068848"/>
+									<Node score="-48.49959555269205">
+										<SimplePredicate field="double(BW edge (1).1)" operator="lessOrEqual" value="9.000359535217285"/>
+										<Node score="-53.807661489552515">
+											<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="29.9012393951416"/>
+										</Node>
+									</Node>
+									<Node score="-40.40524404476151">
+										<SimplePredicate field="double(# edge device)" operator="lessOrEqual" value="236.0"/>
+									</Node>
+								</Node>
+								<Node score="62.63073951279754">
+									<SimplePredicate field="double(Time )" operator="lessOrEqual" value="7.5"/>
+									<Node score="-13.004619163099992">
+										<SimplePredicate field="double(CPU server average)" operator="lessOrEqual" value="8.622000217437744"/>
+									</Node>
+								</Node>
+								<Node score="-68.24256468102081">
+									<SimplePredicate field="double(BW edge (1).1)" operator="lessOrEqual" value="9.771767139434814"/>
+								</Node>
+							</Node>
+							<Node score="96.13035006814266">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="16.5"/>
+								<Node score="49.73802971874827">
+									<SimplePredicate field="double(Time )" operator="lessOrEqual" value="13.5"/>
+									<Node score="3.6312902124590263">
+										<SimplePredicate field="double(# links (2))" operator="lessOrEqual" value="33.5"/>
+									</Node>
+								</Node>
+								<Node score="-51.62200097366305">
+									<SimplePredicate field="double(# links (1))" operator="lessOrEqual" value="12.5"/>
+								</Node>
+							</Node>
+							<Node score="-34.57400328913448">
+								<SimplePredicate field="double(# VNF Density current)" operator="lessOrEqual" value="498.5"/>
+								<Node score="-89.88484347211973">
+									<SimplePredicate field="double(# links (1))" operator="lessOrEqual" value="15.5"/>
+								</Node>
+							</Node>
+							<Node score="3.7025782312340065">
+								<SimplePredicate field="double(# VNF Density current)" operator="lessOrEqual" value="809.5"/>
+							</Node>
+						</Node>
+						<Node score="79.29882596594094">
+							<SimplePredicate field="double(# VNF Density current)" operator="lessOrEqual" value="1189.5"/>
+							<Node score="59.88487768653604">
+								<SimplePredicate field="double(BW edge (1))" operator="lessOrEqual" value="51.63825035095215"/>
+								<Node score="172.0249010485656">
+									<SimplePredicate field="double(Time )" operator="lessOrEqual" value="8.5"/>
+									<Node score="67.64074765611232">
+										<SimplePredicate field="double(BW server (2))" operator="lessOrEqual" value="403.2030487060547"/>
+									</Node>
+								</Node>
+								<Node score="-58.13630856985844">
+									<SimplePredicate field="double(Time )" operator="lessOrEqual" value="10.5"/>
+								</Node>
+							</Node>
+							<Node score="193.82492170010892">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="15.5"/>
+								<Node score="91.91813695207749">
+									<SimplePredicate field="double(Time )" operator="lessOrEqual" value="12.5"/>
+								</Node>
+							</Node>
+							<Node score="41.129143666323195">
+								<SimplePredicate field="double(# links (1))" operator="lessOrEqual" value="34.5"/>
+							</Node>
+						</Node>
+						<Node score="148.88809881809237">
+							<SimplePredicate field="double(CPU server average)" operator="lessOrEqual" value="76.01900100708008"/>
+							<Node score="8.668539266014562">
+								<SimplePredicate field="double(# links (1))" operator="lessOrEqual" value="33.5"/>
+							</Node>
+							<Node score="91.68621581084875">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="10.5"/>
+							</Node>
+						</Node>
+						<Node score="151.77796474936002">
+							<SimplePredicate field="double(BW edge (1).1)" operator="lessOrEqual" value="87.40421676635742"/>
+							<Node score="193.73205747307694">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="16.5"/>
+							</Node>
+						</Node>
+						<Node score="226.07579605923283">
+							<SimplePredicate field="double(CPU edge average (1))" operator="lessOrEqual" value="84.69199752807617"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="20">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(CPU edge average (2))"/>
+						<MiningField name="double(# VNF Density current)"/>
+						<MiningField name="double(Time )"/>
+						<MiningField name="double(BW edge (1))"/>
+						<MiningField name="double(# links (2))"/>
+						<MiningField name="double(CPU server average)"/>
+						<MiningField name="double(# edge device)"/>
+						<MiningField name="double(BW server (2))"/>
+						<MiningField name="double(BW edge (1).1)"/>
+						<MiningField name="double(# links (1))"/>
+					</MiningSchema>
+					<Node score="195.93903220702862">
+						<True/>
+						<Node score="61.35183194222192">
+							<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="67.45845031738281"/>
+							<Node score="-12.968078348259233">
+								<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="49.38493537902832"/>
+								<Node score="-31.632706164036314">
+									<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="35.67977333068848"/>
+									<Node score="-45.63364707025918">
+										<SimplePredicate field="double(# VNF Density current)" operator="lessOrEqual" value="84.5"/>
+										<Node score="-48.73510550327897">
+											<SimplePredicate field="double(Time )" operator="lessOrEqual" value="5.5"/>
+										</Node>
+									</Node>
+									<Node score="-39.11033715094954">
+										<SimplePredicate field="double(CPU server average)" operator="lessOrEqual" value="10.95300006866455"/>
+									</Node>
+								</Node>
+								<Node score="54.60843492767207">
+									<SimplePredicate field="double(Time )" operator="lessOrEqual" value="7.5"/>
+									<Node score="-12.358244239594141">
+										<SimplePredicate field="double(CPU server average)" operator="lessOrEqual" value="8.571000099182129"/>
+									</Node>
+								</Node>
+								<Node score="-43.279364326721314">
+									<SimplePredicate field="double(BW edge (1).1)" operator="lessOrEqual" value="18.643573760986328"/>
+								</Node>
+							</Node>
+							<Node score="93.44988568833945">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="16.5"/>
+								<Node score="57.51338649336437">
+									<SimplePredicate field="double(Time )" operator="lessOrEqual" value="13.5"/>
+									<Node score="5.706332852759729">
+										<SimplePredicate field="double(BW edge (1))" operator="lessOrEqual" value="40.114200592041016"/>
+									</Node>
+								</Node>
+								<Node score="-26.45651366414974">
+									<SimplePredicate field="double(# links (1))" operator="lessOrEqual" value="14.5"/>
+								</Node>
+							</Node>
+							<Node score="-17.083413516127386">
+								<SimplePredicate field="double(# VNF Density current)" operator="lessOrEqual" value="533.0"/>
+								<Node score="-53.14543369162207">
+									<SimplePredicate field="double(# links (2))" operator="lessOrEqual" value="30.5"/>
+								</Node>
+							</Node>
+							<Node score="6.220271892277867">
+								<SimplePredicate field="double(# VNF Density current)" operator="lessOrEqual" value="809.5"/>
+							</Node>
+						</Node>
+						<Node score="12.791594854250159">
+							<SimplePredicate field="double(# VNF Density current)" operator="lessOrEqual" value="1287.5"/>
+							<Node score="56.92565199442066">
+								<SimplePredicate field="double(# VNF Density current)" operator="lessOrEqual" value="912.5"/>
+								<Node score="161.96837281633265">
+									<SimplePredicate field="double(Time )" operator="lessOrEqual" value="8.5"/>
+									<Node score="94.69202373001434">
+										<SimplePredicate field="double(# edge device)" operator="lessOrEqual" value="294.5"/>
+									</Node>
+								</Node>
+								<Node score="-31.942618180246026">
+									<SimplePredicate field="double(Time )" operator="lessOrEqual" value="10.5"/>
+								</Node>
+							</Node>
+							<Node score="186.68517660555932">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="15.5"/>
+								<Node score="86.48590297414565">
+									<SimplePredicate field="double(Time )" operator="lessOrEqual" value="12.5"/>
+								</Node>
+							</Node>
+							<Node score="66.83763968188076">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="20.5"/>
+							</Node>
+						</Node>
+						<Node score="191.31105197193776">
+							<SimplePredicate field="double(BW edge (1))" operator="lessOrEqual" value="85.91153335571289"/>
+							<Node score="189.78069795640744">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="15.5"/>
+								<Node score="103.35110119969704">
+									<SimplePredicate field="double(Time )" operator="lessOrEqual" value="12.5"/>
+								</Node>
+							</Node>
+							<Node score="109.1385061816559">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="18.5"/>
+							</Node>
+						</Node>
+						<Node score="198.1259257518355">
+							<SimplePredicate field="double(Time )" operator="lessOrEqual" value="15.5"/>
+							<Node score="232.85415256907535">
+								<SimplePredicate field="double(BW server (2))" operator="lessOrEqual" value="647.3875427246094"/>
+							</Node>
+						</Node>
+						<Node score="155.46583007591428">
+							<SimplePredicate field="double(# VNF Density current)" operator="lessOrEqual" value="1603.0"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="21">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(CPU edge average (2))"/>
+						<MiningField name="double(# VNF Density current)"/>
+						<MiningField name="double(Time )"/>
+						<MiningField name="double(BW edge (1))"/>
+						<MiningField name="double(# links (2))"/>
+						<MiningField name="double(# edge device)"/>
+						<MiningField name="double(BW server (2))"/>
+						<MiningField name="double(BW edge (1).1)"/>
+					</MiningSchema>
+					<Node score="162.9198721011489">
+						<True/>
+						<Node score="75.12698931222036">
+							<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="68.78455352783203"/>
+							<Node score="-23.179394583799823">
+								<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="49.38493537902832"/>
+								<Node score="-22.827410584656867">
+									<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="35.67977333068848"/>
+									<Node score="-39.01995177811051">
+										<SimplePredicate field="double(BW edge (1).1)" operator="lessOrEqual" value="9.094825267791748"/>
+										<Node score="-43.59607608411085">
+											<SimplePredicate field="double(Time )" operator="lessOrEqual" value="6.5"/>
+										</Node>
+									</Node>
+									<Node score="-32.59995548884225">
+										<SimplePredicate field="double(# VNF Density current)" operator="lessOrEqual" value="185.0"/>
+									</Node>
+								</Node>
+								<Node score="23.310180875135988">
+									<SimplePredicate field="double(Time )" operator="lessOrEqual" value="7.5"/>
+									<Node score="-22.806956383404284">
+										<SimplePredicate field="double(# edge device)" operator="lessOrEqual" value="207.5"/>
+									</Node>
+								</Node>
+								<Node score="-57.701401649239635">
+									<SimplePredicate field="double(BW edge (1).1)" operator="lessOrEqual" value="9.771767139434814"/>
+								</Node>
+							</Node>
+							<Node score="-7.115349409599748">
+								<SimplePredicate field="double(# VNF Density current)" operator="lessOrEqual" value="773.5"/>
+								<Node score="61.584271927271445">
+									<SimplePredicate field="double(Time )" operator="lessOrEqual" value="16.5"/>
+									<Node score="9.489391512846218">
+										<SimplePredicate field="double(Time )" operator="lessOrEqual" value="13.5"/>
+									</Node>
+								</Node>
+								<Node score="-58.44298502199467">
+									<SimplePredicate field="double(Time )" operator="lessOrEqual" value="18.5"/>
+								</Node>
+							</Node>
+							<Node score="10.667124201322636">
+								<SimplePredicate field="double(BW edge (1))" operator="lessOrEqual" value="52.656782150268555"/>
+								<Node score="50.72810124799146">
+									<SimplePredicate field="double(# links (2))" operator="lessOrEqual" value="40.5"/>
+								</Node>
+							</Node>
+							<Node score="90.33315089476721">
+								<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="67.58329010009766"/>
+							</Node>
+						</Node>
+						<Node score="67.26532131132568">
+							<SimplePredicate field="double(# VNF Density current)" operator="lessOrEqual" value="1287.5"/>
+							<Node score="-6.9984476356506224">
+								<SimplePredicate field="double(# links (2))" operator="lessOrEqual" value="37.5"/>
+								<Node score="81.78986757406132">
+									<SimplePredicate field="double(Time )" operator="lessOrEqual" value="17.5"/>
+									<Node score="39.516400343345964">
+										<SimplePredicate field="double(Time )" operator="lessOrEqual" value="11.5"/>
+									</Node>
+								</Node>
+								<Node score="-62.05969897271028">
+									<SimplePredicate field="double(# VNF Density current)" operator="lessOrEqual" value="843.5"/>
+								</Node>
+							</Node>
+							<Node score="181.40978840703355">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="17.5"/>
+								<Node score="89.28125405450191">
+									<SimplePredicate field="double(Time )" operator="lessOrEqual" value="13.5"/>
+								</Node>
+							</Node>
+							<Node score="8.986243901658991">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="18.5"/>
+							</Node>
+						</Node>
+						<Node score="172.71500522209334">
+							<SimplePredicate field="double(BW edge (1))" operator="lessOrEqual" value="85.91153335571289"/>
+							<Node score="170.91341160593782">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="15.5"/>
+								<Node score="92.79389134686538">
+									<SimplePredicate field="double(Time )" operator="lessOrEqual" value="12.5"/>
+								</Node>
+							</Node>
+							<Node score="98.41975974871173">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="18.5"/>
+							</Node>
+						</Node>
+						<Node score="177.49205477453032">
+							<SimplePredicate field="double(Time )" operator="lessOrEqual" value="15.5"/>
+							<Node score="213.38073943608572">
+								<SimplePredicate field="double(BW server (2))" operator="lessOrEqual" value="646.7072143554688"/>
+							</Node>
+						</Node>
+						<Node score="135.79599167229458">
+							<SimplePredicate field="double(BW edge (1).1)" operator="lessOrEqual" value="87.40421676635742"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="22">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(CPU edge average (2))"/>
+						<MiningField name="double(# VNF Density current)"/>
+						<MiningField name="double(Time )"/>
+						<MiningField name="double(BW edge (1))"/>
+						<MiningField name="double(# links (2))"/>
+						<MiningField name="double(CPU server average)"/>
+						<MiningField name="double(CPU edge average (1))"/>
+						<MiningField name="double(BW server (1))"/>
+						<MiningField name="double(BW server (2))"/>
+						<MiningField name="double(BW edge (1).1)"/>
+						<MiningField name="double(# links (1))"/>
+					</MiningSchema>
+					<Node score="129.77585849225977">
+						<True/>
+						<Node score="85.50358649815932">
+							<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="68.78455352783203"/>
+							<Node score="-2.3577259522286687">
+								<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="51.10813331604004"/>
+								<Node score="-33.847870551539906">
+									<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="37.64035224914551"/>
+									<Node score="-66.81818990978827">
+										<SimplePredicate field="double(BW server (2))" operator="lessOrEqual" value="27.00685691833496"/>
+										<Node score="-38.93953819957694">
+											<SimplePredicate field="double(BW edge (1).1)" operator="lessOrEqual" value="0.8953608274459839"/>
+										</Node>
+									</Node>
+									<Node score="17.589833429979326">
+										<SimplePredicate field="double(BW edge (1).1)" operator="lessOrEqual" value="1.0759944319725037"/>
+									</Node>
+								</Node>
+								<Node score="71.89273567318752">
+									<SimplePredicate field="double(Time )" operator="lessOrEqual" value="7.5"/>
+									<Node score="-4.505301469959203">
+										<SimplePredicate field="double(CPU edge average (1))" operator="lessOrEqual" value="34.28666687011719"/>
+									</Node>
+								</Node>
+								<Node score="-32.36177962113504">
+									<SimplePredicate field="double(# VNF Density current)" operator="lessOrEqual" value="335.5"/>
+								</Node>
+							</Node>
+							<Node score="1.5446920949905718">
+								<SimplePredicate field="double(# VNF Density current)" operator="lessOrEqual" value="773.5"/>
+								<Node score="56.86920352184661">
+									<SimplePredicate field="double(Time )" operator="lessOrEqual" value="16.5"/>
+									<Node score="9.511173016798285">
+										<SimplePredicate field="double(Time )" operator="lessOrEqual" value="13.5"/>
+									</Node>
+								</Node>
+								<Node score="-33.23714540575715">
+									<SimplePredicate field="double(# links (1))" operator="lessOrEqual" value="28.5"/>
+								</Node>
+							</Node>
+							<Node score="9.600411781190374">
+								<SimplePredicate field="double(BW edge (1))" operator="lessOrEqual" value="52.656782150268555"/>
+								<Node score="45.2784293849553">
+									<SimplePredicate field="double(# links (2))" operator="lessOrEqual" value="40.5"/>
+								</Node>
+							</Node>
+							<Node score="62.99016461884263">
+								<SimplePredicate field="double(BW server (1))" operator="lessOrEqual" value="474.8470764160156"/>
+							</Node>
+						</Node>
+						<Node score="-18.006386183566896">
+							<SimplePredicate field="double(# VNF Density current)" operator="lessOrEqual" value="1287.5"/>
+							<Node score="-0.6834966842088566">
+								<SimplePredicate field="double(# links (2))" operator="lessOrEqual" value="37.5"/>
+								<Node score="72.94345629844173">
+									<SimplePredicate field="double(Time )" operator="lessOrEqual" value="17.5"/>
+									<Node score="34.63731302995863">
+										<SimplePredicate field="double(Time )" operator="lessOrEqual" value="11.5"/>
+									</Node>
+								</Node>
+								<Node score="-48.9909330067018">
+									<SimplePredicate field="double(# links (1))" operator="lessOrEqual" value="30.5"/>
+								</Node>
+							</Node>
+							<Node score="-11.697666431978345">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="20.5"/>
+								<Node score="90.43845306432095">
+									<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="83.6965217590332"/>
+								</Node>
+							</Node>
+							<Node score="29.688379359604596">
+								<SimplePredicate field="double(CPU edge average (1))" operator="lessOrEqual" value="72.38999938964844"/>
+							</Node>
+						</Node>
+						<Node score="43.88026729799738">
+							<SimplePredicate field="double(CPU server average)" operator="lessOrEqual" value="76.01900100708008"/>
+							<Node score="91.5249579187104">
+								<SimplePredicate field="double(CPU edge average (1))" operator="lessOrEqual" value="84.40599822998047"/>
+								<Node score="137.96448009405566">
+									<SimplePredicate field="double(Time )" operator="lessOrEqual" value="15.5"/>
+								</Node>
+							</Node>
+						</Node>
+						<Node score="172.69992014112992">
+							<SimplePredicate field="double(Time )" operator="lessOrEqual" value="16.5"/>
+							<Node score="143.17560103212517">
+								<SimplePredicate field="double(BW edge (1))" operator="lessOrEqual" value="89.07061767578125"/>
+							</Node>
+						</Node>
+						<Node score="101.31794917743002">
+							<SimplePredicate field="double(CPU edge average (1))" operator="lessOrEqual" value="83.80099868774414"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="23">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(CPU edge average (2))"/>
+						<MiningField name="double(# VNF Density current)"/>
+						<MiningField name="double(Time )"/>
+						<MiningField name="double(BW edge (1))"/>
+						<MiningField name="double(# links (2))"/>
+						<MiningField name="double(CPU server average)"/>
+						<MiningField name="double(CPU edge average (1))"/>
+						<MiningField name="double(BW server (1))"/>
+						<MiningField name="double(BW server (2))"/>
+						<MiningField name="double(BW edge (1).1)"/>
+						<MiningField name="double(# links (1))"/>
+					</MiningSchema>
+					<Node score="95.08259998820614">
+						<True/>
+						<Node score="45.38437489821156">
+							<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="68.78455352783203"/>
+							<Node score="-29.188389084217015">
+								<SimplePredicate field="double(CPU server average)" operator="lessOrEqual" value="20.201000213623047"/>
+								<Node score="-21.487378049599307">
+									<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="33.94930839538574"/>
+									<Node score="-45.18361592097148">
+										<SimplePredicate field="double(# links (1))" operator="lessOrEqual" value="14.5"/>
+										<Node score="-35.06253370630164">
+											<SimplePredicate field="double(BW server (1))" operator="lessOrEqual" value="47.84000015258789"/>
+										</Node>
+									</Node>
+									<Node score="-28.48979519401574">
+										<SimplePredicate field="double(BW edge (1).1)" operator="lessOrEqual" value="11.943053245544434"/>
+									</Node>
+								</Node>
+								<Node score="34.81935255616944">
+									<SimplePredicate field="double(Time )" operator="lessOrEqual" value="8.5"/>
+									<Node score="-14.54550597342384">
+										<SimplePredicate field="double(CPU server average)" operator="lessOrEqual" value="8.571000099182129"/>
+									</Node>
+								</Node>
+								<Node score="-90.11910083668522">
+									<SimplePredicate field="double(Time )" operator="lessOrEqual" value="10.5"/>
+								</Node>
+							</Node>
+							<Node score="123.48707541394747">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="15.5"/>
+								<Node score="5.04841093574399">
+									<SimplePredicate field="double(Time )" operator="lessOrEqual" value="13.5"/>
+									<Node score="107.68020591579209">
+										<SimplePredicate field="double(# VNF Density current)" operator="lessOrEqual" value="230.5"/>
+									</Node>
+								</Node>
+								<Node score="27.110420748859887">
+									<SimplePredicate field="double(BW edge (1))" operator="lessOrEqual" value="23.399166107177734"/>
+								</Node>
+							</Node>
+							<Node score="-62.200234075273244">
+								<SimplePredicate field="double(# VNF Density current)" operator="lessOrEqual" value="757.5"/>
+								<Node score="-7.501494068515029">
+									<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="66.02619171142578"/>
+								</Node>
+							</Node>
+							<Node score="14.354219290081994">
+								<SimplePredicate field="double(BW server (2))" operator="lessOrEqual" value="383.73504638671875"/>
+							</Node>
+						</Node>
+						<Node score="53.44778796149554">
+							<SimplePredicate field="double(# VNF Density current)" operator="lessOrEqual" value="1287.5"/>
+							<Node score="0.8254423580581731">
+								<SimplePredicate field="double(# links (2))" operator="lessOrEqual" value="37.5"/>
+								<Node score="39.540439557909174">
+									<SimplePredicate field="double(Time )" operator="lessOrEqual" value="17.5"/>
+									<Node score="122.67280346550511">
+										<SimplePredicate field="double(Time )" operator="lessOrEqual" value="8.5"/>
+									</Node>
+								</Node>
+								<Node score="-44.028891526449954">
+									<SimplePredicate field="double(BW edge (1).1)" operator="lessOrEqual" value="52.72187042236328"/>
+								</Node>
+							</Node>
+							<Node score="152.9363054707629">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="17.5"/>
+								<Node score="71.11489031716216">
+									<SimplePredicate field="double(Time )" operator="lessOrEqual" value="13.5"/>
+								</Node>
+							</Node>
+							<Node score="-1.371564899895521">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="18.5"/>
+							</Node>
+						</Node>
+						<Node score="28.93691233784113">
+							<SimplePredicate field="double(BW edge (1))" operator="lessOrEqual" value="82.82373428344727"/>
+							<Node score="87.76451944972767">
+								<SimplePredicate field="double(CPU edge average (1))" operator="lessOrEqual" value="83.82566452026367"/>
+								<Node score="133.56158144688195">
+									<SimplePredicate field="double(Time )" operator="lessOrEqual" value="14.5"/>
+								</Node>
+							</Node>
+							<Node score="89.82476633596514">
+								<SimplePredicate field="double(BW server (1))" operator="lessOrEqual" value="595.7344055175781"/>
+							</Node>
+						</Node>
+						<Node score="142.58209591106424">
+							<SimplePredicate field="double(Time )" operator="lessOrEqual" value="16.5"/>
+							<Node score="122.96927887395447">
+								<SimplePredicate field="double(BW edge (1).1)" operator="lessOrEqual" value="85.92626571655273"/>
+							</Node>
+						</Node>
+						<Node score="135.08390661972388">
+							<SimplePredicate field="double(BW server (2))" operator="lessOrEqual" value="608.281005859375"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="24">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(CPU edge average (2))"/>
+						<MiningField name="double(# VNF Density current)"/>
+						<MiningField name="double(Time )"/>
+						<MiningField name="double(BW edge (1))"/>
+						<MiningField name="double(# links (2))"/>
+						<MiningField name="double(CPU server average)"/>
+						<MiningField name="double(CPU edge average (1))"/>
+						<MiningField name="double(BW server (1))"/>
+						<MiningField name="double(# edge device)"/>
+						<MiningField name="double(BW server (2))"/>
+						<MiningField name="double(# links (1))"/>
+					</MiningSchema>
+					<Node score="131.71973033397032">
+						<True/>
+						<Node score="-11.660831461135016">
+							<SimplePredicate field="double(# VNF Density current)" operator="lessOrEqual" value="687.5"/>
+							<Node score="-22.384217972205256">
+								<SimplePredicate field="double(CPU server average)" operator="lessOrEqual" value="19.378999710083008"/>
+								<Node score="-18.799718222806383">
+									<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="33.94930839538574"/>
+									<Node score="-45.345553819418654">
+										<SimplePredicate field="double(# VNF Density current)" operator="lessOrEqual" value="47.5"/>
+										<Node score="-31.577265115128498">
+											<SimplePredicate field="double(CPU edge average (1))" operator="lessOrEqual" value="17.383999824523926"/>
+										</Node>
+									</Node>
+									<Node score="-25.693988732281735">
+										<SimplePredicate field="double(BW edge (1))" operator="lessOrEqual" value="9.34523344039917"/>
+									</Node>
+								</Node>
+								<Node score="17.8816492804918">
+									<SimplePredicate field="double(Time )" operator="lessOrEqual" value="8.5"/>
+									<Node score="-21.66166630082454">
+										<SimplePredicate field="double(# edge device)" operator="lessOrEqual" value="207.5"/>
+									</Node>
+								</Node>
+								<Node score="-54.91286255651684">
+									<SimplePredicate field="double(# links (2))" operator="lessOrEqual" value="13.5"/>
+								</Node>
+							</Node>
+							<Node score="-29.386063905295792">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="8.5"/>
+								<Node score="138.9818536892044">
+									<SimplePredicate field="double(BW server (1))" operator="lessOrEqual" value="535.2936096191406"/>
+									<Node score="64.83053832722912">
+										<SimplePredicate field="double(BW server (2))" operator="lessOrEqual" value="408.046142578125"/>
+									</Node>
+								</Node>
+							</Node>
+							<Node score="-96.60123709611645">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="10.5"/>
+								<Node score="-6.1555047640471585">
+									<SimplePredicate field="double(BW edge (1))" operator="lessOrEqual" value="19.882766723632812"/>
+								</Node>
+							</Node>
+							<Node score="21.538363246844476">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="16.5"/>
+							</Node>
+						</Node>
+						<Node score="11.570670603077774">
+							<SimplePredicate field="double(# VNF Density current)" operator="lessOrEqual" value="1181.5"/>
+							<Node score="36.56282968322725">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="17.5"/>
+								<Node score="69.06466512191648">
+									<SimplePredicate field="double(Time )" operator="lessOrEqual" value="10.5"/>
+									<Node score="6.532594087048913">
+										<SimplePredicate field="double(# links (2))" operator="lessOrEqual" value="38.5"/>
+									</Node>
+								</Node>
+								<Node score="89.31473676957029">
+									<SimplePredicate field="double(Time )" operator="lessOrEqual" value="15.5"/>
+								</Node>
+							</Node>
+							<Node score="-2.9969202200940623">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="18.5"/>
+								<Node score="-44.24073290443973">
+									<SimplePredicate field="double(# VNF Density current)" operator="lessOrEqual" value="885.5"/>
+								</Node>
+							</Node>
+							<Node score="50.54677915534509">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="19.5"/>
+							</Node>
+						</Node>
+						<Node score="90.79783320434365">
+							<SimplePredicate field="double(# VNF Density current)" operator="lessOrEqual" value="1497.5"/>
+							<Node score="-16.63415570426459">
+								<SimplePredicate field="double(# links (1))" operator="lessOrEqual" value="33.5"/>
+							</Node>
+							<Node score="37.89345490430914">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="9.5"/>
+							</Node>
+						</Node>
+						<Node score="147.11109519026311">
+							<SimplePredicate field="double(Time )" operator="lessOrEqual" value="15.5"/>
+							<Node score="110.07735516625137">
+								<SimplePredicate field="double(CPU server average)" operator="lessOrEqual" value="77.64500045776367"/>
+							</Node>
+						</Node>
+						<Node score="95.23937127302882">
+							<SimplePredicate field="double(# VNF Density current)" operator="lessOrEqual" value="1603.0"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="25">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(CPU edge average (2))"/>
+						<MiningField name="double(# VNF Density current)"/>
+						<MiningField name="double(Time )"/>
+						<MiningField name="double(BW edge (1))"/>
+						<MiningField name="double(# links (2))"/>
+						<MiningField name="double(CPU server average)"/>
+						<MiningField name="double(CPU edge average (1))"/>
+						<MiningField name="double(BW server (1))"/>
+						<MiningField name="double(# edge device)"/>
+						<MiningField name="double(BW server (2))"/>
+						<MiningField name="double(BW edge (1).1)"/>
+					</MiningSchema>
+					<Node score="118.54775730057324">
+						<True/>
+						<Node score="-7.104623698114761">
+							<SimplePredicate field="double(# VNF Density current)" operator="lessOrEqual" value="809.5"/>
+							<Node score="-29.41077774792267">
+								<SimplePredicate field="double(CPU edge average (1))" operator="lessOrEqual" value="49.39933204650879"/>
+								<Node score="-12.22432140246755">
+									<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="35.67977333068848"/>
+									<Node score="-43.353376670735805">
+										<SimplePredicate field="double(BW edge (1))" operator="lessOrEqual" value="6.798199892044067"/>
+										<Node score="-28.263293063883395">
+											<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="35.109222412109375"/>
+										</Node>
+									</Node>
+									<Node score="-20.343254701179696">
+										<SimplePredicate field="double(# edge device)" operator="lessOrEqual" value="236.0"/>
+									</Node>
+								</Node>
+								<Node score="32.9817564616052">
+									<SimplePredicate field="double(BW server (1))" operator="lessOrEqual" value="340.8146667480469"/>
+									<Node score="-14.023515917627252">
+										<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="51.64483642578125"/>
+									</Node>
+								</Node>
+								<Node score="-84.12182463520178">
+									<SimplePredicate field="double(# edge device)" operator="lessOrEqual" value="276.5"/>
+								</Node>
+							</Node>
+							<Node score="146.19858354158666">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="8.5"/>
+								<Node score="-70.17348952192924">
+									<SimplePredicate field="double(CPU edge average (1))" operator="lessOrEqual" value="78.29233169555664"/>
+									<Node score="82.14218092029306">
+										<SimplePredicate field="double(BW server (1))" operator="lessOrEqual" value="512.7000427246094"/>
+									</Node>
+								</Node>
+							</Node>
+							<Node score="-37.13570361390592">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="10.5"/>
+								<Node score="-119.48538593028725">
+									<SimplePredicate field="double(BW edge (1).1)" operator="lessOrEqual" value="31.040860176086426"/>
+								</Node>
+							</Node>
+							<Node score="25.00448770850774">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="16.5"/>
+							</Node>
+						</Node>
+						<Node score="1.2682107093489243">
+							<SimplePredicate field="double(# VNF Density current)" operator="lessOrEqual" value="1339.5"/>
+							<Node score="151.39658932877768">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="15.5"/>
+								<Node score="60.17291714185955">
+									<SimplePredicate field="double(Time )" operator="lessOrEqual" value="11.5"/>
+									<Node score="14.157490060709055">
+										<SimplePredicate field="double(# links (2))" operator="lessOrEqual" value="38.5"/>
+									</Node>
+								</Node>
+								<Node score="81.7932978710761">
+									<SimplePredicate field="double(Time )" operator="lessOrEqual" value="13.5"/>
+								</Node>
+							</Node>
+							<Node score="-12.370631767973574">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="18.5"/>
+								<Node score="33.44152672468438">
+									<SimplePredicate field="double(Time )" operator="lessOrEqual" value="17.5"/>
+								</Node>
+							</Node>
+							<Node score="59.4528032104475">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="20.5"/>
+							</Node>
+						</Node>
+						<Node score="50.12954663811796">
+							<SimplePredicate field="double(CPU server average)" operator="lessOrEqual" value="77.74499893188477"/>
+							<Node score="64.46957970361329">
+								<SimplePredicate field="double(BW server (2))" operator="lessOrEqual" value="625.9121704101562"/>
+								<Node score="150.7616454475386">
+									<SimplePredicate field="double(# VNF Density current)" operator="lessOrEqual" value="1350.5"/>
+								</Node>
+							</Node>
+							<Node score="103.48836011874">
+								<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="84.40599822998047"/>
+							</Node>
+						</Node>
+						<Node score="111.16441603363828">
+							<SimplePredicate field="double(Time )" operator="lessOrEqual" value="15.5"/>
+							<Node score="158.6685015210796">
+								<SimplePredicate field="double(BW server (1))" operator="lessOrEqual" value="636.6289978027344"/>
+							</Node>
+						</Node>
+						<Node score="87.84500291716454">
+							<SimplePredicate field="double(# VNF Density current)" operator="lessOrEqual" value="1603.0"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+		</Segmentation>
+	</MiningModel>
+</PMML>

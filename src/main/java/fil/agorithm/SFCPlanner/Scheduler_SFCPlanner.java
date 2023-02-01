@@ -41,8 +41,8 @@ public class Scheduler_SFCPlanner {
 	final static int HOUR = 3600;
 	final static double THOUS = 1000.0;
 	final static double MIL = 1000000.0;
-	final static double INIENERGY = 19.0;
-	
+	final static double INIENERGY = 15.68; // calculate by power*time/number of pod
+	final static double DELENERGY = 14.39; // calculate by power*time/number of pod	
 	private double totalEnergy;
 	private double iniEnergy;
 	private double delEnergy;
@@ -89,10 +89,12 @@ public class Scheduler_SFCPlanner {
 		LinkedList<Integer> listAcceptTW = new LinkedList<>();
 		LinkedList<Double> listAveSerUtil = new LinkedList<>();
 		LinkedList<Double> listTotalPower = new LinkedList<>();
+		LinkedList<Double> listPowerCold = new LinkedList<>();
 		LinkedList<Double> listAcceptance = new LinkedList<>();
 		LinkedList<Double> listEnergy = new LinkedList<>();
 		LinkedList<Double> listDownTime = new LinkedList<>();
-		
+//		LinkedList<Double> listDownTimePerSFC = new LinkedList<>();
+
 		double time4Energy = 0.0;
 		
 		for(int eventInTW = 0; eventInTW < listTotalEvent.size(); eventInTW ++) {
@@ -104,6 +106,7 @@ public class Scheduler_SFCPlanner {
 			int totalSFCacceptTW = 0;
 			double aveSerUtil = 0.0;
 			double power1h = 0.0;
+			double powerCold1h = 0.0;
 			double downtime1h = 0.0;
 
 			// reset global variables
@@ -139,9 +142,9 @@ public class Scheduler_SFCPlanner {
 						this.listSFCTotal.remove(event.getSfc());
 					}
 					// calculate downtime
-					downtime1h += (this.getDowntime(event.getSfc()));
+//					downtime1h += (this.getDowntime(event.getSfc()));
 
-//					downtime1h += (this.getDowntime(event.getSfc())/this.listSFCTotal.size());
+					downtime1h += (this.getDowntime(event.getSfc())/this.listSFCTotal.size());
 					
 					// calculate energy
 					this.addTotalEnergy((insPower*(event.getTime() - time4Energy)*HOUR));
@@ -156,15 +159,19 @@ public class Scheduler_SFCPlanner {
 				}
 			} // loop each event
 			// consolidation
-			if(totalReqTW < 1000) { // condition low load
-				Map<SFC, LinkedList<Service>> migSFC = this.consolidation();
-				downtime1h += this.getDowntime(migSFC);
-			}
+//			if(totalReqTW < 1050) { // condition low load
+			System.out.println("End of TW, consolidating ...");
+//			Map<SFC, LinkedList<Service>> migSFC = this.consolidation();
+			System.out.println("Done consolidation.");
+
+//			downtime1h +s= (this.getDowntime(migSFC)/this.listSFCTotal.size());
+//			}
 			// update variables after 1 hour
-			power1h += ((this.getIniEnergy() + this.getDelEnergy())/HOUR);
+			powerCold1h += ((this.getIniEnergy() + this.getDelEnergy())/HOUR);
+			power1h += powerCold1h;
 			listEnergy.add(this.getTotalEnergy());
 			listTotalPower.add(power1h/THOUS);
-			
+			listPowerCold.add(powerCold1h/THOUS);
 			listDownTime.add(downtime1h);
 			listError.add(this.error);
 			// store log values
@@ -187,16 +194,17 @@ public class Scheduler_SFCPlanner {
 //		    System.out.println("Directory is created!");
 			String path = "./PlotSFCPlanner/" + type;
 
-			write_integer(path + "/AveReqTW.txt",listReqTW);
-			write_integer(path + "/AveReqLvTW.txt",listReqLvTW);
-			write_integer(path + "/AveReqActive.txt",listSFCActive);
-			write_integer(path + "/AveAcceptTW.txt",listAcceptTW);
-			write_integer(path + "/TotalError.txt",listError);
-			write_double(path + "/AveServerUtil.txt",listAveSerUtil);
-			write_double(path + "/AvePower.txt",listTotalPower);
-			write_double(path + "/TotalEnergy.txt",listEnergy);
-			write_double(path + "/AveAcceptance.txt",listAcceptance);
-			write_double(path + "/AveDownTime.txt",listDownTime);
+			write_integer(path + "/ReqTWSFCP.txt",listReqTW);
+			write_integer(path + "/ReqLvTWSFCP.txt",listReqLvTW);
+			write_integer(path + "/ReqActiveSFCP.txt",listSFCActive);
+			write_integer(path + "/AcceptTWSFCP.txt",listAcceptTW);
+			write_integer(path + "/RelocateSFCP.txt",listError);
+			write_double(path + "/AveServerUtilSFCP.txt",listAveSerUtil);
+			write_double(path + "/PowerSFCP.txt",listTotalPower);
+			write_double(path + "/PowerColdTermSFCP.txt",listPowerCold);
+			write_double(path + "/EnergySFCP.txt",listEnergy);
+			write_double(path + "/AveAcceptanceSFCP.txt",listAcceptance);
+			write_double(path + "/AveDownTimeSFCP.txt",listDownTime);
 
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -205,30 +213,31 @@ public class Scheduler_SFCPlanner {
 
 	}
 	
+	
 	public Map<SFC, LinkedList<Service>> consolidation() {
 		Map<SFC, LinkedList<Service>> migSFC = new  HashMap<>();
-		Map<PhysicalServer, Double> listNsServer = this.cal_ns();
-		// ascending order'
-		Map<PhysicalServer, Double> sortedAsc = this.sortByValue(listNsServer, "ascend");
-		
-		for(Entry<PhysicalServer, Double> entry : sortedAsc.entrySet()) {
-//			System.out.println(entry);
-			PhysicalServer migSv = entry.getKey();
-			// calculate CPU need to be migrated
-			double cpuMig = migSv.getUsedCPU();
-			// sort in N_s descending order
-			Map<PhysicalServer, Double> sortedDes = this.sortByValue(listNsServer, "descend");
-			// pick one by one server in the list and try to migrate
-			for(Entry<PhysicalServer, Double> entry1 : sortedDes.entrySet()) {
-				PhysicalServer candSv = entry1.getKey();
+		Map<PhysicalServer, Double> listNsServer = this.cal_ns(); 
+//		// ascending order'
+		boolean flag = false;
+		while(!flag) {
+			int length1 = listNsServer.size();
+			Map<PhysicalServer, Double> sortedAsc = this.sortByValue(listNsServer, "ascend"); // low utilized --> high utilized
+			Map<PhysicalServer, Double> sortedDes = this.sortByValue(listNsServer, "descend");  // high utilized --> low utilized
+			PhysicalServer migSv = sortedAsc.entrySet().iterator().next().getKey();
+			sortedDes.remove(migSv); 
+			for(Entry<PhysicalServer, Double> entry : sortedDes.entrySet()) {
+				double cpuMig = migSv.getUsedCPU();
+				PhysicalServer candSv = entry.getKey();
 				if(candSv.getRemainCPU() >= cpuMig) {
+					// action for migration
 					candSv.setUsedCPU(cpuMig);
 					migSv.resetCPU();
 					for(Service sv : migSv.getListService()) {
 						sv.setNode(candSv);
+						// adding migration and migration energy
 						this.error ++;
 						this.addIniEnergy(INIENERGY);
-						this.addDelEnergy(INIENERGY);
+						this.addDelEnergy(DELENERGY);
 						for(SFC sfc : this.listSFCTotal) {
 							if(sfc.getListServiceCloud().contains(sv)) {
 								// add to list SFC migration
@@ -239,20 +248,50 @@ public class Scheduler_SFCPlanner {
 									migSFC.get(sfc).add(sv);
 								}
 								// delete virtual links
-								topo.returnBW(sfc);
-								sfc.setBwReturn(true);
+								Service preSer = sfc.getPreService(sv);
+								VirtualLink link = null;
+								for(VirtualLink vLink: sfc.getvLink()) {
+									if(vLink.getsService().equals(preSer)) {
+										link = vLink;
+										break;
+									}
+								}
+								if(link == null)
+									continue;
+								sfc.getvLink().remove(link);
+								topo.returnBW(link);
+								// create new link
+								BFS bfs = new BFS(preSer.getNode(), sv.getNode(), preSer.getBandwidth());
+								bfs.run(topo); // get all paths that are available
+								LinkedList<LinkedList<SubstrateLink>> allPaths = bfs.getAvailablePaths();	
+								if(allPaths.isEmpty())
+									continue;
+								else {
+									LinkedList<SubstrateLink> chosenLink = bfs.getShortestPath();
+									topo.updateLink(chosenLink, preSer.getBandwidth());
+									sfc.getvLink().add(new VirtualLink(preSer, sv, chosenLink, preSer.getBandwidth()));
+								}
 								break;
 							}
 						}
 					}
+					// store new service id
 					candSv.getListService().addAll(migSv.getListService());
 					migSv.getListService().clear();
+					// end action for migration
 					break;
-				}
-			}
+				} // cpu comparation
+			} // loop descend 
+			listNsServer.clear();
+			listNsServer = this.cal_ns();
+			int length2 = listNsServer.size();
+			if (length1 == length2)
+				flag = true;
 		}
+		
 		return migSFC;
 	}
+		
 	
 	public double getDowntime(SFC sfc) {
 		// calculate downtime based on number of services of a SFC that must be 
@@ -264,7 +303,7 @@ public class Scheduler_SFCPlanner {
 		for(Service ser : listSer) {
 			PhysicalServer server = ser.getBelongToServer();
 			if(!listServer.containsKey(server)) {
-				listServer.put(server, 0);
+				listServer.put(server, 1);
 			}else {
 				Integer numScale = listServer.get(server);
 				listServer.put(server, numScale + 1);
@@ -275,7 +314,7 @@ public class Scheduler_SFCPlanner {
 			int numScale = entry.getValue();
 			// equation
 			if(numScale != 0)
-				downtime += (2.913 + 0.346*numScale - 0.001*numScale*numScale);
+				downtime += (4.24 + 0.7*numScale);
 //			listDT.add((2.913 + 0.346*numScale - 0.001*numScale*numScale));
 		}
 //		Collections.sort(listDT);
@@ -297,7 +336,7 @@ public class Scheduler_SFCPlanner {
 			for(Service ser : listSer) {
 				PhysicalServer server = ser.getBelongToServer();
 				if(!listServer.containsKey(server)) {
-					listServer.put(server, 0);
+					listServer.put(server, 1);
 				}else {
 					Integer numScale = listServer.get(server);
 					listServer.put(server, numScale + 1);
@@ -309,8 +348,7 @@ public class Scheduler_SFCPlanner {
 			int numScale = entry.getValue();
 			// equation
 			if(numScale != 0)
-				downtime += (2.913 + 0.346*numScale - 0.001*numScale*numScale);
-//			listDT.add((2.913 + 0.346*numScale - 0.001*numScale*numScale));
+				downtime += (4.24 + 0.7*numScale);//			listDT.add((2.913 + 0.346*numScale - 0.001*numScale*numScale));
 		}
 		// these servers perform migration in parallel
 //		Collections.sort(listDT);
@@ -343,7 +381,7 @@ public class Scheduler_SFCPlanner {
 			sv.setPowerServerNom();
 			Double power = sv.getPowerServer();
 			Double load = sv.getUsedCPU();
-			if(load != 0) {
+			if(load != 0 && sv.getState() == 1) {
 			listNsServer.put(sv, load*1.0*100/power);
 			}
 		}
@@ -535,7 +573,7 @@ public class Scheduler_SFCPlanner {
 			topo.returnCPU(sfc);
 			topo.returnBW(sfc);
 			sfc.setBwReturn(true);
-			this.addDelEnergy(INIENERGY*sfc.getListServiceCloud().size());
+			this.addDelEnergy(DELENERGY*sfc.getListServiceCloud().size());
 			result = true;
 		} // end of event ------------------------------------------------------
 		

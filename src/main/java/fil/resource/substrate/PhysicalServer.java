@@ -35,23 +35,41 @@ public class PhysicalServer extends Node {
 
 	
 	public void setPowerServer() {
-		double cpu = this.getUsedCPU();
+		this.powerServer = basePowerCal() + warmPowerCal(); 
+	}
+	
+	
+	public LinkedList<Service> numWarmService() {
+		LinkedList<Service> listWarm = new LinkedList<>();
 		for(Service ser : this.listService) {
-			if(ser.getStatus() == "unassigned")
-				cpu -= ser.getCpu_server();
+			if(ser.getStatus() == "unassigned") {
+				listWarm.add(ser);
+			}
+		}
+		return listWarm;
+	}
+	
+	public double basePowerCal() {
+		double cpu = this.getUsedCPU();
+		for(Service ser : this.numWarmService()) {
+			cpu -= ser.getCpu_server();
 		}
 		if(cpu < -0.1)
 			throw new java.lang.Error(); // checking CPU negative
-		
-		this.powerServer = 95*(cpu/100) + 221; // Pmax x (0.7 + 0.3xCPU) 
+		return 95*(cpu/100) + 110; // Pmax x (0.7 + 0.3xCPU) 
+	}
+	
+	public double warmPowerCal() {
+		return 5.01 * 0.01 * this.numWarmService().size(); 
 	}
 	
 	public void setPowerServerNom() {
-		this.powerServer = 95*(this.getUsedCPU()/100) + 221;
+		this.powerServer = 95*(this.getUsedCPU()/100) + 110;
 	}
 	
 	public int getState() {
-		if(this.getUsedCPU() <  0.5) {
+//		if(this.getUsedCPU() <  0.5) {
+		if(this.getListService().isEmpty()) {
 			this.state = 0;
 		}
 		else

@@ -454,6 +454,11 @@ public class Topology  {
 			}
 		}
 	}
+	
+	public void returnBW(VirtualLink link) {
+		LinkedList<SubstrateLink> subLink = link.getLinkSubstrate();
+		this.updateLink(subLink, -(link.getBWRequest()));
+	}
 
 	public double getPowerServer(String algo) {
 		double power = 0;
@@ -472,6 +477,32 @@ public class Topology  {
 		return power;
 	}
 	
+	public double getPowerWasted(Topology topo){ // = power warm + power idle device 
+		double power = 0;
+		LinkedList<PhysicalServer> listServer = topo.getListPhyServers(); 
+		for(PhysicalServer phy : listServer) {
+			if(phy.getState() == 1) {
+				boolean check = false;
+				for(Service ser : phy.getListService()) {
+					if(ser.getStatus() != "unassigned") {
+						check = true;
+						break;
+					}
+				}
+				if(check != true) {
+					power += phy.warmPowerCal();
+				}else {
+					phy.setPowerServer();
+					power += phy.getPowerServer();
+				}
+				
+			}
+			else
+				continue;
+		}
+		return power;
+	}
+
 	
 	public double getPowerEdge(LinkedList<SFC> listSFCTotal) {
 		double power = 0.0;

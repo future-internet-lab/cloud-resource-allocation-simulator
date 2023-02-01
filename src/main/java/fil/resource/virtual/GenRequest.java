@@ -21,7 +21,7 @@ import fil.resource.substrate.Rpi;
 public class GenRequest {
 	final static double LIVETIME = 2.0;
 //	final static double TIMEWINDOW = 1.0;
-	final static int COF = 3; //6 for full 24h option //3 for not-full option
+	final static int COF = 5; //BECAREFUL! change this number also means ML models need to be changed, default is 3
 	final static int PINUMBER = 300;
 	final static int HOURS = 24;
 	private LinkedList<Double> listRaw = new LinkedList<>();
@@ -31,7 +31,7 @@ public class GenRequest {
 //	private PoissonDistribution poisson;
 	private int [] LUT_24 = {32,22,20,23,37,89,211,335,337,282,263,269,
 			276,287,313,350,375,304,269,151,110,80,30,20}; //full 24h
-	private Double [] LUT_IL = {0.025,0.05,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0}; // not-full
+	private Double [] LUT_IL = {0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0}; // not-full
 	private String type;
 	private int numOfWD;
 	
@@ -118,7 +118,7 @@ public class GenRequest {
 			double lambda = aDay.get(t);
 			if(lambda == 0)
 				lambda = 1;
-			lambda *= COF;
+			lambda *= COF; // amplify the data
 			while(timeArrival < tw * (t + 1)) { // store request based on TW
 				double interArrival = (StdRandom.exp(lambda));
 				timeArrival += interArrival; // arrival time of the next request
@@ -228,7 +228,7 @@ public class GenRequest {
 
 	
 	public static void main(String[] args) {
-		String path = "C:\\Users\\kienkk\\Downloads\\2018-weekdays-quarter (2)\\test-TW.xlsx";
+		String path = System.getProperty("user.dir") + "\\Traffic-model\\temp.xlsx";
 		GenRequest sample = new GenRequest(path);
 //		sample.generator(0.5);
 		sample.generate(1, 0.25);

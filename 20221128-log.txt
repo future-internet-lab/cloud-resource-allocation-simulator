@@ -1,0 +1,6 @@
+Day: 28-11-2022
+
+New trategy is applied: left-over instances after each TW will be assessed again with the next predicted result instead of being deleted
+
+Problem: This strategy somehow causes high power consumption when traffic goes down. The problem prob comes from the leaveRedundant function in Cloudmapping,
+it should carefully select instance that is going to be deleted instead of does it randomly  

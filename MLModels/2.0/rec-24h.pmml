@@ -1,0 +1,853 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<PMML xmlns="http://www.dmg.org/PMML-4_4" xmlns:data="http://jpmml.org/jpmml-model/InlineTable" version="4.4">
+	<Header>
+		<Application name="JPMML-SkLearn library" version="1.7.6"/>
+		<Timestamp>2022-05-18T08:22:45Z</Timestamp>
+	</Header>
+	<DataDictionary>
+		<DataField name="# VNF Receive future" optype="continuous" dataType="double"/>
+		<DataField name="Time " optype="continuous" dataType="float"/>
+		<DataField name="CPU edge average (1)" optype="continuous" dataType="float"/>
+		<DataField name="CPU edge average (2)" optype="continuous" dataType="float"/>
+		<DataField name="CPU server average" optype="continuous" dataType="float"/>
+		<DataField name="BW edge (1)" optype="continuous" dataType="float"/>
+		<DataField name="BW edge (1).1" optype="continuous" dataType="float"/>
+		<DataField name="BW server (1)" optype="continuous" dataType="float"/>
+		<DataField name="BW server (2)" optype="continuous" dataType="float"/>
+		<DataField name="# edge device" optype="continuous" dataType="float"/>
+		<DataField name="# links (1)" optype="continuous" dataType="float"/>
+		<DataField name="# links (2)" optype="continuous" dataType="float"/>
+		<DataField name="# VNF Receive current" optype="continuous" dataType="float"/>
+	</DataDictionary>
+	<MiningModel functionName="regression" algorithmName="sklearn.ensemble._gb.GradientBoostingRegressor">
+		<MiningSchema>
+			<MiningField name="# VNF Receive future" usageType="target"/>
+			<MiningField name="CPU edge average (2)"/>
+			<MiningField name="Time "/>
+			<MiningField name="CPU edge average (1)"/>
+			<MiningField name="CPU server average"/>
+			<MiningField name="# VNF Receive current"/>
+			<MiningField name="BW edge (1)"/>
+			<MiningField name="# edge device"/>
+			<MiningField name="BW edge (1).1"/>
+			<MiningField name="BW server (1)"/>
+			<MiningField name="# links (2)"/>
+			<MiningField name="# links (1)"/>
+			<MiningField name="BW server (2)"/>
+		</MiningSchema>
+		<Targets>
+			<Target field="# VNF Receive future" rescaleConstant="1218.0" rescaleFactor="0.5"/>
+		</Targets>
+		<LocalTransformations>
+			<DerivedField name="double(CPU edge average (2))" optype="continuous" dataType="double">
+				<FieldRef field="CPU edge average (2)"/>
+			</DerivedField>
+			<DerivedField name="double(Time )" optype="continuous" dataType="double">
+				<FieldRef field="Time "/>
+			</DerivedField>
+			<DerivedField name="double(CPU edge average (1))" optype="continuous" dataType="double">
+				<FieldRef field="CPU edge average (1)"/>
+			</DerivedField>
+			<DerivedField name="double(CPU server average)" optype="continuous" dataType="double">
+				<FieldRef field="CPU server average"/>
+			</DerivedField>
+			<DerivedField name="double(# VNF Receive current)" optype="continuous" dataType="double">
+				<FieldRef field="# VNF Receive current"/>
+			</DerivedField>
+			<DerivedField name="double(BW edge (1))" optype="continuous" dataType="double">
+				<FieldRef field="BW edge (1)"/>
+			</DerivedField>
+			<DerivedField name="double(# edge device)" optype="continuous" dataType="double">
+				<FieldRef field="# edge device"/>
+			</DerivedField>
+			<DerivedField name="double(BW edge (1).1)" optype="continuous" dataType="double">
+				<FieldRef field="BW edge (1).1"/>
+			</DerivedField>
+			<DerivedField name="double(BW server (1))" optype="continuous" dataType="double">
+				<FieldRef field="BW server (1)"/>
+			</DerivedField>
+			<DerivedField name="double(# links (2))" optype="continuous" dataType="double">
+				<FieldRef field="# links (2)"/>
+			</DerivedField>
+			<DerivedField name="double(# links (1))" optype="continuous" dataType="double">
+				<FieldRef field="# links (1)"/>
+			</DerivedField>
+			<DerivedField name="double(BW server (2))" optype="continuous" dataType="double">
+				<FieldRef field="BW server (2)"/>
+			</DerivedField>
+		</LocalTransformations>
+		<Segmentation multipleModelMethod="sum">
+			<Segment id="1">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(CPU edge average (2))"/>
+						<MiningField name="double(Time )"/>
+					</MiningSchema>
+					<Node score="-130.0">
+						<True/>
+						<Node score="-599.0">
+							<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="73.51401901245117"/>
+							<Node score="-1165.0">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="5.0"/>
+							</Node>
+							<Node score="68.0">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="15.0"/>
+							</Node>
+						</Node>
+						<Node score="300.0">
+							<SimplePredicate field="double(Time )" operator="lessOrEqual" value="21.0"/>
+							<Node score="690.0">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="17.0"/>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="2">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(Time )"/>
+						<MiningField name="double(CPU edge average (1))"/>
+						<MiningField name="double(CPU server average)"/>
+						<MiningField name="double(# VNF Receive current)"/>
+					</MiningSchema>
+					<Node score="353.0">
+						<True/>
+						<Node score="-294.5">
+							<SimplePredicate field="double(CPU edge average (1))" operator="lessOrEqual" value="79.51399993896484"/>
+							<Node score="-582.5">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="5.0"/>
+							</Node>
+							<Node score="65.0">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="17.0"/>
+							</Node>
+						</Node>
+						<Node score="401.0">
+							<SimplePredicate field="double(Time )" operator="lessOrEqual" value="17.0"/>
+							<Node score="344.0">
+								<SimplePredicate field="double(CPU server average)" operator="lessOrEqual" value="80.14699935913086"/>
+							</Node>
+						</Node>
+						<Node score="-11.0">
+							<SimplePredicate field="double(# VNF Receive current)" operator="lessOrEqual" value="1876.0"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="3">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(CPU edge average (2))"/>
+						<MiningField name="double(Time )"/>
+						<MiningField name="double(CPU edge average (1))"/>
+						<MiningField name="double(# VNF Receive current)"/>
+						<MiningField name="double(BW edge (1))"/>
+					</MiningSchema>
+					<Node score="226.5">
+						<True/>
+						<Node score="-297.25">
+							<SimplePredicate field="double(CPU edge average (1))" operator="lessOrEqual" value="65.02200317382812"/>
+							<Node score="-281.25">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="5.0"/>
+								<Node score="-310.25">
+									<SimplePredicate field="double(# VNF Receive current)" operator="lessOrEqual" value="0.5"/>
+								</Node>
+							</Node>
+							<Node score="286.5">
+								<SimplePredicate field="double(BW edge (1))" operator="lessOrEqual" value="0.7099999785423279"/>
+							</Node>
+						</Node>
+						<Node score="-15.75">
+							<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="80.27899932861328"/>
+							<Node score="137.5">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="15.0"/>
+							</Node>
+						</Node>
+						<Node score="151.0">
+							<SimplePredicate field="double(BW edge (1))" operator="lessOrEqual" value="90.74606704711914"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="4">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(CPU edge average (2))"/>
+						<MiningField name="double(Time )"/>
+						<MiningField name="double(CPU server average)"/>
+						<MiningField name="double(# edge device)"/>
+						<MiningField name="double(BW edge (1).1)"/>
+						<MiningField name="double(BW server (1))"/>
+					</MiningSchema>
+					<Node score="120.25">
+						<True/>
+						<Node score="-243.875">
+							<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="57.38998794555664"/>
+							<Node score="-84.625">
+								<SimplePredicate field="double(# edge device)" operator="lessOrEqual" value="77.5"/>
+								<Node score="-170.625">
+									<SimplePredicate field="double(Time )" operator="lessOrEqual" value="3.0"/>
+								</Node>
+							</Node>
+							<Node score="153.25">
+								<SimplePredicate field="double(BW edge (1).1)" operator="lessOrEqual" value="1.3384447693824768"/>
+							</Node>
+						</Node>
+						<Node score="45.0">
+							<SimplePredicate field="double(CPU server average)" operator="lessOrEqual" value="82.5469970703125"/>
+							<Node score="117.5">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="9.0"/>
+							</Node>
+						</Node>
+						<Node score="98.25">
+							<SimplePredicate field="double(BW server (1))" operator="lessOrEqual" value="702.7735595703125"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="5">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(Time )"/>
+						<MiningField name="double(# VNF Receive current)"/>
+						<MiningField name="double(# links (2))"/>
+					</MiningSchema>
+					<Node score="29.5">
+						<True/>
+						<Node score="-138.125">
+							<SimplePredicate field="double(# links (2))" operator="lessOrEqual" value="36.5"/>
+							<Node score="-101.3125">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="3.0"/>
+								<Node score="-69.8125">
+									<SimplePredicate field="double(# VNF Receive current)" operator="lessOrEqual" value="1.0"/>
+								</Node>
+							</Node>
+							<Node score="-28.3125">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="17.0"/>
+							</Node>
+						</Node>
+						<Node score="71.75">
+							<SimplePredicate field="double(Time )" operator="lessOrEqual" value="17.0"/>
+							<Node score="11.5">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="11.0"/>
+							</Node>
+						</Node>
+						<Node score="-125.6875">
+							<SimplePredicate field="double(# VNF Receive current)" operator="lessOrEqual" value="728.0"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="6">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(CPU edge average (2))"/>
+						<MiningField name="double(Time )"/>
+						<MiningField name="double(# links (1))"/>
+					</MiningSchema>
+					<Node score="16.75">
+						<True/>
+						<Node score="-58.65625">
+							<SimplePredicate field="double(Time )" operator="lessOrEqual" value="3.0"/>
+							<Node score="-34.90625">
+								<SimplePredicate field="double(# links (1))" operator="lessOrEqual" value="0.5"/>
+							</Node>
+							<Node score="-50.65625">
+								<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="27.902161598205566"/>
+							</Node>
+						</Node>
+						<Node score="-72.59375">
+							<SimplePredicate field="double(# links (1))" operator="lessOrEqual" value="31.5"/>
+							<Node score="-1.15625">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="9.0"/>
+							</Node>
+						</Node>
+						<Node score="56.90625">
+							<SimplePredicate field="double(Time )" operator="lessOrEqual" value="9.0"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="7">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(Time )"/>
+						<MiningField name="double(CPU edge average (1))"/>
+						<MiningField name="double(# VNF Receive current)"/>
+						<MiningField name="double(BW server (2))"/>
+					</MiningSchema>
+					<Node score="6.375">
+						<True/>
+						<Node score="-103.328125">
+							<SimplePredicate field="double(# VNF Receive current)" operator="lessOrEqual" value="638.5"/>
+							<Node score="130.359375">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="7.0"/>
+								<Node score="-22.578125">
+									<SimplePredicate field="double(BW server (2))" operator="lessOrEqual" value="15.375"/>
+								</Node>
+							</Node>
+							<Node score="-176.328125">
+								<SimplePredicate field="double(CPU edge average (1))" operator="lessOrEqual" value="33.784000396728516"/>
+							</Node>
+						</Node>
+						<Node score="-137.125">
+							<SimplePredicate field="double(Time )" operator="lessOrEqual" value="11.0"/>
+							<Node score="28.796875">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="9.0"/>
+							</Node>
+						</Node>
+						<Node score="65.5">
+							<SimplePredicate field="double(Time )" operator="lessOrEqual" value="15.0"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="8">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(CPU edge average (2))"/>
+						<MiningField name="double(Time )"/>
+						<MiningField name="double(CPU edge average (1))"/>
+						<MiningField name="double(# edge device)"/>
+						<MiningField name="double(# links (1))"/>
+					</MiningSchema>
+					<Node score="15.6875">
+						<True/>
+						<Node score="-31.2890625">
+							<SimplePredicate field="double(# links (1))" operator="lessOrEqual" value="1.5"/>
+							<Node score="-6.1640625">
+								<SimplePredicate field="double(# edge device)" operator="lessOrEqual" value="0.5"/>
+							</Node>
+							<Node score="-18.0390625">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="3.0"/>
+							</Node>
+						</Node>
+						<Node score="-24.0">
+							<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="84.36066818237305"/>
+							<Node score="6.8125">
+								<SimplePredicate field="double(CPU edge average (1))" operator="lessOrEqual" value="73.29766464233398"/>
+							</Node>
+						</Node>
+						<Node score="15.1875">
+							<SimplePredicate field="double(CPU edge average (1))" operator="lessOrEqual" value="87.82099914550781"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="9">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(CPU edge average (2))"/>
+						<MiningField name="double(Time )"/>
+						<MiningField name="double(CPU server average)"/>
+						<MiningField name="double(# VNF Receive current)"/>
+						<MiningField name="double(# edge device)"/>
+						<MiningField name="double(BW server (2))"/>
+					</MiningSchema>
+					<Node score="-5.65625">
+						<True/>
+						<Node score="-14.5703125">
+							<SimplePredicate field="double(# VNF Receive current)" operator="lessOrEqual" value="653.0"/>
+							<Node score="64.7109375">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="7.0"/>
+								<Node score="-6.08203125">
+									<SimplePredicate field="double(# edge device)" operator="lessOrEqual" value="100.0"/>
+								</Node>
+							</Node>
+							<Node score="-122.5703125">
+								<SimplePredicate field="double(CPU server average)" operator="lessOrEqual" value="14.072999954223633"/>
+							</Node>
+						</Node>
+						<Node score="32.1484375">
+							<SimplePredicate field="double(Time )" operator="lessOrEqual" value="9.0"/>
+							<Node score="15.0859375">
+								<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="82.45773696899414"/>
+							</Node>
+						</Node>
+						<Node score="36.078125">
+							<SimplePredicate field="double(BW server (2))" operator="lessOrEqual" value="414.4869689941406"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="10">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(Time )"/>
+						<MiningField name="double(CPU server average)"/>
+						<MiningField name="double(BW edge (1).1)"/>
+						<MiningField name="double(# links (2))"/>
+					</MiningSchema>
+					<Node score="-2.328125">
+						<True/>
+						<Node score="0.71484375">
+							<SimplePredicate field="double(# links (2))" operator="lessOrEqual" value="43.5"/>
+							<Node score="4.396484375">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="9.0"/>
+								<Node score="-6.041015625">
+									<SimplePredicate field="double(CPU server average)" operator="lessOrEqual" value="0.4099999964237213"/>
+								</Node>
+							</Node>
+							<Node score="-89.1171875">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="13.0"/>
+							</Node>
+						</Node>
+						<Node score="64.734375">
+							<SimplePredicate field="double(Time )" operator="lessOrEqual" value="15.0"/>
+							<Node score="12.734375">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="13.0"/>
+							</Node>
+						</Node>
+						<Node score="29.1171875">
+							<SimplePredicate field="double(BW edge (1).1)" operator="lessOrEqual" value="59.46868324279785"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="11">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(Time )"/>
+						<MiningField name="double(# VNF Receive current)"/>
+						<MiningField name="double(BW edge (1).1)"/>
+						<MiningField name="double(# links (1))"/>
+					</MiningSchema>
+					<Node score="1.9609375">
+						<True/>
+						<Node score="10.0859375">
+							<SimplePredicate field="double(# links (1))" operator="lessOrEqual" value="39.5"/>
+							<Node score="-14.130859375">
+								<SimplePredicate field="double(BW edge (1).1)" operator="lessOrEqual" value="92.24343490600586"/>
+								<Node score="-0.5927734375">
+									<SimplePredicate field="double(Time )" operator="lessOrEqual" value="15.0"/>
+								</Node>
+							</Node>
+						</Node>
+						<Node score="11.0859375">
+							<SimplePredicate field="double(# links (1))" operator="lessOrEqual" value="43.5"/>
+							<Node score="14.8759765625">
+								<SimplePredicate field="double(# VNF Receive current)" operator="lessOrEqual" value="1998.5"/>
+							</Node>
+						</Node>
+						<Node score="-30.341796875">
+							<SimplePredicate field="double(BW edge (1).1)" operator="lessOrEqual" value="87.32835006713867"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="12">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(Time )"/>
+						<MiningField name="double(CPU edge average (1))"/>
+						<MiningField name="double(# VNF Receive current)"/>
+						<MiningField name="double(BW server (1))"/>
+						<MiningField name="double(# links (2))"/>
+					</MiningSchema>
+					<Node score="-13.35205078125">
+						<True/>
+						<Node score="-4.5771484375">
+							<SimplePredicate field="double(# links (2))" operator="lessOrEqual" value="40.5"/>
+							<Node score="18.84423828125">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="9.0"/>
+								<Node score="-1.66162109375">
+									<SimplePredicate field="double(BW server (1))" operator="lessOrEqual" value="581.5736999511719"/>
+								</Node>
+							</Node>
+							<Node score="-230.08251953125">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="11.0"/>
+							</Node>
+						</Node>
+						<Node score="-31.71142578125">
+							<SimplePredicate field="double(Time )" operator="lessOrEqual" value="15.0"/>
+							<Node score="27.66357421875">
+								<SimplePredicate field="double(# VNF Receive current)" operator="lessOrEqual" value="1966.5"/>
+							</Node>
+						</Node>
+						<Node score="19.9345703125">
+							<SimplePredicate field="double(CPU edge average (1))" operator="lessOrEqual" value="73.3466682434082"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="13">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(CPU edge average (2))"/>
+						<MiningField name="double(Time )"/>
+						<MiningField name="double(# VNF Receive current)"/>
+						<MiningField name="double(BW edge (1).1)"/>
+					</MiningSchema>
+					<Node score="14.968994140625">
+						<True/>
+						<Node score="-32.103759765625">
+							<SimplePredicate field="double(# VNF Receive current)" operator="lessOrEqual" value="1992.5"/>
+							<Node score="34.607177734375">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="15.0"/>
+								<Node score="-1.830810546875">
+									<SimplePredicate field="double(Time )" operator="lessOrEqual" value="13.0"/>
+								</Node>
+							</Node>
+							<Node score="9.96728515625">
+								<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="73.55236053466797"/>
+							</Node>
+						</Node>
+						<Node score="11.718994140625">
+							<SimplePredicate field="double(# VNF Receive current)" operator="lessOrEqual" value="2004.5"/>
+						</Node>
+						<Node score="-1.031005859375">
+							<SimplePredicate field="double(BW edge (1).1)" operator="lessOrEqual" value="94.1709976196289"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="14">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(Time )"/>
+						<MiningField name="double(CPU edge average (1))"/>
+						<MiningField name="double(# VNF Receive current)"/>
+						<MiningField name="double(BW edge (1).1)"/>
+						<MiningField name="double(BW server (1))"/>
+					</MiningSchema>
+					<Node score="78.3792724609375">
+						<True/>
+						<Node score="-83.0269775390625">
+							<SimplePredicate field="double(BW edge (1).1)" operator="lessOrEqual" value="83.82551956176758"/>
+							<Node score="35.874267578125">
+								<SimplePredicate field="double(CPU edge average (1))" operator="lessOrEqual" value="73.29766464233398"/>
+								<Node score="-2.1341552734375">
+									<SimplePredicate field="double(# VNF Receive current)" operator="lessOrEqual" value="1042.5"/>
+								</Node>
+							</Node>
+							<Node score="-0.3782958984375">
+								<SimplePredicate field="double(Time )" operator="lessOrEqual" value="15.0"/>
+							</Node>
+						</Node>
+						<Node score="5.2513427734375">
+							<SimplePredicate field="double(Time )" operator="lessOrEqual" value="19.0"/>
+							<Node score="-49.1402587890625">
+								<SimplePredicate field="double(BW server (1))" operator="lessOrEqual" value="618.2645874023438"/>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="15">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(Time )"/>
+						<MiningField name="double(BW server (1))"/>
+						<MiningField name="double(BW server (2))"/>
+					</MiningSchema>
+					<Node score="-2.20513916015625">
+						<True/>
+						<Node score="6.08917236328125">
+							<SimplePredicate field="double(BW server (1))" operator="lessOrEqual" value="0.30000001192092896"/>
+						</Node>
+						<Node score="-5.84832763671875">
+							<SimplePredicate field="double(BW server (2))" operator="lessOrEqual" value="4.2749998569488525"/>
+							<Node score="-10.84832763671875">
+								<SimplePredicate field="double(BW server (1))" operator="lessOrEqual" value="3.5"/>
+							</Node>
+						</Node>
+						<Node score="3.25714111328125">
+							<SimplePredicate field="double(Time )" operator="lessOrEqual" value="5.0"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="16">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(CPU edge average (2))"/>
+						<MiningField name="double(Time )"/>
+						<MiningField name="double(BW edge (1))"/>
+					</MiningSchema>
+					<Node score="2.836395263671875">
+						<True/>
+						<Node score="-7.511383056640625">
+							<SimplePredicate field="double(BW edge (1))" operator="lessOrEqual" value="69.73993301391602"/>
+							<Node score="-9.161468505859375">
+								<SimplePredicate field="double(BW edge (1))" operator="lessOrEqual" value="65.19463348388672"/>
+								<Node score="0.304351806640625">
+									<SimplePredicate field="double(Time )" operator="lessOrEqual" value="21.0"/>
+								</Node>
+							</Node>
+							<Node score="-82.28591918945312">
+								<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="77.7043342590332"/>
+							</Node>
+						</Node>
+						<Node score="114.71408081054688">
+							<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="79.61905288696289"/>
+						</Node>
+						<Node score="-57.851715087890625">
+							<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="80.72400283813477"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="17">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(CPU edge average (1))"/>
+						<MiningField name="double(# VNF Receive current)"/>
+						<MiningField name="double(BW server (1))"/>
+						<MiningField name="double(# links (2))"/>
+					</MiningSchema>
+					<Node score="3.0431976318359375">
+						<True/>
+						<Node score="-35.92958068847656">
+							<SimplePredicate field="double(# links (2))" operator="lessOrEqual" value="40.5"/>
+							<Node score="25.804794311523438">
+								<SimplePredicate field="double(BW server (1))" operator="lessOrEqual" value="625.9619140625"/>
+								<Node score="-1.4999847412109375">
+									<SimplePredicate field="double(BW server (1))" operator="lessOrEqual" value="605.9452819824219"/>
+								</Node>
+							</Node>
+						</Node>
+						<Node score="-12.545272827148438">
+							<SimplePredicate field="double(# VNF Receive current)" operator="lessOrEqual" value="783.5"/>
+						</Node>
+						<Node score="28.860977172851562">
+							<SimplePredicate field="double(CPU edge average (1))" operator="lessOrEqual" value="55.81066703796387"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="18">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(Time )"/>
+						<MiningField name="double(# VNF Receive current)"/>
+						<MiningField name="double(BW server (1))"/>
+						<MiningField name="double(BW server (2))"/>
+					</MiningSchema>
+					<Node score="-8.583625793457031">
+						<True/>
+						<Node score="1.3965988159179688">
+							<SimplePredicate field="double(BW server (2))" operator="lessOrEqual" value="656.3012390136719"/>
+							<Node score="73.54137420654297">
+								<SimplePredicate field="double(# VNF Receive current)" operator="lessOrEqual" value="1998.5"/>
+								<Node score="-0.44521331787109375">
+									<SimplePredicate field="double(BW server (1))" operator="lessOrEqual" value="756.0532836914062"/>
+								</Node>
+							</Node>
+							<Node score="26.02159881591797">
+								<SimplePredicate field="double(BW server (2))" operator="lessOrEqual" value="643.6789245605469"/>
+							</Node>
+						</Node>
+						<Node score="9.902397155761719">
+							<SimplePredicate field="double(Time )" operator="lessOrEqual" value="13.0"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="19">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(Time )"/>
+						<MiningField name="double(CPU server average)"/>
+						<MiningField name="double(# VNF Receive current)"/>
+					</MiningSchema>
+					<Node score="1.5732994079589844">
+						<True/>
+						<Node score="8.55276107788086">
+							<SimplePredicate field="double(Time )" operator="lessOrEqual" value="9.0"/>
+							<Node score="2.698993682861328">
+								<SimplePredicate field="double(CPU server average)" operator="lessOrEqual" value="68.2979965209961"/>
+								<Node score="-1.1349906921386719">
+									<SimplePredicate field="double(# VNF Receive current)" operator="lessOrEqual" value="19.5"/>
+								</Node>
+							</Node>
+						</Node>
+						<Node score="-77.54923629760742">
+							<SimplePredicate field="double(CPU server average)" operator="lessOrEqual" value="10.572999954223633"/>
+						</Node>
+						<Node score="-46.58047866821289">
+							<SimplePredicate field="double(Time )" operator="lessOrEqual" value="11.0"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="20">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(CPU server average)"/>
+						<MiningField name="double(# VNF Receive current)"/>
+					</MiningSchema>
+					<Node score="0.03664970397949219">
+						<True/>
+						<Node score="17.474149703979492">
+							<SimplePredicate field="double(# VNF Receive current)" operator="lessOrEqual" value="2005.5"/>
+							<Node score="-7.562463760375977">
+								<SimplePredicate field="double(# VNF Receive current)" operator="lessOrEqual" value="1998.5"/>
+								<Node score="0.43250465393066406">
+									<SimplePredicate field="double(# VNF Receive current)" operator="lessOrEqual" value="1989.5"/>
+								</Node>
+							</Node>
+						</Node>
+						<Node score="-13.723237991333008">
+							<SimplePredicate field="double(CPU server average)" operator="lessOrEqual" value="85.1500015258789"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="21">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(BW server (1))"/>
+						<MiningField name="double(# links (1))"/>
+						<MiningField name="double(BW server (2))"/>
+					</MiningSchema>
+					<Node score="9.212388038635254">
+						<True/>
+						<Node score="-6.861618995666504">
+							<SimplePredicate field="double(# links (1))" operator="lessOrEqual" value="45.5"/>
+							<Node score="20.674574851989746">
+								<SimplePredicate field="double(BW server (2))" operator="lessOrEqual" value="652.9734191894531"/>
+								<Node score="0.13324451446533203">
+									<SimplePredicate field="double(BW server (2))" operator="lessOrEqual" value="649.305419921875"/>
+								</Node>
+							</Node>
+							<Node score="-3.7812318801879883">
+								<SimplePredicate field="double(BW server (1))" operator="lessOrEqual" value="709.2587585449219"/>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="22">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(# links (1))"/>
+						<MiningField name="double(BW server (2))"/>
+					</MiningSchema>
+					<Node score="4.606194019317627">
+						<True/>
+						<Node score="4.945998668670654">
+							<SimplePredicate field="double(# links (1))" operator="lessOrEqual" value="44.5"/>
+							<Node score="-12.768560886383057">
+								<SimplePredicate field="double(BW server (2))" operator="lessOrEqual" value="661.4366455078125"/>
+								<Node score="0.18088006973266602">
+									<SimplePredicate field="double(BW server (2))" operator="lessOrEqual" value="654.9560852050781"/>
+								</Node>
+							</Node>
+						</Node>
+						<Node score="-10.825089931488037">
+							<SimplePredicate field="double(# links (1))" operator="lessOrEqual" value="45.5"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="23">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(CPU edge average (2))"/>
+						<MiningField name="double(Time )"/>
+						<MiningField name="double(CPU edge average (1))"/>
+						<MiningField name="double(BW server (1))"/>
+					</MiningSchema>
+					<Node score="3.358694314956665">
+						<True/>
+						<Node score="-28.024401426315308">
+							<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="86.50300216674805"/>
+							<Node score="14.350598573684692">
+								<SimplePredicate field="double(CPU edge average (1))" operator="lessOrEqual" value="86.06399917602539"/>
+								<Node score="-0.12381768226623535">
+									<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="85.71066665649414"/>
+								</Node>
+							</Node>
+							<Node score="-3.6064326763153076">
+								<SimplePredicate field="double(BW server (1))" operator="lessOrEqual" value="709.3775024414062"/>
+							</Node>
+						</Node>
+						<Node score="-35.79901671409607">
+							<SimplePredicate field="double(Time )" operator="lessOrEqual" value="15.0"/>
+						</Node>
+						<Node score="16.93958353996277">
+							<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="86.83200073242188"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="24">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(CPU edge average (2))"/>
+						<MiningField name="double(BW server (1))"/>
+						<MiningField name="double(# links (2))"/>
+					</MiningSchema>
+					<Node score="3.1793471574783325">
+						<True/>
+						<Node score="5.931375622749329">
+							<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="87.79399871826172"/>
+							<Node score="15.774123787879944">
+								<SimplePredicate field="double(BW server (1))" operator="lessOrEqual" value="716.4686584472656"/>
+								<Node score="0.038091063499450684">
+									<SimplePredicate field="double(BW server (1))" operator="lessOrEqual" value="711.3653259277344"/>
+								</Node>
+							</Node>
+							<Node score="-13.394424319267273">
+								<SimplePredicate field="double(# links (2))" operator="lessOrEqual" value="45.5"/>
+							</Node>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+			<Segment id="25">
+				<True/>
+				<TreeModel functionName="regression" missingValueStrategy="nullPrediction" noTrueChildStrategy="returnLastPrediction">
+					<MiningSchema>
+						<MiningField name="double(CPU edge average (2))"/>
+						<MiningField name="double(# VNF Receive current)"/>
+						<MiningField name="double(BW edge (1).1)"/>
+						<MiningField name="double(BW server (1))"/>
+					</MiningSchema>
+					<Node score="1.5896735787391663">
+						<True/>
+						<Node score="46.65723568201065">
+							<SimplePredicate field="double(BW edge (1).1)" operator="lessOrEqual" value="93.1171989440918"/>
+							<Node score="-13.261862456798553">
+								<SimplePredicate field="double(BW server (1))" operator="lessOrEqual" value="743.7316284179688"/>
+								<Node score="0.13330334424972534">
+									<SimplePredicate field="double(BW server (1))" operator="lessOrEqual" value="735.2604370117188"/>
+								</Node>
+							</Node>
+							<Node score="-23.232077300548553">
+								<SimplePredicate field="double(# VNF Receive current)" operator="lessOrEqual" value="1970.5"/>
+							</Node>
+						</Node>
+						<Node score="-5.086631953716278">
+							<SimplePredicate field="double(CPU edge average (2))" operator="lessOrEqual" value="87.79399871826172"/>
+						</Node>
+					</Node>
+				</TreeModel>
+			</Segment>
+		</Segmentation>
+	</MiningModel>
+</PMML>

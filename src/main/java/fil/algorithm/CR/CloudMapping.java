@@ -65,16 +65,17 @@ public class CloudMapping {
 		return notOverLoad;
 	}
 
-public LinkedList<SFC> assignVNF(Topology topo, LinkedList<SFC> listSFC, LinkedList<SFC> listTotalSFC){
+public LinkedList<SFC> assignVNF(Topology topo, LinkedList<SFC> listSFC, LinkedList<SFC> listTotalSFC, LinkedList<SFC> listSFCOnRpi){
 		
 		for(SFC sfc : listSFC) {
 			for(Service service : sfc.getListService()) {
 				 LinkedList<Service> poolService = this.getPoolService();
 				if(service.isBelongToEdge()) {
-					// incase VNF from Cloud is pushed to Edge
-					// then this VNF must deleted
+					// in case VNF from Cloud is redirected to Edge
+					// then this VNF must be deleted
 					if(poolService.contains(service)) {
 						this.deleteVNF(service);
+						this.setVNFmigration(1); 
 					}
 				}else {
 //					// in case some VNFs was changed status after remapping
@@ -91,8 +92,6 @@ public LinkedList<SFC> assignVNF(Topology topo, LinkedList<SFC> listSFC, LinkedL
 		
 		for(SFC sfc : listSFC) {
 			for(Service service : sfc.getListService()) {
-//				if(sfc.getListService().size() > 1)
-//					;
 				if(!service.isBelongToEdge() && service.getStatus() == "unassigned") {
 					LinkedList<Service> listUnSer = new LinkedList<>();
 					LinkedList<Service> pool = new LinkedList<>();
@@ -110,16 +109,21 @@ public LinkedList<SFC> assignVNF(Topology topo, LinkedList<SFC> listSFC, LinkedL
 							listUnSer.add(ser);
 						}
 					}
+					// assign to an "unassigned" instance that is nearest to other instances within an SFC
 					if(!listUnSer.isEmpty()) {
 						Service chosenSer = new Service();
+						// please uncomment the following code to use the VNF-nearest-neighbor function
 						if(sfc.getNextService(service) != null && sfc.getNextService(service).getBelongToServer() != null)
 							chosenSer = calDisSer(sfc.getNextService(service), listUnSer, topo);
 						else if(sfc.getPreService(service) != null && sfc.getPreService(service).getBelongToServer() != null)
 							chosenSer = calDisSer(sfc.getPreService(service), listUnSer, topo);
 						else
 							chosenSer = calBWSer(listUnSer, topo);
+//						chosenSer = listUnSer.getFirst(); // comment this to use the VNF-nearest-neighbor function
 						chosenSer.setStatus("assigned");
 						chosenSer.setSfcID(sfc.getSfcID());
+						if(listSFCOnRpi.contains(sfc)) // old service but now is being pushed to Cloud 
+							this.setVNFmigration(1); 
 						sfc.setService(chosenSer);
 						if(chosenSer.getBelongToServer() == null)
 							throw new java.lang.Error();
@@ -314,60 +318,101 @@ public LinkedList<SFC> assignVNF(Topology topo, LinkedList<SFC> listSFC, LinkedL
 		
 	}
 	
-	public int leaveRedundant(Topology topo) {
+	public int leaveRedundant(int numLeave, int type, Topology topo) {
 		int numSer = 0;
+		LinkedList<Service> removedVNF = new LinkedList<>();
+		if(type == 3) {
+			for(Service ser : this.poolDensity) {
+				if(ser.getStatus() == "unassigned") {
+					removedVNF.add(ser);
+					numSer ++;
+					if (numSer == numLeave) {
+						break;
+					}
+				}
+			}
+			for(Service ser : removedVNF) { //actions
+				PhysicalServer server = ser.getBelongToServer();
+				server.setUsedCPU(-(ser.getCpu_server()));
+				server.getListService().remove(ser);
+				ser.setBelongToServer(null);
+				if(this.poolDensity.contains(ser))
+					this.poolDensity.remove(ser);
+			}
+		}else if(type == 4) {
+			for(Service ser : this.poolReceive) {
+				if(ser.getStatus() == "unassigned") {
+					removedVNF.add(ser);
+					numSer ++;
+					if (numSer == numLeave) {
+						break;
+					}
+				}
+			}
+			for(Service ser : removedVNF) { //actions
+				PhysicalServer server = ser.getBelongToServer();
+				server.setUsedCPU(-(ser.getCpu_server()));
+				server.getListService().remove(ser);
+				ser.setBelongToServer(null);
+				if(this.poolReceive.contains(ser))
+					this.poolReceive.remove(ser);
+			}
+		}else {
+			throw new java.lang.Error("No service found!");
+		}
+		removedVNF.clear();
 		// return number of leaving VNF for energy calculation
 		// leave all "unsigned" VNFs that are still stay inside the system
 		// decode - density - receive
-		LinkedList<Service> removedVNF = new LinkedList<>();
-		for(Service ser : this.poolDecode) {
-			if(ser.getStatus() == "unassigned") {
-				removedVNF.add(ser);
-				PhysicalServer server = ser.getBelongToServer();
-				server.setUsedCPU(-(ser.getCpu_server()));
-				server.getListService().remove(ser);
-			}
-		}
-		for(Service ser : removedVNF) {
-			ser.setBelongToServer(null);
-			if(this.poolDecode.contains(ser))
-				this.poolDecode.remove(ser);
-		}
-		numSer += removedVNF.size();
-		removedVNF.clear();
-		
-		// density
-		for(Service ser : this.poolDensity) {
-			if(ser.getStatus() == "unassigned") {
-				removedVNF.add(ser);
-				PhysicalServer server = ser.getBelongToServer();
-				server.setUsedCPU(-(ser.getCpu_server()));
-				server.getListService().remove(ser);
-			}
-		}
-		for(Service ser : removedVNF) {
-			ser.setBelongToServer(null);
-			if(this.poolDensity.contains(ser))
-				this.poolDensity.remove(ser);
-		}
-		numSer += removedVNF.size();
-		removedVNF.clear();
-		// receive
-		for(Service ser : this.poolReceive) {
-			if(ser.getStatus() == "unassigned") {
-				removedVNF.add(ser);
-				PhysicalServer server = ser.getBelongToServer();
-				server.setUsedCPU(-(ser.getCpu_server()));
-				server.getListService().remove(ser);
-			}
-		}
-		for(Service ser : removedVNF) {
-			ser.setBelongToServer(null);
-			if(this.poolReceive.contains(ser))
-				this.poolReceive.remove(ser);
-		}
-		numSer += removedVNF.size();
-		
+//		LinkedList<Service> removedVNF = new LinkedList<>();
+//		for(Service ser : this.poolDecode) {
+//			if(ser.getStatus() == "unassigned") {
+//				removedVNF.add(ser);
+//				PhysicalServer server = ser.getBelongToServer();
+//				server.setUsedCPU(-(ser.getCpu_server()));
+//				server.getListService().remove(ser);
+//			}
+//		}
+//		for(Service ser : removedVNF) {
+//			ser.setBelongToServer(null);
+//			if(this.poolDecode.contains(ser))
+//				this.poolDecode.remove(ser);
+//		}
+//		numSer += removedVNF.size();
+//		removedVNF.clear();
+//		
+//		// density
+//		for(Service ser : this.poolDensity) {
+//			if(ser.getStatus() == "unassigned") {
+//				removedVNF.add(ser);
+//				PhysicalServer server = ser.getBelongToServer();
+//				server.setUsedCPU(-(ser.getCpu_server()));
+//				server.getListService().remove(ser);
+//			}
+//		}
+//		for(Service ser : removedVNF) {
+//			ser.setBelongToServer(null);
+//			if(this.poolDensity.contains(ser))
+//				this.poolDensity.remove(ser);
+//		}
+//		numSer += removedVNF.size();
+//		removedVNF.clear();
+//		// receive
+//		for(Service ser : this.poolReceive) {
+//			if(ser.getStatus() == "unassigned") {
+//				removedVNF.add(ser);
+//				PhysicalServer server = ser.getBelongToServer();
+//				server.setUsedCPU(-(ser.getCpu_server()));
+//				server.getListService().remove(ser);
+//			}
+//		}
+//		for(Service ser : removedVNF) {
+//			ser.setBelongToServer(null);
+//			if(this.poolReceive.contains(ser))
+//				this.poolReceive.remove(ser);
+//		}
+//		numSer += removedVNF.size();
+//		
 		return numSer;
 	}
 	
@@ -815,6 +860,32 @@ public LinkedList<SFC> assignVNF(Topology topo, LinkedList<SFC> listSFC, LinkedL
 		}
 		return power;
 	}
+	
+	public double getPowerWasted(Topology topo){ // = power warm + power idle device 
+		double power = 0;
+		LinkedList<PhysicalServer> listServer = topo.getListPhyServers(); 
+		for(PhysicalServer phy : listServer) {
+			if(phy.getState() == 1) {
+				boolean check = false;
+				for(Service ser : phy.getListService()) {
+					if(ser.getStatus() != "unassigned") {
+						check = true;
+						break;
+					}
+				}
+				if(check == true) {
+					power += phy.warmPowerCal();
+				}else {
+					phy.setPowerServer();
+					power += phy.getPowerServer();
+				}
+				
+			}
+			else
+				continue;
+		}
+		return power;
+	}
 
 	public double getMigEnergy(Topology topo) {
 		double energy = 0;
@@ -844,7 +915,7 @@ public LinkedList<SFC> assignVNF(Topology topo, LinkedList<SFC> listSFC, LinkedL
 	}
 
 	public void setVNFmigration(int vNFmigration) {
-		VNFmigration = vNFmigration;
+		VNFmigration += vNFmigration;
 	}
 
 	public LinkedList<Service> getPoolDecode() {
@@ -859,6 +930,15 @@ public LinkedList<SFC> assignVNF(Topology topo, LinkedList<SFC> listSFC, LinkedL
 		return poolDensity;
 	}
 
+	public LinkedList<Service> getPoolUnDensity() {
+		LinkedList<Service> list = new LinkedList<>();
+		for(Service ser : poolDensity) {
+			if(ser.getStatus() == "unassigned")
+				list.add(ser);
+		}
+		return list;
+	}
+	
 	public void setPoolDensity(LinkedList<Service> poolDensity) {
 		this.poolDensity = poolDensity;
 	}
@@ -866,7 +946,16 @@ public LinkedList<SFC> assignVNF(Topology topo, LinkedList<SFC> listSFC, LinkedL
 	public LinkedList<Service> getPoolReceive() {
 		return poolReceive;
 	}
-
+	
+	public LinkedList<Service> getPoolUnReceive() {
+		LinkedList<Service> list = new LinkedList<>();
+		for(Service ser : poolReceive) {
+			if(ser.getStatus() == "unassigned")
+				list.add(ser);
+		}
+		return list;
+	}
+	
 	public void setPoolReceive(LinkedList<Service> poolReceive) {
 		this.poolReceive = poolReceive;
 	}

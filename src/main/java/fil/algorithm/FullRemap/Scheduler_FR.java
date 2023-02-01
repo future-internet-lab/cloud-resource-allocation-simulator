@@ -32,10 +32,6 @@ import fil.resource.virtual.SFC;
 import fil.resource.virtual.Service;
 import fil.resource.virtual.Topology;
 
-// Kien write at 25-12-2020, not done yet
-
-
-
 
 public class Scheduler_FR {
 	final static int NUM_PI = 300;
@@ -44,7 +40,8 @@ public class Scheduler_FR {
 	final static int HOUR = 3600;
 	final static double THOUS = 1000.0;
 	final static double MIL = 1000000.0;
-	final static double INIENERGY = 19.0;
+	final static double INIENERGY = 15.68; // calculate by power*time/number of pod
+	final static double DELENERGY = 14.39; // calculate by power*time/number of pod
 	final static List<Integer> edgePosition = 
 			Collections.unmodifiableList(Arrays.asList(10, 5, 13, 14));
 
@@ -52,6 +49,7 @@ public class Scheduler_FR {
 	private double iniEnergy;
 	private double delEnergy;
 	private int sfcID;
+	private int totalRelocate;
 	private Topology topo;
 	private FatTree fatTree;
 	private EdgeMapping edgeMapping;
@@ -76,9 +74,6 @@ public class Scheduler_FR {
 		edgeMapping = new EdgeMapping();
 		linkMapping = new LinkMapping();
 		listSFCTotal = new LinkedList<>();
-//		poolDecode = new LinkedList<>();
-//		poolDensity = new LinkedList<>();
-//		poolReceive = new LinkedList<>();
 		listSFCAllRpi = new HashMap<>();
 		for(int i = 0; i < NUM_PI; i ++) {
 			listSFCAllRpi.put(i, new LinkedList<SFC>());
@@ -87,6 +82,7 @@ public class Scheduler_FR {
 		iniEnergy = 0.0;
 		delEnergy = 0.0;
 		sfcID = 0;
+		totalRelocate = 0;
 		isSuccess = false;
 	}
 	
@@ -100,10 +96,12 @@ public class Scheduler_FR {
 //		LinkedList<Integer> listDenInSys = new LinkedList<>();
 		LinkedList<Integer> listSFCActive = new LinkedList<>();
 		LinkedList<Integer> listError = new LinkedList<>();
+		LinkedList<Integer> listRelocate = new LinkedList<>();
 		LinkedList<Integer> listAcceptTW = new LinkedList<>();
 		LinkedList<Double> listAveSerUtil = new LinkedList<>();
 		LinkedList<Double> listPower = new LinkedList<>();
-		LinkedList<Double> listPowerMig = new LinkedList<>();
+		LinkedList<Double> listPowerColdTerm = new LinkedList<>();
+		LinkedList<Double> listPowerWarm = new LinkedList<>();
 		LinkedList<Double> listAcceptance = new LinkedList<>();
 		LinkedList<Double> listEnergy = new LinkedList<>();
 		LinkedList<Double> listDownTime = new LinkedList<>();
@@ -126,7 +124,8 @@ public class Scheduler_FR {
 			int totalSFCacceptTW = 0;
 //			double aveSerUtil = 0.0;
 			double power1h = 0.0;
-//			double power1hMig = 0.0;
+			double powerColdTerm1h = 0.0;
+			double powerWarm1h = 0.0;
 			double downtime1h = 0.0;
 
 			// reset global variables
@@ -158,6 +157,7 @@ public class Scheduler_FR {
 //				double energyMig = this.listSFCTotal.size()*4*19*2; //19J is energy required for init/del a VNF
 				if(result) {
 					accumError += this.listSFCTotal.size()*4;
+					this.totalRelocate += (this.listSFCTotal.size() - 1)*4;
 //					error1h += this.listSFCTotal.size()*4;
 					if(event.getType() == "join") {
 						totalSFCacceptTW ++;
@@ -170,12 +170,15 @@ public class Scheduler_FR {
 						this.listSFCAllRpi.get(event.getPiID()).remove(event.getSfc());
 					}
 					//calculate accumulated averaging downtime
-					downtime1h += this.getDowntime();
+//					downtime1h += this.getDowntime();
+					downtime1h += (this.getDowntime()/this.listSFCTotal.size());
 					// calculate energy
 					insPower = cloudMapping.getPowerServer(topo) + linkMapping.getPower(topo) + edgeMapping.getPowerEdge(this.listSFCTotal);
 					// calculate energy
 					this.addTotalEnergy((insPower*(event.getTime() - time4Energy)*HOUR));
 					power1h += (insPower*(event.getTime() - time4Energy));
+//					powerWarm1h += (cloudMapping.getPowerWasted(topo)*(event.getTime() - time4Energy));
+
 					time4Energy = event.getTime();
 					System.out.println("Migration energy: " + cloudMapping.getMigEnergy(topo) + " (J)");
 				}else {
@@ -189,13 +192,16 @@ public class Scheduler_FR {
 			} // loop each event
 			
 			// update variables after 1 hour
-//			power1h += ((this.getIniEnergy() + this.getDelEnergy())/HOUR);
-			
+			power1h += ((this.getIniEnergy() + this.getDelEnergy())/HOUR);
+			powerColdTerm1h += ((this.getIniEnergy() + this.getDelEnergy())/HOUR);
 			listDownTime.add(downtime1h);
 			listUsedSer.add(cloudMapping.getUsedServer(topo));
 			listEnergy.add(this.getTotalEnergy());
 			listPower.add(power1h/THOUS);
+			listPowerColdTerm.add(powerColdTerm1h/THOUS);
+//			listPowerWarm.add(powerWarm1h/THOUS);
 			listError.add(accumError);
+			listRelocate.add(this.totalRelocate);
 			// store log values
 			listReqTW.add(totalReqTW);
 			listReqLvTW.add(totalReqLvTW);
@@ -212,18 +218,20 @@ public class Scheduler_FR {
 		// print log values to txt or excel file
 		try {
 			String path = "./PlotRESCE/" + type;
-			write_integer(path + "/AveUsedSer.txt",listUsedSer);
-			write_integer(path + "/AveReqTW.txt",listReqTW);
-			write_integer(path + "/AveReqLvTW.txt",listReqLvTW);
-			write_integer(path + "/AveReqActive.txt",listSFCActive);
-			write_integer(path + "/AveAcceptTW.txt",listAcceptTW);
-			write_integer(path + "/TotalError.txt",listError);
-			write_double(path + "/AveServerUtil.txt",listAveSerUtil);
-			write_double(path + "/AvePower.txt",listPower);
-			write_double(path + "/AvePowerMig.txt",listPowerMig);
-			write_double(path + "/TotalEnergy.txt",listEnergy);
-			write_double(path + "/AveAcceptance.txt",listAcceptance);
-			write_double(path + "/AveDownTime.txt",listDownTime);
+			write_integer(path + "/UsedSerRESCE.txt",listUsedSer);
+			write_integer(path + "/ReqTWRESCE.txt",listReqTW);
+			write_integer(path + "/ReqLvTWRESCE.txt",listReqLvTW);
+			write_integer(path + "/ReqActiveRESCE.txt",listSFCActive);
+			write_integer(path + "/AcceptTWRESCE.txt",listAcceptTW);
+			write_integer(path + "/ErrorRESCE.txt",listError);
+			write_integer(path + "/RelocateRESCE.txt",listRelocate);
+			write_double(path + "/ServerUtilRESCE.txt",listAveSerUtil);
+			write_double(path + "/PowerRESCE.txt",listPower);
+			write_double(path + "/PowerColdTermRESCE.txt",listPowerColdTerm);
+			write_double(path + "/PowerWarmRESCE.txt",listPowerWarm);
+			write_double(path + "/EnergyRESCE.txt",listEnergy);
+			write_double(path + "/AveAcceptanceRESCE.txt",listAcceptance);
+			write_double(path + "/AveDownTimeRESCE.txt",listDownTime);
 
 
 		} catch (IOException e) {
@@ -246,7 +254,7 @@ public class Scheduler_FR {
 		edgeMapping = new EdgeMapping();
 		linkMapping = new LinkMapping();
 		for(SFC sfc : listSFCTotal) {
-			this.addDelEnergy(INIENERGY*sfc.getListServiceCloud().size());
+			this.addDelEnergy(DELENERGY*sfc.getListServiceCloud().size());
 			sfc.reset();
 		}// reset fattree topology
 	}
@@ -354,7 +362,7 @@ public class Scheduler_FR {
 			for(Service ser : listSer) {
 				PhysicalServer server = ser.getBelongToServer();
 				if(!listServer.containsKey(server)) {
-					listServer.put(server, 0);
+					listServer.put(server, 1);
 				}else {
 					Integer numScale = listServer.get(server);
 					listServer.put(server, numScale + 1);
@@ -366,7 +374,7 @@ public class Scheduler_FR {
 			int numScale = entry.getValue();
 			// equation
 			if(numScale != 0)
-				downtime += (2.913 + 0.346*numScale - 0.001*numScale*numScale);
+				downtime += (4.24 + 0.7*numScale);
 //			listDT.add((2.913 + 0.346*numScale - 0.001*numScale*numScale));
 		}
 		// these servers perform migration in parallel
@@ -661,6 +669,14 @@ public class Scheduler_FR {
 	
 	public void addTotalEnergy(double totalEnergy) {
 		this.totalEnergy += totalEnergy;
+	}
+
+	public int getTotalRelocate() {
+		return totalRelocate;
+	}
+
+	public void setTotalRelocate(int totalRelocate) {
+		this.totalRelocate = totalRelocate;
 	}
 
 }

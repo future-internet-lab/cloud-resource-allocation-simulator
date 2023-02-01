@@ -28,7 +28,7 @@ import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.xml.sax.SAXException;
 
-import fil.ml.model.MLModel;
+import fil.ml.*;
 import fil.resource.substrate.PhysicalServer;
 import fil.resource.substrate.SubstrateLink;
 import fil.resource.virtual.Event;
@@ -43,16 +43,17 @@ public class Orchestrator_CR {
 	final static int HOUR = 3600;
 	final static double THOUS = 1000.0;
 	final static double MIL = 1000000.0;
-	final static double INIENERGY = 19.0;
-	
+	final static double INIENERGY = 15.68; // calculate by power*time/number of pod
+	final static double DELENERGY = 14.39; // calculate by power*time/number of pod
+
 	private double totalEnergy;
 	private double iniEnergy;
 	private double delEnergy;
 	private double downtime;
 	private int sfcID;
-	private int totalError;
-	private int totalInsuf;
-	private int totalMig;
+	private Double totalError;
+	private int totalCold;
+	private int totalInSuf;
 	private Topology topo;
 	private FatTree fatTree;
 	private EdgeMapping edgeMapping;
@@ -63,15 +64,12 @@ public class Orchestrator_CR {
 	private LinkedList<Integer> edgePosition;
 	private LinkedList<Integer> listMLResultRec;
 	private LinkedList<Integer> listMLResultDen;
-
 	private HashMap<Integer, LinkedList<Double>> feedDataChecker;
 	private HashMap<Integer, LinkedList<SFC>> listSFCAllRpi;
-	private MLModel denModel;
-	private MLModel recModel;
+	private Inference denModel;
+	private Inference recModel;
 
-	
-	//private Topology topo;
-	
+		
 	public Orchestrator_CR() throws IOException, SAXException, JAXBException  {
 		edgePosition = new LinkedList<>();
 		edgePosition.add(10);
@@ -93,39 +91,56 @@ public class Orchestrator_CR {
 		for(int i = 0; i < NUM_PI; i ++) {
 			listSFCAllRpi.put(i, new LinkedList<SFC>());
 		}
-		
 		totalEnergy = 0.0;
 		iniEnergy = 0.0;
 		delEnergy = 0.0;
 		sfcID = 0;
-		totalError = 0;
-		totalMig = 0;
+		totalError = 0.0;
+		totalCold = 0;
+		totalInSuf = 0;
 		isSuccess = false;
 	}
 	
 
 	
-	public void run(LinkedList<LinkedList<Event>> listTotalEvent, double TW, String type, boolean ML) throws IOException, SAXException, JAXBException {
+	public void run(LinkedList<LinkedList<Event>> listTotalEvent, double TW, String type, boolean ML, String MLtype) throws IOException, SAXException, JAXBException {
 		
-		// set ML model based on TW
-		if(ML == true) {
-			setDenModel(new MLModel("./MLModelsTraining/" + String.valueOf(TW) + "/20211204-RF-tunning-Density-" + type + ".pmml"));
-			setRecModel(new MLModel("./MLModelsTraining/" + String.valueOf(TW) + "/20211204-RF-tunning-Receive-" + type + ".pmml"));
+		/*
+		 * The following ML model is chosen:
+		 * - GB for 0.5 and 1.0 TW in both type of VNF
+		 * - LSTM for 2.0 TW in both type of VNF
+		 * Inputs:
+		 * - GB: Whole set of features, name of output
+		 * - LSTM:
+		 * 		- Density: '# VNF Density current', seq_length = 12, num_layer = 2, batch_size = 1, hidden_size = 100
+		 * 		- Receive: 'Time ','# VNF Receive current',  seq_length = 12, num_layer = 1, batch_size = 1, hidden_size = 500
+		 */
+		if(MLtype == "LSTM") {
+			this.denModel = new LSTM(TW, "den", 12, 1, 1, 500);
+			this.recModel = new LSTM(TW, "rec", 12, 2, 1, 100);
+		}else {
+			this.denModel = new Others(TW, "den", type, "# VNF Density future");
+			this.recModel = new Others(TW, "rec", type, "# VNF Receive future");	
 		}
 		
-		// init list for logging data
+		/* init list for logging data */
 		LinkedList<Integer> listReceive = new LinkedList<>();
 		LinkedList<Integer> listDensity = new LinkedList<>();
 		LinkedList<Integer> listUsedSer = new LinkedList<>();
 		LinkedList<Integer> listReqTW = new LinkedList<>();
 		LinkedList<Integer> listReqLvTW = new LinkedList<>();
 		LinkedList<Integer> listSFCActive = new LinkedList<>();
-		LinkedList<Integer> listError = new LinkedList<>();
+		LinkedList<Double> listError = new LinkedList<>();
+		LinkedList<Integer> listRelocate = new LinkedList<>();
+		LinkedList<Integer> listColdStart = new LinkedList<>();
+		LinkedList<Integer> listInSuf = new LinkedList<>();
 		LinkedList<Integer> listRedundant = new LinkedList<>();
-		LinkedList<Integer> listVNFMig = new LinkedList<>();
+		LinkedList<Integer> listRedirect = new LinkedList<>();
 		LinkedList<Integer> listAcceptTW = new LinkedList<>();
 		LinkedList<Double> listAveSerUtil = new LinkedList<>();
 		LinkedList<Double> listTotalPower = new LinkedList<>();
+		LinkedList<Double> listPowerColdTerm = new LinkedList<>();
+		LinkedList<Double> listPowerWarm = new LinkedList<>();
 		LinkedList<Double> listAcceptance = new LinkedList<>();
 		LinkedList<Double> listEnergy = new LinkedList<>();
 		LinkedList<Double> listDownTime = new LinkedList<>();
@@ -134,6 +149,7 @@ public class Orchestrator_CR {
 		
 		// list to store all MLdata of all TWs for excel file for training
 		LinkedList<LinkedList<Double>> storeMLData = new LinkedList<>();
+		LinkedList<Double> listMLDataTW = new LinkedList<>();
 		LinkedList<Integer> resultPre = new LinkedList<>();
 		
 		// declare variables that use for each TW
@@ -143,6 +159,8 @@ public class Orchestrator_CR {
 		int totalSFCaccept1h = 0;
 		double time4Energy = 0.0;
 		double power1h = 0.0;
+		double powerColdTerm1h = 0.0;
+		double powerWarm1h = 0.0;
 		double downtime1h = 0.0;
 		// pass request to edge and start running mapping process
 		for(int listEventIndex = 0; listEventIndex < listTotalEvent.size(); listEventIndex ++) {
@@ -155,22 +173,6 @@ public class Orchestrator_CR {
 				timeP = listEventIndex*TW;
 			else
 				timeP = (double) listEventIndex;
-
-			// declare ML list and data
-			LinkedList<Double> listMLDataTW = new LinkedList<>();
-			listMLDataTW.add(timeP); //time
-			listMLDataTW.add(edgeMapping.getCPUaverageAll(topo)); //cpu per all devices
-			listMLDataTW.add(edgeMapping.getCPUaverageNonZero(topo)); //cpu per non-zero devices
-			listMLDataTW.add(cloudMapping.getCPUServerUtil(topo)); //CPU server average
-			listMLDataTW.add(edgeMapping.getBWaverageAll(topo)); //bw per all devices
-			listMLDataTW.add(edgeMapping.getBWaverageNonZero(topo)); //bw per non zero
-			listMLDataTW.add(topo.getLinkUtil("core", "agg")); //link util core-agg
-			listMLDataTW.add(topo.getLinkUtil("agg", "edge")); //link util agg-edge
-			listMLDataTW.add(edgeMapping.getNonZeroDevice(topo)); //number edge devices
-			listMLDataTW.add(topo.getNonZeroLink("core", "agg")); //link util core-agg
-			listMLDataTW.add(topo.getNonZeroLink("agg", "edge")); //link util agg-edge			listMLDataTW.add(cloudMapping.getPoolReceive().size()*1.0); // current
-			listMLDataTW.add(cloudMapping.getPoolDensity().size()*1.0); // current
-			listMLDataTW.add(cloudMapping.getPoolReceive().size()*1.0); // current
 			
 			// reset power1h variable in 1hour period
 			if(timeP == (int) (timeP)) {
@@ -179,16 +181,36 @@ public class Orchestrator_CR {
 				totalReqLv1h = 0;
 				totalSFCaccept1h = 0;
 				power1h = 0.0;
+				powerColdTerm1h = 0.0;
+				powerWarm1h = 0.0;
 				downtime1h = 0.0;
 				// reset global variables
 				this.setDelEnergy(0.0);
 				this.setIniEnergy(0.0);
 			}
 			
+
 			// running prediction and getting results
 			// the if condition is tweaked for 2-hour TW, further coding is required for better generalization
 			if((TW == 2.0 && timeP % 2.0 == 0.0) || TW != 2.0) {
-				this.setTotalInsuf(0);
+				// below renew list to fix the mismatch between odd and event TW recording data
+				listMLDataTW = new LinkedList<>();
+				// declare ML list and data
+//				LinkedList<Double> listMLDataTW = new LinkedList<>();
+				listMLDataTW.add(timeP); //time
+				listMLDataTW.add(edgeMapping.getCPUaverageAll(topo)); //cpu per all devices
+				listMLDataTW.add(edgeMapping.getCPUaverageNonZero(topo)); //cpu per non-zero devices
+				listMLDataTW.add(cloudMapping.getCPUServerUtil(topo)); //CPU server average
+				listMLDataTW.add(edgeMapping.getBWaverageAll(topo)); //bw per all devices
+				listMLDataTW.add(edgeMapping.getBWaverageNonZero(topo)); //bw per non zero
+				listMLDataTW.add(topo.getLinkUtil("core", "agg")); //link util core-agg
+				listMLDataTW.add(topo.getLinkUtil("agg", "edge")); //link util agg-edge
+				listMLDataTW.add(edgeMapping.getNonZeroDevice(topo)); //number edge devices
+				listMLDataTW.add(topo.getNonZeroLink("core", "agg")); //link util core-agg
+				listMLDataTW.add(topo.getNonZeroLink("agg", "edge")); //link util agg-edge			listMLDataTW.add(cloudMapping.getPoolReceive().size()*1.0); // current
+				listMLDataTW.add(cloudMapping.getPoolDensity().size()*1.0); // current
+				listMLDataTW.add(cloudMapping.getPoolReceive().size()*1.0); // current	
+//				this.setTotalInsuf(0);
 				if(ML) { // if prediction is requested
 					resultPre = this.mapPrediction((double)timeP);
 				}else {
@@ -233,14 +255,15 @@ public class Orchestrator_CR {
 						totalReqLv1h ++;
 					}
 					//calculate accumulated averaging downtime
-					downtime1h += (this.downtime);
-//					downtime1h += (this.downtime/this.listSFCTotal.size());
+//					downtime1h += (this.downtime);
+					downtime1h += (this.downtime/this.listSFCTotal.size());
 
 //					System.out.println("Total downtime this event: " + this.downtime);
 					
 					// calculate energy
 					this.addTotalEnergy((insPower*(event.getTime() - time4Energy)*HOUR));
 					power1h += (insPower*(event.getTime() - time4Energy));
+					powerWarm1h += (cloudMapping.getPowerWasted(topo)*(event.getTime() - time4Energy));
 					time4Energy = event.getTime();
 				
 				}else { // failed
@@ -253,39 +276,48 @@ public class Orchestrator_CR {
 				
 			} // loop each event
 			
-			for(Service service : cloudMapping.getPoolService()) {
-				if(service.getStatus() == "unassigned") {
-					this.totalError ++;
-					totalRedun1h ++;
-				}
-			}
 			
 			// removing all "unassigned" VNFs to purify the system
+			// the folowing data must be put at the end of odd TW
 			if((TW == 2.0 && timeP % 2.0 != 0.0) || TW != 2.0) {
-				int numLeave = cloudMapping.leaveRedundant(topo);
-				this.addDelEnergy(numLeave*INIENERGY);
+				for(Service service : cloudMapping.getPoolService()) {
+					if(service.getStatus() == "unassigned") {
+						this.totalError ++;
+						totalRedun1h ++;
+					}
+				}
+				
+//				int numLeave = cloudMapping.leaveRedundant(topo);
+//				this.addDelEnergy(numLeave*DELENERGY);
+				
+				// store label for ML dataset
+				listMLDataTW.add(cloudMapping.getPoolDensity().size()*1.0); // label
+				listMLDataTW.add(cloudMapping.getPoolReceive().size()*1.0); // label
+				storeMLData.add(listMLDataTW);
 			}
 			
-			// store label for ML dataset
-			listMLDataTW.add(cloudMapping.getPoolDensity().size()*1.0); // label
-			listMLDataTW.add(cloudMapping.getPoolReceive().size()*1.0); // label
-			storeMLData.add(listMLDataTW);
+			
 			
 			// store log values in 1 hour period
 			if(TW == (int) TW || timeP != (int) (timeP)) {
 				// update variables after 1 hour
 				power1h += ((this.getIniEnergy() + this.getDelEnergy())/HOUR);
-				
+				powerColdTerm1h += ((this.getIniEnergy() + this.getDelEnergy())/HOUR);
 				// store log files
 				listUsedSer.add(cloudMapping.getUsedServer(topo));
 				listReceive.add(cloudMapping.getPoolReceive().size());
 				listDensity.add(cloudMapping.getPoolDensity().size());
 				listEnergy.add(this.getTotalEnergy()/MIL);
 				listTotalPower.add(power1h/THOUS);
+				listPowerColdTerm.add(powerColdTerm1h/THOUS);
+				listPowerWarm.add(powerWarm1h/THOUS);
 //				listPowerTW.add(this.power);
 				listError.add(this.totalError);
+//				listRelocate.add(this.totalRelocate);
+				listColdStart.add(this.totalCold);
+				listInSuf.add(this.totalInSuf);
 				listRedundant.add(totalRedun1h);
-				listVNFMig.add(this.totalMig);
+				listRedirect.add(cloudMapping.getVNFmigration());
 				listReqTW.add(totalReq1h);
 				listReqLvTW.add(totalReqLv1h);
 				listDownTime.add(downtime1h);
@@ -307,21 +339,30 @@ public class Orchestrator_CR {
 		
 		// print log values to txt or excel file
 		try {
-			String path = "./PlotCR/" + String.valueOf(TW) + "/" + type;
-			write_integer(path + "/AveUsedSerCR.txt",listUsedSer);
-			write_integer(path + "/AveReceiveCR.txt",listReceive);
-			write_integer(path + "/AveDensityCR.txt",listDensity);
-			write_integer(path + "/AveReqTWCR.txt",listReqTW);
-			write_integer(path + "/AveReqLvTWCR.txt",listReqLvTW);
-			write_integer(path + "/AveReqActiveCR.txt",listSFCActive);
-			write_integer(path + "/TotalAcceptTWCR.txt",listAcceptTW);
-			write_integer(path + "/TotalErrorCR.txt",listError);
-			write_integer(path + "/TotalRedundantCR.txt",listRedundant);
-			write_integer(path + "/TotalMigCR.txt",listVNFMig);
-			write_double(path + "/AverageServerUtilCR.txt",listAveSerUtil);
-			write_double(path + "/AvePowerCR.txt",listTotalPower);
+			String path = null;
+			if(MLtype == "LSTM")
+				path = "./PlotCR/" + String.valueOf(TW) + "/" + type + "/" + MLtype;
+			else
+				path = "./PlotCR/" + String.valueOf(TW) + "/" + type;
+			
+			write_integer(path + "/UsedSerCR.txt",listUsedSer);
+			write_integer(path + "/ReceiveCR.txt",listReceive);
+			write_integer(path + "/DensityCR.txt",listDensity);
+			write_integer(path + "/ReqTWCR.txt",listReqTW);
+			write_integer(path + "/ReqLvTWCR.txt",listReqLvTW);
+			write_integer(path + "/ReqActiveCR.txt",listSFCActive);
+			write_integer(path + "/AcceptTWCR.txt",listAcceptTW);
+			write_double(path + "/ErrorCR.txt",listError);
+			write_integer(path + "/InSufCR.txt",listInSuf);
+			write_integer(path + "/ColdStartCR.txt",listColdStart);
+			write_integer(path + "/RedundantCR.txt",listRedundant);
+			write_integer(path + "/RedirectCR.txt",listRedirect);
+			write_double(path + "/ServerUtilCR.txt",listAveSerUtil);
+			write_double(path + "/PowerCR.txt",listTotalPower);
+			write_double(path + "/PowerColdTermCR.txt",listPowerColdTerm);
+			write_double(path + "/PowerWarmCR.txt",listPowerWarm);
 //			write_double(path + "/ListPowerEndTWCR.txt",listPowerTW);
-			write_double(path + "/TotalEnergyCR.txt",listEnergy);
+			write_double(path + "/EnergyCR.txt",listEnergy);
 			write_double(path + "/AveAcceptanceCR.txt",listAcceptance);
 			write_double(path + "/AveLinkCoreCR.txt",listLinkCore);
 			write_double(path + "/AveLinkAggCR.txt",listLinkAgg);
@@ -329,7 +370,11 @@ public class Orchestrator_CR {
 //			write_double("./PlotCR/TotalLinkEdgeCR.txt",listLinkEdge);
 
 //			write_excel_double("./PlotCR/DensityCR.xlsx",storeMLData);
-			write_excel_double(path + "/" + type + ".xlsx",storeMLData);
+//			write_excel_double_result(path + "/result.xlsx", "power", listTotalPower);
+//			write_excel_double_result(path + "/result.xlsx", "error", listError);
+//			write_excel_double_result(path + "/result.xlsx", "downtime", listDownTime);
+
+//			write_excel_double(path + "/" + type + ".xlsx",storeMLData);
 
 
 		} catch (IOException e) {
@@ -365,7 +410,7 @@ public class Orchestrator_CR {
 						
 						assignedStatus = true;
 		
-						result = cloudMapping.assignVNF(topo, result, listSFCTotal);
+						result = cloudMapping.assignVNF(topo, result, listSFCTotal, listSFCOnRpi);
 						
 						if(stop) // allow system to assignVNF one more time before stopping
 							break;
@@ -376,7 +421,10 @@ public class Orchestrator_CR {
 								if(!service.getBelongToEdge() && service.getStatus() == "unassigned") {
 									assignedStatus = false;
 									this.totalError ++; // one VNF is not sufficiently
-									this.totalInsuf ++;
+									this.totalCold ++;
+									this.totalInSuf ++;
+//									if(result.size() > 1) // VNF is relocated from edge --> cloud
+//										this.totalRelocate ++;
 									if(!migSFC.containsKey(sfc0))
 										migSFC.put(sfc0, new LinkedList<>());
 									// simplify problem by assuming resource on cloud is infinity
@@ -384,7 +432,10 @@ public class Orchestrator_CR {
 									if(!success) {
 										System.out.println("Cannot create more VNF.");
 										this.totalError --;
-										this.totalInsuf --;
+										this.totalCold --;
+										this.totalInSuf --;
+//										if(result.size() > 1) 
+//											this.totalRelocate --;
 										resultFailed.add(sfc0);
 										stop = true; // resource runs out, stop while loop
 										break;
@@ -505,8 +556,7 @@ public class Orchestrator_CR {
 				LinkedList<SFC> listSFCRpi = listSFCAllRpi.get(piID);
 				listSFCRpi.remove(sfc);
 				listSFCTotal.remove(sfc);
-				this.totalMig += cloudMapping.getVNFmigration();
-				this.addDelEnergy(sfc.getListServiceCloud().size()*INIENERGY);
+				this.addDelEnergy(sfc.getListServiceCloud().size()*DELENERGY);
 				resultAll = true;
 			}
 			return resultAll;
@@ -535,7 +585,7 @@ public class Orchestrator_CR {
 			for(Service ser : listSer) {
 				PhysicalServer server = ser.getBelongToServer();
 				if(!listServer.containsKey(server)) {
-					listServer.put(server, 0);
+					listServer.put(server, 1);
 				}else {
 					Integer numScale = listServer.get(server);
 					listServer.put(server, numScale + 1);
@@ -547,7 +597,7 @@ public class Orchestrator_CR {
 			int numScale = entry.getValue();
 			// equation
 			if(numScale != 0)
-				downtime += (2.913 + 0.346*numScale - 0.001*numScale*numScale);
+				downtime += (4.24 + 0.7*numScale);
 		}
 		// these servers perform migration in parallel
 //		Collections.sort(listDT);
@@ -566,12 +616,12 @@ public class Orchestrator_CR {
 				reduntTW ++;
 			}
 		}
-		double energy = reduntTW*INIENERGY;
+		double energy = reduntTW*DELENERGY;
 		return energy;
 	}
 	
 	public double getInitEner() {
-		return this.totalInsuf*INIENERGY;
+		return this.totalCold*INIENERGY;
 	}
 	
 	//<----This process is mapped following "Detail mapping process" 
@@ -592,25 +642,18 @@ public class Orchestrator_CR {
 			Map<String, Double> feedData = new HashMap<>();
 //			LinkedList<Double> feedData_arr = new LinkedList<>();
 			// feed data to MLModel
-			feedData.put("Time", time); //time
+			feedData.put("Time ", time); //time "Time " for 24h
 			feedData.put("CPU edge average (1)", edgeMapping.getCPUaverageAll(topo)); //CPU edge (1)
 			feedData.put("CPU edge average (2)", edgeMapping.getCPUaverageNonZero(topo)); //CPU edge (2)
 			feedData.put("CPU server average", cloudMapping.getCPUServerUtil(topo)); //CPU server
 			feedData.put("BW edge (1)", edgeMapping.getBWaverageAll(topo)); //BW edge (1)
-			feedData.put("BW edge (2)", edgeMapping.getBWaverageNonZero(topo)); //BW edge (2)
+			feedData.put("BW edge (1).1", edgeMapping.getBWaverageNonZero(topo)); //BW edge (2) BW edge (1).1 for 24h
 			feedData.put("BW server (1)", topo.getLinkUtil("core", "agg")); //BW server (1)
 			feedData.put("BW server (2)", topo.getLinkUtil("agg", "edge")); //BW server (2)
 			feedData.put("# edge device", edgeMapping.getNonZeroDevice(topo)); //#edge device
 			feedData.put("# links (1)", topo.getNonZeroLink("core", "agg")); //#link (1)
 			feedData.put("# links (2)",topo.getNonZeroLink("agg", "edge"));  //#link (2)
 			
-
-//			feedData.add(time); // time - 0 
-//			feedData.add(edgeMapping.getCPUaverageAll(topo)); // cpu01 - 1
-//			feedData.add(edgeMapping.getCPUaverageNonZero(topo)); // cpu02 - 2
-//			feedData.add(edgeMapping.getBWaverageAll(topo)); // bw01 - 3
-//			feedData.add(edgeMapping.getBWaverageNonZero(topo)); // bw02 - 4
-//			feedData.add(edgeMapping.getNonZeroDevice(topo)); // pi - 5
 
 			if(i == 1) {
 				double numDenCur = (double) this.cloudMapping.getPoolDensity().size();
@@ -627,47 +670,27 @@ public class Orchestrator_CR {
 			int compare = 0;
 			switch(i) {
 			case 1:
-				// arrange data for density
-				// old order 2 1 3 5 0 4 6
-//				feedData_arr.add(feedData.get(2));
-//				feedData_arr.add(feedData.get(1));
-//				feedData_arr.add(feedData.get(3));
-//				feedData_arr.add(feedData.get(5));
-//				feedData_arr.add(feedData.get(0));
-//				feedData_arr.add(feedData.get(4));
-//				feedData_arr.add(feedData.get(6));
-				presult = this.denModel.run(feedData, "# VNF Density future");
+				presult = this.denModel.predict(feedData);
 				this.listMLResultRec.add((int) presult);
-//				this.feedDataChecker.put(this.time, feedData);
 				compare = (int) presult - this.cloudMapping.getPoolDensity().size();
 				break;
 			case 2:
-				// arrange data for receive
-				// old order 3 4 1 2 6 5 0
-//				feedData_arr.add(feedData.get(3));
-//				feedData_arr.add(feedData.get(4));
-//				feedData_arr.add(feedData.get(1));
-//				feedData_arr.add(feedData.get(2));
-//				feedData_arr.add(feedData.get(6));
-//				feedData_arr.add(feedData.get(5));
-//				feedData_arr.add(feedData.get(0));
-
-				presult = this.recModel.run(feedData, "# VNF Receive future");
+				presult = this.recModel.predict(feedData);
 				this.listMLResultDen.add((int) presult);
 				compare = (int) presult - this.cloudMapping.getPoolReceive().size();
 				break;
 			}
 			if(compare < 0) {
-				
-				// if leave > join then 1: let them leave, delete VNF after leaving
-				// 2: let them leave but not delete VNF, after mapping is done then
-				// delete VNF ==> this will result in energy leakage
-				result.add((int) -(compare)); // turn on prediction
+				// if leave > join then: leave redundant CNF belongs to the previous TW, if it's still not enough then let CNF leave when they request
+				int numLeave = cloudMapping.leaveRedundant(-compare, i+2, topo);
+				this.addDelEnergy(numLeave*DELENERGY);
+				result.add(numLeave - (-compare)); // turn on prediction // left over must-leave CNF
 			}
 			else if(compare > 0) {
 				result.add(0);
 				boolean mapResult = cloudMapping.createVNF((int) compare, i+2, topo, true); // true indicates mapping with reserved order
 				if(mapResult) {
+					this.addTotalCold(compare);
 					this.addIniEnergy(compare*INIENERGY);
 					this.addTotalEnergy(compare*INIENERGY);
 				}
@@ -796,6 +819,30 @@ public class Orchestrator_CR {
 		            cell.setCellValue(obj.toString());
 		         }
 	      }
+	      //Write the workbook in file system
+	      fis.close();
+		  FileOutputStream out = new FileOutputStream(new File(filename));
+	      workbook.write(out);
+	      out.close();
+	      workbook.close();
+	}
+	
+	public static void write_excel_double_result (String filename, String result, LinkedList<Double> data) throws IOException { //write result to file
+		 File excelFile = new File(filename);
+		  FileInputStream fis = new FileInputStream(excelFile);
+		  //Create blank workbook
+	      XSSFWorkbook workbook = new XSSFWorkbook(fis);
+	      //Create a blank sheet
+	      XSSFSheet spreadsheet = workbook.getSheet(result);
+	      //Create row object
+	      XSSFRow row; 
+	      int rowid = spreadsheet.getLastRowNum();
+    	  row = spreadsheet.createRow(++rowid);
+	         int cellid = 0;
+	         for (Object obj : data){
+	            Cell cell = row.createCell(cellid++);
+	            cell.setCellValue(obj.toString());
+	         }
 	      //Write the workbook in file system
 	      fis.close();
 		  FileOutputStream out = new FileOutputStream(new File(filename));
@@ -944,32 +991,28 @@ public class Orchestrator_CR {
 		this.sfcID = sfcID;
 	}
 
-	public MLModel getDenModel() {
-		return denModel;
-	}
-
-	public void setDenModel(MLModel denModel) {
+	public void setDenModel(Others denModel) {
 		this.denModel = denModel;
 	}
 
-	public MLModel getRecModel() {
-		return recModel;
-	}
-
-	public void setRecModel(MLModel recModel) {
+	public void setRecModel(Others recModel) {
 		this.recModel = recModel;
 	}
 
 
 
-	public int getTotalInsuf() {
-		return totalInsuf;
+	public int getTotalCold() {
+		return totalCold;
 	}
 
 
 
-	public void setTotalInsuf(int totalInsuf) {
-		this.totalInsuf = totalInsuf;
+	public void setTotalCold(int totalCold) {
+		this.totalCold = totalCold;
+	}
+
+	public void addTotalCold(int totalCold) {
+		this.totalCold += totalCold;
 	}
 
 
@@ -1020,7 +1063,6 @@ public class Orchestrator_CR {
 	}
 
 
-
 	public void setDelEnergy(double delEnergy) {
 		this.delEnergy = delEnergy;
 	}
@@ -1028,4 +1070,5 @@ public class Orchestrator_CR {
 	public void addDelEnergy(double delEnergy) {
 		this.delEnergy += delEnergy;
 	}
+
 }

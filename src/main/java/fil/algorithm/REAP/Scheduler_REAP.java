@@ -31,7 +31,9 @@ public class Scheduler_REAP {
 	final static int HOUR = 3600;
 	final static double THOUS = 1000.0;
 	final static double MIL = 1000000.0;
-	final static double INIENERGY = 19.0;
+	final static double INIENERGY = 15.68; // calculate by power*time/number of pod
+	final static double DELENERGY = 14.39; // calculate by power*time/number of pod
+
 	final static List<Integer> edgePosition = 
 			Collections.unmodifiableList(Arrays.asList(10, 5, 13, 14));
 	
@@ -85,10 +87,14 @@ public class Scheduler_REAP {
 		LinkedList<Integer> listReqLvTW = new LinkedList<>();
 		LinkedList<Integer> listSFCActive = new LinkedList<>();
 		LinkedList<Integer> listError = new LinkedList<>();
+		LinkedList<Integer> listRedirect = new LinkedList<>();
+		LinkedList<Integer> listColdStart = new LinkedList<>();
 		LinkedList<Integer> listAcceptTW = new LinkedList<>();
 		LinkedList<Integer> listUsedSer = new LinkedList<>();
 		LinkedList<Double> listAveSerUtil = new LinkedList<>();
 		LinkedList<Double> listTotalPower = new LinkedList<>();
+		LinkedList<Double> listPowerColdTerm = new LinkedList<>();
+		LinkedList<Double> listPowerWarm = new LinkedList<>();
 		LinkedList<Double> listAcceptance = new LinkedList<>();
 		LinkedList<Double> listEnergy = new LinkedList<>();
 		LinkedList<Double> listDownTime = new LinkedList<>();
@@ -107,6 +113,8 @@ public class Scheduler_REAP {
 			int totalSFCacceptTW = 0;
 			double aveSerUtil = 0.0;
 			double power1h = 0.0;
+			double powerColdTerm1h = 0.0;
+			double powerWarm1h = 0.0;
 			double downtime1h = 0.0;
 			
 			// reset global variables
@@ -120,7 +128,7 @@ public class Scheduler_REAP {
 			}
 			// loop each event
 			for(int eventIn = 0; eventIn < listEvent.size(); eventIn ++) {
-				this.totalInsuf = 0;
+//				this.totalInsuf = 0;
 				this.downtime = 0.0;
 				double insPower = 0.0;
 				
@@ -149,12 +157,13 @@ public class Scheduler_REAP {
 						totalReqLvTW ++;
 					}
 					//calculate accumulated averaging downtime
-//					downtime1h += (this.downtime/this.listSFCTotal.size());
-					downtime1h += (this.downtime);
+					downtime1h += (this.downtime/this.listSFCTotal.size());
+//					downtime1h += (this.downtime);
 
 					// calculate energy
 					this.addTotalEnergy((insPower*(event.getTime() - time4Energy)*HOUR));
 					power1h += (insPower*(event.getTime() - time4Energy));
+					powerWarm1h += (cloudMapping.getPowerWasted(topo)*(event.getTime() - time4Energy));
 					time4Energy = event.getTime();
 				}else {
 					if(event.getType() == "leave") {
@@ -175,11 +184,15 @@ public class Scheduler_REAP {
 			
 			// update variables after 1 hour
 			power1h += ((this.getIniEnergy() + this.getDelEnergy())/HOUR);
-			
+			powerColdTerm1h += ((this.getIniEnergy() + this.getDelEnergy())/HOUR);
 			listDownTime.add(downtime1h);
 			listEnergy.add(this.getTotalEnergy());
-			listTotalPower.add(power1h/1000.0);
+			listTotalPower.add(power1h/THOUS);
+			listPowerColdTerm.add(powerColdTerm1h/THOUS);
+			listPowerWarm.add(powerWarm1h/THOUS);
 			listError.add(this.totalError);
+			listRedirect.add(cloudMapping.getVNFmigration());
+			listColdStart.add(this.totalInsuf);
 			// store log values
 			listReqTW.add(totalReqTW);
 			listReqLvTW.add(totalReqLvTW);
@@ -197,15 +210,19 @@ public class Scheduler_REAP {
 		// print log values to txt or excel file
 		try {
 			String path = "./PlotREAP/" + type;
-			write_integer(path + "/AveReqTWREAP.txt",listReqTW);
-			write_integer(path + "/AveReqLvTWREAP.txt",listReqLvTW);
-			write_integer(path + "/AveReqActiveREAP.txt",listSFCActive);
-			write_integer(path + "/AveAcceptTWREAP.txt",listAcceptTW);
-			write_integer(path + "/TotalErrorREAP.txt",listError);
-			write_integer(path + "/AveUsedServerREAP.txt",listUsedSer);
-			write_double(path + "/AveServerUtilREAP.txt",listAveSerUtil);
-			write_double(path + "/AvePowerREAP.txt",listTotalPower);
-			write_double(path + "/TotalEnergyREAP.txt",listEnergy);
+			write_integer(path + "/ReqTWREAP.txt",listReqTW);
+			write_integer(path + "/ReqLvTWREAP.txt",listReqLvTW);
+			write_integer(path + "/ReqActiveREAP.txt",listSFCActive);
+			write_integer(path + "/AcceptTWREAP.txt",listAcceptTW);
+			write_integer(path + "/ErrorREAP.txt",listError);
+			write_integer(path + "/RedirectREAP.txt",listRedirect);
+			write_integer(path + "/ColdStartREAP.txt",listColdStart);
+			write_integer(path + "/UsedServerREAP.txt",listUsedSer);
+			write_double(path + "/ServerUtilREAP.txt",listAveSerUtil);
+			write_double(path + "/PowerREAP.txt",listTotalPower);
+			write_double(path + "/PowerColdTermREAP.txt",listPowerColdTerm);
+			write_double(path + "/PowerWarmREAP.txt",listPowerWarm);
+			write_double(path + "/EnergyREAP.txt",listEnergy);
 			write_double(path + "/AveAcceptanceREAP.txt",listAcceptance);
 			write_double(path + "/AveDowntimeREAP.txt",listDownTime);
 
@@ -239,12 +256,9 @@ public boolean runEvent(Event event, int TW) {
 				boolean stop = false;
 				
 				while(!redirect) {
-					
 					redirect = true;
-					
 					// redirect first
-					result = cloudMapping.redirect(result, topo, listSFCTotal);
-					
+					result = cloudMapping.redirect(result, topo, listSFCTotal, listSFCOnRpi);
 					if(stop) // allow system to redirect one more time before stopping
 						break;
 					// check if all VNF has been assigned or not?
@@ -253,20 +267,22 @@ public boolean runEvent(Event event, int TW) {
 						for(Service service : sfc0.getListService()) {
 							if(!service.getBelongToEdge() && service.getStatus() == "unassigned") {
 								redirect = false;
-								this.totalError ++; // one VNF is not sufficiently
-								this.totalInsuf ++;
+//								if(result.size() > 1) // VNF is relocated from edge --> cloud
+//									this.totalRelocate ++;
 								if(!migSFC.containsKey(sfc0))
 									migSFC.put(sfc0, new LinkedList<>());
 								// redirect fails, process scaleOut
 								boolean success = cloudMapping.scaleOut(sfc0, service, topo);
 								if(!success) {
-									this.totalError --;
-									this.totalInsuf --;
+//									if(result.size() > 1) // VNF is relocated from edge --> cloud
+//										this.totalRelocate --;
 									resultFailed.add(sfc0);
 									System.out.println("No CPU left for mapping.");
 									stop = true; // resource runs out, stop while loop
 									break;
 								}else {
+									this.totalError ++; // one VNF is not sufficiently
+									this.totalInsuf ++;
 									migSFC.get(sfc0).add(service);
 									this.addIniEnergy(INIENERGY);
 								}
@@ -370,7 +386,7 @@ public boolean runEvent(Event event, int TW) {
 			linkMapping.leave(listSFCLeave, topo);
 			cloudMapping.leave(listSFCLeave);
 			// sum up deleted energy required
-			this.addDelEnergy(sfc.getListServiceCloud().size()*INIENERGY);
+			this.addDelEnergy(sfc.getListServiceCloud().size()*DELENERGY);
 			resultAll = true;
 		}
 		return resultAll;
@@ -398,7 +414,7 @@ public boolean runEvent(Event event, int TW) {
 			for(Service ser : listSer) {
 				PhysicalServer server = ser.getBelongToServer();
 				if(!listServer.containsKey(server)) {
-					listServer.put(server, 0);
+					listServer.put(server, 1);
 				}else {
 					Integer numScale = listServer.get(server);
 					listServer.put(server, numScale + 1);
@@ -410,7 +426,7 @@ public boolean runEvent(Event event, int TW) {
 			int numScale = entry.getValue();
 			// equation
 			if(numScale != 0)
-				downtime += (2.913 + 0.346*numScale - 0.001*numScale*numScale);
+				downtime += (4.24 + 0.7*numScale);
 //			listDT.add((2.913 + 0.346*numScale - 0.001*numScale*numScale));
 		}
 		// these servers perform migration in parallel

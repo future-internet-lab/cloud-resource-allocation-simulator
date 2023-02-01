@@ -1,0 +1,103 @@
+### Density
+* 24h-01-new
+LR: 
+ Cross-validation RMSE: -148.365076 (5.237563)
+ Cross-validation R2: 0.910341 (0.007061)
+ Training Error:  148.1168197906297 0.9109342184734359
+ Validation Error: 155.55120151475373 0.9123397444708097
+
+RandomForestRegressor
+{'bootstrap': True, 'max_features': 'auto', 'min_samples_leaf': 30, 'min_samples_split': 2, 'n_estimators': 25}
+ Training Error:  90.05666485184088 0.9670743889040436
+ Validation Error: 110.7286290453183 0.9555802778264353
+
+GradientBoostingRegressor
+{'criterion': 'friedman_mse', 'learning_rate': 0.1, 'loss': 'absolute_error', 'max_depth': 3, 'max_features': 'auto', 'min_samples_leaf': 2, 'min_samples_split': 20, 'n_estimators': 100}
+ Training Error:  97.09003957876435 0.9617306151096446
+ Validation Error: 112.84002542065163 0.9538701180916183
+
+* 24h-02-new
+LR: 
+ Cross-validation RMSE: -307.789283 (11.695711)
+ Cross-validation R2: 0.771511 (0.019614)
+ Training Error:  307.012776238308 0.7744486329549933
+ Validation Error: 299.6021796317122 0.7944351210041835
+
+RandomForestRegressor
+{'bootstrap': True, 'max_features': 'auto', 'min_samples_leaf': 5, 'min_samples_split': 30, 'n_estimators': 10}
+ Training Error:  138.29835352264624 0.9542315098900696
+ Validation Error: 148.5261168172736 0.9494798497939192
+
+GradientBoostingRegressor
+{'criterion': 'squared_error', 'learning_rate': 0.1, 'loss': 'absolute_error', 'max_depth': 5, 'max_features': 'auto', 'min_samples_leaf': 2, 'min_samples_split': 20, 'n_estimators': 50}
+ Training Error:  153.33606111876904 0.9437372220054463
+ Validation Error: 143.80768277144495 0.95263874995498
+
+* 24h-05
+LR: 
+ Cross-validation RMSE: -40.313818 (1.966478)
+ Cross-validation R2: 0.979303 (0.003350)
+ Training Error:  40.25928342628064 0.9796973583337005
+ Validation Error: 38.70518411130707 0.9658078765011019
+
+RandomForestRegressor
+{'bootstrap': True, 'max_features': 'auto', 'min_samples_leaf': 5, 'min_samples_split': 40, 'n_estimators': 75}
+ Training Error:  24.16729881175606 0.9926839495431952
+ Validation Error: 27.885645840651804 0.982252008465949
+
+GradientBoostingRegressor
+{'criterion': 'squared_error', 'learning_rate': 0.1, 'loss': 'huber', 'max_depth': 5, 'max_features': 'auto', 'min_samples_leaf': 20, 'min_samples_split': 20, 'n_estimators': 100}
+ Training Error:  21.195631737166316 0.9943725298653415
+ Validation Error: 24.790478952488566 0.9859732313818548
+
+### Receive
+* 24h-01-new
+LR: 
+ Cross-validation RMSE: -168.486112 (5.764507)
+ Cross-validation R2: 0.927935 (0.006047)
+ Training Error:  168.2162538565642 0.9284278111504112
+ Validation Error: 167.02542272922423 0.9349024252165592
+
+RF:
+{'bootstrap': True, 'max_features': 'auto', 'min_samples_leaf': 10, 'min_samples_split': 40, 'n_estimators': 25}
+ Training Error:  89.45301098109155 0.9797605683892747
+ Validation Error: 105.65862581011443 0.9739498897331083
+
+GradientBoostingRegressor(random_state=42)
+{'criterion': 'friedman_mse', 'learning_rate': 0.1, 'loss': 'squared_error', 'max_depth': 3, 'max_features': 'auto', 'min_samples_leaf': 2, 'min_samples_split': 10, 'n_estimators': 100}
+ Training Error:  93.71055893223892 0.9777881137139387
+ Validation Error: 103.6615160722275 0.9749253567733422
+
+* 24h-02-new
+LR: 
+ Cross-validation RMSE: -338.852260 (13.113241)
+ Cross-validation R2: 0.786563 (0.016781)
+ Training Error:  338.0730544111671 0.7892887607989756
+ Validation Error: 325.96505486280034 0.8109298487588267
+
+RF:
+{'bootstrap': True, 'max_features': 'auto', 'min_samples_leaf': 5, 'min_samples_split': 30, 'n_estimators': 10}
+ Training Error:  122.14326729171876 0.9724953797859416
+ Validation Error: 128.96709575501865 0.9704036112203019
+
+GradientBoostingRegressor(random_state=42)
+{'criterion': 'friedman_mse', 'learning_rate': 0.2, 'loss': 'huber', 'max_depth': 5, 'max_features': 'auto', 'min_samples_leaf': 5, 'min_samples_split': 20, 'n_estimators': 25}
+ Training Error:  121.80264311572472 0.9726485716135178
+ Validation Error: 125.32330007577733 0.9720523993725402
+
+* 24h-05
+LR: 
+ Cross-validation RMSE: -64.001970 (2.361013)
+ Cross-validation R2: 0.980188 (0.002052)
+ Training Error:  63.90523333883264 0.9803740739555976
+ Validation Error: 66.19132549205804 0.9713263074887484
+
+RandomForestRegressor(random_state=42)
+{'bootstrap': True, 'max_features': 'sqrt', 'min_samples_leaf': 2, 'min_samples_split': 40, 'n_estimators': 75}
+ Training Error:  40.22840101062631 0.9922228074862104
+ Validation Error: 50.63352022736411 0.9832213230636327
+
+GradientBoostingRegressor(random_state=42)
+{'criterion': 'friedman_mse', 'learning_rate': 0.2, 'loss': 'huber', 'max_depth': 3, 'max_features': 'auto', 'min_samples_leaf': 2, 'min_samples_split': 20, 'n_estimators': 100}
+ Training Error:  36.0235146054455 0.9937636644821913
+ Validation Error: 42.86607400666282 0.9879743409525861
