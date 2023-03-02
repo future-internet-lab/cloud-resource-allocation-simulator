@@ -13,6 +13,9 @@ The system metric dataset based on the traffic dataset can be found in [/ML-data
   
 ## How to run  
 ### Via main file  
-
+The boolean value `ML` indicates the usage of prediction model. Specify `True` to turn it on and `False` to turn it off. According to the simulation results, turning off the prediction model will result in enormous number of migration, which consumes huge energy.  
+  
+To benchmark the system, there is an option called `IL` that can be set for the variable `type`. `IL` provides an linearly increasing traffic load that does not follow the real traffic dataset. The reason of `IL` type is to benchmark the system with increasing load to maximum.  
+  
 ### Via .jar file
 TBD
