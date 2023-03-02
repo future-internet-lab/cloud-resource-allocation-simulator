@@ -10,7 +10,9 @@ The dataset of traffic from `Nistelrodeseweg road, Netherlands, 2018` can be fou
 The overview of the traffic: 
 ![alt text](https://github.com/future-internet-lab/edgecloud-simulator/blob/Java/traffic.PNG "Traffic overview")
 The system metric dataset based on the traffic dataset can be found in [/ML-data-models-2022](https://github.com/future-internet-lab/edgecloud-simulator/tree/Java/ML-data-models-2022) under file name `24h-05`, `24h-10` and `24h-20`, which represent the dataset recorded in `30 mins timewindow`, `1h timewindow` and `2h timewindow`, each.  
-  
+
+Latest tunning paprameter for non-LSTM algorithms can be found at [ML-data-models-2022/fine-tune-parameters.txt](https://github.com/future-internet-lab/edgecloud-simulator/blob/Java/ML-data-models-2022/fine-tune-parameters.txt)  
+
 ## How to run  
 ### Via main file  
 The boolean value `ML` indicates the usage of prediction model. Specify `True` to turn it on and `False` to turn it off. According to the simulation results, turning off the prediction model will result in enormous number of migration, which consumes huge energy.  
