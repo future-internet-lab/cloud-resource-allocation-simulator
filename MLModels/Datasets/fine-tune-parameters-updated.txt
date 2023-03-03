@@ -1,0 +1,53 @@
+0.5h is the same like the old file
+Receive
+**1h***********************************************************
+LR: 
+ Training Error:  162.3013700626817 0.9369467751556585
+ Validation Error: 164.66896424536705 0.9252042221804483
+
+RF:  {'bootstrap': True, 'max_features': 'auto', 'min_samples_leaf': 30, 'min_samples_split': 20, 'n_estimators': 50}
+ Training Error:  106.3345627997911 0.9729347632054378
+ Validation Error: 126.30577006727265 0.9559952095475555
+
+GB: {'criterion': 'friedman_mse', 'learning_rate': 0.2, 'loss': 'huber', 'max_depth': 3, 'max_features': 'auto', 'min_samples_leaf': 2, 'min_samples_split': 10, 'n_estimators': 50}
+ Training Error:  91.281625193469 0.9800552012268579
+ Validation Error: 113.75758983586935 0.9643044285047344
+**2h***********************************************************
+LR: 
+ Training Error:  330.2157738735972 0.8051068807851
+ Validation Error: 334.8114619924687 0.7870744549187998
+
+RF: {'bootstrap': True, 'max_features': 'auto', 'min_samples_leaf': 50, 'min_samples_split': 20, 'n_estimators': 10}
+ Training Error:  197.2692265735644 0.9304464085179907
+ Validation Error: 203.7491742869729 0.9211468861593157
+
+GB: {'criterion': 'friedman_mse', 'learning_rate': 0.5, 'loss': 'absolute_error', 'max_depth': 3, 'max_features': 'auto', 'min_samples_leaf': 20, 'min_samples_split': 20, 'n_estimators': 25}
+ Training Error:  174.6168431031232 0.9455029315239648
+ Validation Error: 189.32802601676414 0.9319141369633623
+
+Density
+**1h***********************************************************
+LR: 
+ Training Error:  144.99377383695506 0.9217771033956457
+ Validation Error: 151.00092277123275 0.8913894285402914
+
+RF: {'bootstrap': True, 'max_features': 'auto', 'min_samples_leaf': 20, 'min_samples_split': 50, 'n_estimators': 75}
+ Training Error:  91.35891192922553 0.9689446074154158
+ Validation Error: 119.41438905316608 0.9320755362742906
+
+GB: {'criterion': 'friedman_mse', 'learning_rate': 0.1, 'loss': 'huber', 'max_depth': 5, 'max_features': 'auto', 'min_samples_leaf': 10, 'min_samples_split': 20, 'n_estimators': 25}
+ Training Error:  91.23348037799892 0.9690298241049006
+ Validation Error: 115.98477026347675 0.9359211322403336
+
+**2h***********************************************************
+LR: 
+ Training Error:  288.5175402019786 0.8111407220586472
+ Validation Error: 317.78941194221295 0.7474732446810968
+
+RF: {'bootstrap': True, 'max_features': 'auto', 'min_samples_leaf': 50, 'min_samples_split': 20, 'n_estimators': 10}
+ Training Error:  210.20290314730877 0.899753018908304
+ Validation Error: 245.83000387942658 0.8488882177177671
+
+GB: {'criterion': 'friedman_mse', 'learning_rate': 0.5, 'loss': 'absolute_error', 'max_depth': 3, 'max_features': 'auto', 'min_samples_leaf': 10, 'min_samples_split': 20, 'n_estimators': 100}
+ Training Error:  193.02562018590677 0.9154674838486334
+ Validation Error: 223.97141254493232 0.8745664453409472
