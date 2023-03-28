@@ -1,4 +1,30 @@
-﻿Hướng dẫn chạy công cụ mô phỏng:
+﻿# Cloud Resource Allocation Simulator
+
+## 1. Introduction
+
+This is a Event-based Simulator for Cloud Resource Allocation Problem we researched in this Paper: [Service Function Chain Embedding in Centralized and Distributed Data Centers – a
+Comparison]()
+
+## 2. Installation
+
+This Simulator is developed in Python Programming Language, using these Library:
+
+* networkx
+* simpy
+* matplotlib
+* numpy
+
+Require Python version >= 3.6
+
+## 3. Structure
+
+## 4. Customization
+
+## 5. Contributor
+
+
+
+Hướng dẫn chạy công cụ mô phỏng:
 
 tạo file có cấu trúc giống như file main.py, cấu hình tuỳ ý:
     + selector: bộ chọn server, triển khai thuật toán VNF mapping tại đây, mỗi thuật toán tương ứng với một class trong file sim/Selector.py
