@@ -7,7 +7,7 @@ Comparison]()
 
 ## 2. Installation
 
-This Simulator is developed in Python Programming Language, using these Library:
+This Simulator is developed in Python Programming Language, using these Libraries:
 
 * networkx
 * simpy
@@ -18,9 +18,32 @@ Require Python version >= 3.6
 
 ## 3. Structure
 
-## 4. Customization
+![alt](img/class_diagram.png)
 
-## 5. Contributor
+* `Simulator`: Control simulator operations, schedule processing of SFCs, log activities, initialize other components of the simulation
+* `Logger`: Logging output to file
+* `Substrate`: Represents each Substrate Topology (Big Topo), storing the structure of the Substrate and the structure of the DC. Specific Substrates are implemented as Realizations of this class
+* `Ingress`: Represents Ingress nodes, having the function of generating SFC according to a given distribution
+* `Application`: Definition of the structure and parameters of the SFC
+* `Distribution`: generate the interval between 2 SFCs according to the distribution installed as Realizations of this class
+* `Selector`: contains the algorithm to put the SFC on the server, the algorithms are implemented as Realizations of this class
+* `SubstrateSelector`: contains the DC selection algorithm to set the SFC, the algorithms are implemented as Realizations of this class
+* `DataCentre`: represents each DC, consider whether the SFC can be put in, clear the SFC after the SFC TTL timeout
+
+## 4. Explaination
+
+* You can run `main_distributed.py` or `main_centrlized.py` or another file with a similar structure
+
+* Simulator starts running when this line in main file is executed:
+```python
+sim.run(runtime)
+```
+
+* 
+
+## 6. Customization
+
+## 7. Contributor
 
 
 

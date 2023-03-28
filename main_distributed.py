@@ -136,5 +136,5 @@ if __name__ == "__main__":
     #     #     print(f"DC: {dcCount}/{len(DCPos)} ({round(dcCount % BUFFER / BUFFER * 100, )}%), Ingress: {ingCount}/{len(ingressPos)}")
     #     #     main_distributed(randomSeed, appArgs, runtime, arg, list(_dcpos), list(_ingpos))
 
-    # chay 1 truong hop
+    # run one case
     main_distributed(randomSeed, appArgs, runtime, arg, [1, 4, 6, 11], [5, 7, 9, 10])
