@@ -30,7 +30,7 @@ Require Python version >= 3.6
 * `SubstrateSelector`: contains the DC selection algorithm to set the SFC, the algorithms are implemented as Realizations of this class
 * `DataCentre`: represents each DC, consider whether the SFC can be put in, clear the SFC after the SFC TTL timeout
 
-## 4. Explaination
+<!-- ## 4. Explaination
 
 * You can run `main_distributed.py` or `main_centrlized.py` or another file with a similar structure
 
@@ -39,15 +39,15 @@ Require Python version >= 3.6
 sim.run(runtime)
 ```
 
-* 
+*  -->
 
-## 6. Customization
-
-## 7. Contributor
+<!-- ## 4. Customization -->
 
 
 
-Hướng dẫn chạy công cụ mô phỏng:
+
+
+<!-- Hướng dẫn chạy công cụ mô phỏng:
 
 tạo file có cấu trúc giống như file main.py, cấu hình tuỳ ý:
     + selector: bộ chọn server, triển khai thuật toán VNF mapping tại đây, mỗi thuật toán tương ứng với một class trong file sim/Selector.py
@@ -62,4 +62,4 @@ trong hàm main, cấu hình các thông số:
     + demand_VNF: tài nguyên CPU yêu cầu của mỗi VNF
     + bw: khoảng băng thông yêu cầu của mỗi SFC
     + runtime: thời gian chạy mô phỏng, tinh bằng phút
-    + appArgs: các thông số phụ của app
+    + appArgs: các thông số phụ của app -->
