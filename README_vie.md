@@ -1,13 +1,14 @@
-﻿# Cloud Resource Allocation Simulator
+# Cloud Resource Allocation Simulator
 
-## 1. Introduction
+## 1. Giới thiệu
 
-This is a Event-based Simulator for Cloud Resource Allocation Problem we researched in this Paper: [Service Function Chain Embedding in Centralized and Distributed Data Centers – a
-Comparison]()
+Đây là công cụ mô phỏng dạng Event-based cho bài toán Cấp phát tài nguyên trong hệ thống Điện toán Biên - Đám mây.
 
-## 2. Installation
+Công cụ được sử dụng trong Paper [Service Function Chain Embedding in Centralized and Distributed Data Centers – a Comparison]()
 
-This Simulator is developed in Python Programming Language, using these Libraries:
+## 2. Yêu cầu
+
+Simulator được phát triển bằng ngôn ngữ Python. Các thư viện cần thiết:
 
 * networkx
 * simpy
